@@ -80,7 +80,12 @@ FocusScope {
         Accessible.name: "Buscar produto por código, nome ou grupo"
         Accessible.description: "Digite para filtrar. Use as setas e Enter para selecionar uma sugestão. Esc fecha as sugestões."
         onTextEdited: {
-            const typed = text;
+            // The controller and suggestion index accept at most 200 search
+            // characters. Limit edits without truncating a selected product's
+            // full label, which is also shown in this field.
+            const typed = text.match(/^[\s\S]{0,200}/u)[0];
+            if (text !== typed)
+                text = typed;
             if (field.selectedCode)
                 inventory.setFilter("product", "");
             inventory.setFilter("search", typed);

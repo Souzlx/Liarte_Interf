@@ -113,6 +113,17 @@ class InventoryMathTests(unittest.TestCase):
         self.assertTrue(months["2026-04"]["partial"])
         self.assertFalse(months["2026-03"]["partial"])
 
+    def test_future_sales_months_are_unobserved_instead_of_zero(self):
+        result = analyze_inventory(sample(), StockSelection("2026-03", "2026-06", product="0001"))
+        months = {p["period"]: p for p in result.sales_months}
+        self.assertEqual(months["2026-03"]["quantity"], 30 * SCALE)
+        self.assertEqual(months["2026-04"]["quantity"], 0)
+        self.assertTrue(months["2026-04"]["partial"])
+        for period in ("2026-05", "2026-06"):
+            with self.subTest(period=period):
+                self.assertIsNone(months[period]["quantity"])
+                self.assertTrue(months[period]["partial"])
+
     def test_ranking_share_has_the_same_denominator_and_order_as_abc(self):
         result = analyze_inventory(sample(), selection())
         self.assertAlmostEqual(sum(p["shareValue"] for p in result.ranking), 100)
@@ -299,6 +310,34 @@ class InventoryFileTests(unittest.TestCase):
         ):
             with self.subTest(data=data), self.assertRaises(ValueError):
                 validate_data(data)
+
+    def test_duplicate_daily_sales_are_rejected_in_snapshots_and_preserve_previous_base(self):
+        data = sample()
+        duplicated = replace(data, sales=data.sales + (data.sales[0],))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "base.liarte"
+            write_snapshot(data, path)
+            before = path.read_bytes()
+            with self.assertRaisesRegex(ValueError, "Vendas duplicadas"):
+                write_snapshot(duplicated, path)
+            self.assertEqual(path.read_bytes(), before)
+            self.assertEqual(list(Path(directory).glob("*.tmp")), [])
+
+            # A portable file can have been produced outside our writer.
+            payload = json.loads(gzip.decompress(before))
+            payload["sales"].append(payload["sales"][0])
+            path.write_bytes(gzip.compress(json.dumps(payload).encode("utf-8")))
+            with self.assertRaisesRegex(ValueError, "Vendas duplicadas"):
+                read_snapshot(path)
+
+    def test_daily_sales_from_different_branches_or_units_remain_distinct(self):
+        data = sample()
+        first = data.sales[0]
+        data = replace(
+            data,
+            sales=data.sales + (replace(first, branch="02"), replace(first, unit="L")),
+        )
+        self.assertIs(validate_data(data), data)
 
     def test_negative_source_ratios_are_preserved_instead_of_silently_changed(self):
         data = replace(

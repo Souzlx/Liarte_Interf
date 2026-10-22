@@ -57,6 +57,7 @@ def main():
     )
 
     from tests.test_inventory import InventoryMathTests, InventoryFileTests, InventoryUiTests
+    from tests.test_ui_regressions import InventorySearchRegressionTests
     from tests.test_comex_access import ComexAccessTests, ComexCentralTests, ComexConnectionUiTests
     from tests.test_comex_automatic import AutomaticAccessTests, AutomaticAccessUiTests
     from tests.test_comex_open_data import OpenDataTests, SourceFallbackTests
@@ -83,6 +84,7 @@ def main():
         InventoryMathTests,
         InventoryFileTests,
         InventoryUiTests,
+        InventorySearchRegressionTests,
         PowerBiTests,
         CoreTests,
         QtTests,

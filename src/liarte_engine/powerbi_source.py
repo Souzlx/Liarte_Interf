@@ -18,7 +18,15 @@ INT_MAX = 2**63 - 1
 
 
 def period(value, start, end):
-    text = str(value).strip().split(".", 1)[0]
+    if isinstance(value, (Decimal, int, float)) and not isinstance(value, bool):
+        month = value if isinstance(value, Decimal) else Decimal(str(value))
+        if not month.is_finite() or month != month.to_integral_value():
+            raise ValueError("Mês numérico deve ser inteiro.")
+        if not 1 <= month <= 12:
+            raise ValueError("Mês inválido ou fora do período do relatório.")
+        text = str(int(month))
+    else:
+        text = str(value).strip().split(".", 1)[0]
     if re.fullmatch(r"\d{1,2}", text):
         if start[:4] != end[:4]:
             raise ValueError("Mês sem ano em período de vários anos.")

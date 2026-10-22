@@ -428,7 +428,6 @@ def _base_query(municipal=False):
     money = ["US$ FOB"] if municipal else ["US$ FOB", "US$ Frete", "US$ Seguro", "Valor US$ CIF"]
     texts = (
         [
-            "Mês",
             "Município fiscal",
             "UF do Município",
             "Descrição SH4",
@@ -437,7 +436,7 @@ def _base_query(municipal=False):
             "NCMs relacionados",
         ]
         if municipal
-        else ["Mês", "Descrição NCM", "UF do Produto", "URF", "Países", "Produtos relacionados"]
+        else ["Descrição NCM", "UF do Produto", "URF", "Países", "Produtos relacionados"]
     )
     transforms = [
         "{" + mtext(c) + ", each Currency.From(fxNumero(_)), Currency.Type}" for c in money
@@ -447,6 +446,7 @@ def _base_query(municipal=False):
         for c in texts
     ]
     transforms += [
+        '{"Mês", each if Value.Is(_, type number) and (Number.IsNaN(_) or _ = #infinity or _ = -#infinity or Number.RoundDown(_) <> _) then error "Mês numérico deve ser inteiro." else if _ = null then "" else Text.Trim(Text.From(_, "en-US")), type text}',
         "{" + mtext(code_col) + f", each fxCodigo(_, {size}), type text}}",
         '{"Quilograma Líquido", each let n = fxNumero(_) in if Number.RoundDown(n) <> n then error "Peso fracionário incompatível." else Int64.From(n), Int64.Type}',
     ]
