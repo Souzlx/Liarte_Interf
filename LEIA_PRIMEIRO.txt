@@ -1,0 +1,136 @@
+LIARTE — 5.2.0-rc.9
+Importações e Estoque na mesma plataforma nativa
+
+COMECE AQUI
+1. Extraia TODO o ZIP em uma pasta própria, preservando a versão anterior.
+2. Na máquina da TI, use CPython 3.11–3.14 padrão de 64 bits, com Tkinter.
+3. Abra INICIAR_DESKTOP.cmd com dois cliques. A primeira preparação usa internet.
+4. Em Início, abra Estoque. A base da empresa já abre automaticamente.
+5. Para atualizar os dados, use Atualizar base e selecione o novo PBIX com dados
+   ou uma base .liarte. Não é necessário selecionar arquivos na primeira utilização.
+
+A base incluída foi extraída do PBIX enviado e reflete a data 21/10/2026.
+Não é uma conexão ao vivo com o Protheus. O aplicativo guarda a última base válida
+na pasta local de dados da LIARTE e a retoma ao entrar em Estoque novamente.
+
+ESTOQUE
+- Estoque a custo, quantidade por unidade e produtos com saldo.
+- Giro mensal informado pelo BI, última venda e cobertura por vendas.
+- Evolução de fechamentos, maiores produtos a custo e capital por última venda.
+- Curva ABC, média de vendas, desvio padrão e coeficiente de variação.
+- Filtros por produto, filial, armazém, unidade, grupo, tipo, ABC, atividade e saldo.
+- Busca com sugestões por código/nome/grupo, sem diferenciar acentos.
+  Digite para filtrar; use seta para baixo + Enter para selecionar um produto.
+  Esc fecha as sugestões e o botão × limpa a busca.
+- Gráficos com linhas/colunas, média móvel opcional, valores e escalas identificadas.
+  O ranking mostra custo e participação. A variação mensal não pula meses ausentes.
+- Detalhe do produto com séries de vendas e giro. Duplo clique ou Enter abre o detalhe.
+- Excel do recorte, com unidades e critérios de cálculo explícitos.
+- Cancelamento de tarefas e publicação atômica de bases e arquivos.
+
+Os saldos atuais não são recalculados para uma data passada. O período filtra
+vendas e histórico. Quantidades de unidades diferentes não são somadas. A cobertura
+usa vendas da filial inteira e fica indisponível com filtro de armazém; não representa
+consumo interno. Giro/dias originais do BI são preservados, inclusive valores atípicos.
+Veja docs/ESTOQUE_520.md para critérios e uso.
+
+IMPORTAÇÕES — API DIRETA, INDEPENDENTE
+Cada instalação consulta diretamente a API oficial do Comex Stat. Não depende de
+central, servidor na empresa, pareamento ou arquivo de conexão. Configurações
+antigas de central e cache ficam preservadas, mas não são usadas neste modo.
+
+O transporte do desktop foi reescrito em liarte_core/comex_api.py. Consultar
+solicita todo o cadastro e período em uma chamada geral e outra municipal.
+A conexão não depende do cliente legado, de central ou de cache de respostas.
+Não há metadados prévios, consultas extras de totais ou espera preventiva fixa.
+
+Se a fonte pedir uma pausa curta, há somente uma recuperação do mesmo pedido,
+com contagem regressiva visível e cancelamento. Retry-After tem prioridade;
+sem esse cabeçalho, usa-se o prazo da mensagem do MDIC. Sem prazo informado,
+o recuo é de 30 segundos. O orçamento automático de espera é de 45 segundos.
+Prazos maiores são preservados e informados, sem aguardar minutos na interface.
+Uma segunda recusa encerra a operação. Não há tentativas infinitas.
+
+Respostas gzip são aceitas e verificadas. Números decimais do JSON são lidos
+sem conversão intermediária para ponto flutuante. Estrutura, códigos, meses,
+duplicidades, valores e CIF = FOB + frete + seguro são conferidos localmente.
+Nenhuma consulta independente de totais é feita no fluxo normal.
+
+Filtros, gráficos, busca, paginação, troca de base e os três geradores usam o
+resultado já carregado. Uma falha preserva o último resultado completo.
+Verificar fonte continua opcional e separado da consulta.
+
+O controle de acesso do novo transporte guarda somente uma pausa real da fonte
+em acesso_api.json; falhas também têm diagnóstico local. Uma pausa ainda vigente de versão anterior é preservada
+na atualização; intervalos preventivos e respostas antigas não são importados.
+Uma instalação não depende de arquivos de conexão ou servidores de outra.
+
+HTTP 429 é uma recusa da API. O código melhora a recuperação e evita esperas
+indevidas, mas não pode garantir a disponibilidade de um serviço externo.
+O teste real de janeiro a setembro de 2026, com os 35 NCMs do cadastro, concluiu
+em 24,796 segundos, com duas respostas 200: 7.789 linhas gerais e 46.074 municipais.
+Esse ensaio Linux não é homologação da rede Windows da empresa.
+
+O modo direto não utiliza downloads CSV ou uma central como alternativa.
+A conferência HTTPS do Windows continua ativa. Não se desativa a segurança TLS.
+
+ATUALIZAR ESTA ENTREGA
+Feche a versão anterior e qualquer janela antiga da central, extraia todo o ZIP
+em uma pasta nova e abra INICIAR_DESKTOP.cmd com dois cliques. Aguarde o assistente.
+Depois, selecione o período e consulte normalmente. Não configure uma central.
+Um atalho de um executável antigo não é atualizado apenas por extrair este ZIP.
+Este pacote contém fontes e assistentes; não contém um Setup Windows compilado.
+
+VALIDAÇÃO
+Os testes verificam uso exclusivo da API pelo modo direto, consultas novas no
+mesmo período, independência das instalações, precisão, interrupções e os três
+geradores. Os ensaios Qt em Linux não substituem a validação do Windows da empresa.
+Consulte o escopo e o resultado do teste externo no arquivo de evidências.
+Guia atual: docs/NOVO_CLIENTE_API_520_RC9.md.
+Resultados atuais: docs/EVIDENCIAS_NOVO_CLIENTE_API_520_RC9.json.
+
+Geral: NCM/CIF. Municipal: domicílio fiscal/SH4/FOB, com outro universo de produtos.
+Não some as duas bases nem trate linhas agregadas como pedidos individuais.
+Excel/BI incluem o período completo, independentemente dos filtros da tela.
+PDF mantém filtros/busca, nomes comerciais, UF em siglas, países/portos por nome,
+logo, A4 com cabeçalhos repetidos, acima de 1.000 kg e sem aeroportos.
+A coluna E municipal permanece com largura 64 e as células centralizadas verticalmente.
+
+NAVEGAÇÃO
+Ctrl+1: Início. Ctrl+2: Importações. Ctrl+3: Estoque.
+Ctrl+F: busca do módulo visível. Ctrl+Q: sair, com proteção de tarefas em andamento.
+Alternar módulos mantém as consultas, modelos e filtros abertos.
+Tema, movimento reduzido e tabela compacta continuam compartilhados.
+Em Preferências, escolha Início, Importações, Estoque ou última tela ao abrir.
+Crédito permanece como módulo planejado.
+
+INSTALAÇÃO E DISTRIBUIÇÃO
+Este ZIP contém fontes, testes, base de estoque e assistentes; não contém um Setup
+Windows já compilado. Abra INICIAR_DESKTOP.cmd na nova pasta para testar os fontes.
+Um atalho para um executável antigo só abrirá a nova versão após recompilar e
+instalar o Setup atualizado. A TI compila o Setup no Windows pelo fluxo existente, incluindo
+Python e dependências para os demais usuários. Veja docs/INSTALACAO_510.md.
+A identidade da instalação, atalhos, pastas e preferências foi preservada.
+A base de estoque faz parte dos recursos do programa e do pacote compilado.
+A última base válida importada pelo usuário tem preferência nas atualizações.
+Se a cópia local estiver inválida, o sistema recupera a base integrada, registrando o problema.
+O PBIX original e os seus dados de clientes, pedidos e contas não são incluídos.
+
+VERIFICAÇÃO
+Acessos e testes atuais: docs/EVIDENCIAS_API_DIRETA_520_RC7.json.
+Conservação das regras e dados: docs/PRESERVACAO_API_DIRETA_520_RC7.json.
+Resultados anteriores de estoque: docs/EVIDENCIAS_ESTOQUE_520_RC2.json.
+Conciliação com o PBIX: docs/CONCILIACAO_ESTOQUE_520_RC2.json.
+Critérios e funcionamento: docs/ESTOQUE_520.md.
+Os testes Qt offscreen em Linux não substituem a homologação do Setup, Shell, DPI/GPU
+no Windows. Exemplos e evidências anteriores de Importações são históricos.
+
+ESTRUTURA
+src/       Plataforma, domínio, módulos e geradores.
+tests/     Regressões offline com dados sintéticos e capturas identificadas.
+docs/      Critérios, instruções e evidências da entrega e revisões anteriores.
+exemplos/  Documentos de Importações preservados.
+
+O acesso às importações é direto à API. Não há dependência de central ou servidor de ERP.
+Usuários/permissões corporativas e conector de produção ao Protheus continuam como
+etapas posteriores. Não há login ou integração corporativa simulada.
