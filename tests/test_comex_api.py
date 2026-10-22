@@ -126,6 +126,56 @@ class NativeApiTests(unittest.TestCase):
             self.load()
         self.assertIs(self.provider.snapshot, first)
 
+    def test_non_text_general_labels_never_replace_the_last_valid_snapshot(self):
+        first = self.load()
+        for field in ("ncm", "state", "urf", "country"):
+            row = self.transport.general[0]
+            original = row[field]
+            for value in ({"name": "China"}, ["China"], True, 105):
+                with self.subTest(field=field, value=value):
+                    row[field] = value
+                    with self.assertRaisesRegex(ComexError, field):
+                        self.load()
+                    self.assertIs(self.provider.snapshot, first)
+            row[field] = original
+
+    def test_non_text_municipal_labels_never_replace_the_last_valid_snapshot(self):
+        first = self.load()
+        for field in ("noMunMinsgUf", "state", "heading", "country"):
+            row = self.transport.municipal[0]
+            original = row[field]
+            for value in ({"name": "China"}, ["China"], False, 105):
+                with self.subTest(field=field, value=value):
+                    row[field] = value
+                    with self.assertRaisesRegex(ComexError, field):
+                        self.load()
+                    self.assertIs(self.provider.snapshot, first)
+            row[field] = original
+
+    def test_malformed_numeric_strings_never_replace_the_last_valid_snapshot(self):
+        first = self.load()
+        for kind, fields in (
+            ("general", legacy.DEFAULT_METRICS),
+            ("municipal", legacy.MUNICIPAL_METRICS),
+        ):
+            row = getattr(self.transport, kind)[0]
+            for field in fields:
+                original = row[field]
+                for value in ("1_000", "1__2", "١٢"):
+                    with self.subTest(kind=kind, field=field, value=value):
+                        row[field] = value
+                        with self.assertRaisesRegex(ComexError, field):
+                            self.load()
+                        self.assertIs(self.provider.snapshot, first)
+                row[field] = original
+
+    def test_supported_official_numeric_forms_keep_exact_units(self):
+        for value in (1234, 1234.0, Decimal("1234.00"), "1.234e3", "+1234.00", "001234.00"):
+            with self.subTest(value=value):
+                self.assertEqual(legacy.validate_metric(value, "metricFOB", "teste"), 123400)
+                self.assertEqual(legacy.validate_metric(value, "metricKG", "teste"), 1234)
+        self.assertEqual(legacy.validate_metric("1e-2", "metricFOB", "teste"), 1)
+
     def test_invalid_cif_and_conflicting_duplicates_are_rejected_by_new_client(self):
         first = self.load()
         self.transport.general[0]["metricCIF"] = "0.01"

@@ -478,7 +478,9 @@ def analyze_inventory(data: InventoryData, selected: StockSelection) -> StockAna
         {
             "period": p,
             "unit": unit,
-            "quantity": month_totals[p].get(unit, 0) if month_end(p) >= sales_begin else None,
+            "quantity": month_totals[p].get(unit, 0)
+            if month_end(p) >= sales_begin and date.fromisoformat(p + "-01") <= end
+            else None,
             "partial": date.fromisoformat(p + "-01") < sales_begin or month_end(p) > data.as_of,
         }
         for p in periods

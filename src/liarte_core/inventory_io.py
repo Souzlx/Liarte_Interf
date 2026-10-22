@@ -106,6 +106,7 @@ def validate_data(data: InventoryData, cancel: Event | None = None) -> Inventory
         if key in seen:
             raise ValueError("Saldos duplicados na mesma posição de estoque.")
         seen.add(key)
+    seen_sales = set()
     for sale in data.sales:
         checkpoint(cancel)
         for value in (sale.product, sale.branch, sale.unit):
@@ -116,6 +117,10 @@ def validate_data(data: InventoryData, cancel: Event | None = None) -> Inventory
         _integer(sale.cost)
         if sale.had_positive is not None and type(sale.had_positive) is not bool:
             raise ValueError("Sinal de venda positiva inválido na base.")
+        key = (sale.product, sale.branch, sale.unit, sale.day)
+        if key in seen_sales:
+            raise ValueError("Vendas duplicadas no mesmo dia, produto, filial e unidade.")
+        seen_sales.add(key)
     for entries in (data.branches, data.warehouses):
         if len({k for k, _ in entries}) != len(entries):
             raise ValueError("Dimensão de local duplicada.")

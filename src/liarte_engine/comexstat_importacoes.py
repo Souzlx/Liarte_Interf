@@ -1428,6 +1428,10 @@ def validate_api_row(
             f"A API retornou um CIF divergente de FOB + frete + seguro em {context}."
         )
     for field in ("ncm", "state", "urf", "country"):
+        if not isinstance(row.get(field), str):
+            raise ComexStatError(
+                f"A API retornou o campo {field} com formato inválido em {context}."
+            )
         if not clean_text(row.get(field)):
             raise ComexStatError(f"A API retornou o campo {field} vazio em {context}.")
 
@@ -1515,7 +1519,11 @@ def validate_municipal_api_row(
         )
     for field in MUNICIPAL_METRICS:
         validate_metric(row[field], field, context)
-    for field in ("state", "heading", "country"):
+    for field in ("noMunMinsgUf", "state", "heading", "country"):
+        if not isinstance(row.get(field), str):
+            raise ComexStatError(
+                f"A API municipal retornou o campo {field} com formato inválido em {context}."
+            )
         if not clean_text(row.get(field)):
             raise ComexStatError(
                 f"A API municipal retornou o campo {field} vazio em {context}."

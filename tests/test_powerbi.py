@@ -184,6 +184,40 @@ class PowerBiTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 period(value, start, end)
 
+    def test_fractional_numeric_months_are_rejected_without_replacing_package(self):
+        self.output.write_bytes(b"previous package")
+        for sheet in ("Base geral", "Base municipal"):
+            with self.subTest(sheet=sheet):
+                self.change(sheet, "A2", 1.5)
+                with self.assertRaisesRegex(bi.PowerBIProjectError, "Mês numérico"):
+                    self.generate()
+                self.assertEqual(self.output.read_bytes(), b"previous package")
+                self.change(sheet, "A2", "03" if sheet == "Base municipal" else "01")
+
+    def test_integer_numeric_months_and_named_labels_keep_their_period(self):
+        for value in (1, 1.0, Decimal("1"), Decimal("1.0"), Decimal("1E+0"), "01. Janeiro"):
+            with self.subTest(value=value):
+                self.assertEqual(period(value, "2026-01", "2026-03"), "2026-01")
+        self.assertEqual(period(Decimal("1E+1"), "2026-01", "2026-12"), "2026-10")
+        self.change("Base geral", "A2", 1)
+        self.assertEqual(self.audit()["general"]["monthly"]["2026-01"]["fob_cents"], 100000)
+
+    def test_invalid_numeric_months_are_rejected_before_integer_conversion(self):
+        for value in (
+            1.5, Decimal("1.5"), Decimal("1E+1000000"),
+            Decimal("NaN"), float("inf"), 0, 13, True,
+        ):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                period(value, "2026-01", "2026-12")
+
+    def test_generated_queries_reject_fractional_months_before_text_conversion(self):
+        expressions = {
+            name: source for name, source, _ in semantic.expressions("2026-01", "2026-03")
+        }
+        for name in ("BaseGeral", "BaseMunicipal"):
+            self.assertIn('error "Mês numérico deve ser inteiro."', expressions[name])
+            self.assertIn('Text.From(_, "en-US")', expressions[name])
+
     def test_10_empty_dataset_has_valid_zero_controls(self):
         book = load_workbook(self.excel)
         for name in ["Base geral", "Base municipal"]:

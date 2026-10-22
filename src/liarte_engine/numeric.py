@@ -1,6 +1,10 @@
 """Exact published units, independent of binary floats and ambient Decimal precision."""
 
 from decimal import Decimal, InvalidOperation
+import re
+
+
+_OFFICIAL_NUMBER = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
 
 
 def published_units(value, *, places=0):
@@ -12,7 +16,7 @@ def published_units(value, *, places=0):
     if isinstance(value, bool) or value is None or places not in (0, 2):
         raise ValueError("Métrica oficial ausente ou inválida.")
     text = str(value).strip()
-    if not text or len(text) > 256:
+    if not text or len(text) > 256 or _OFFICIAL_NUMBER.fullmatch(text) is None:
         raise ValueError("Métrica oficial inválida.")
     try:
         amount = Decimal(text)
