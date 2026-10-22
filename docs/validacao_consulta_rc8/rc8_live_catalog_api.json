@@ -1,0 +1,45 @@
+{
+  "version": "5.2.0-rc.8",
+  "started_at": "2026-10-22T18:13:01.595509+00:00",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "company_network": false,
+  "synthetic": false,
+  "period": {
+    "from": "2026-01",
+    "to": "2026-09"
+  },
+  "catalog_scope": "complete embedded LIARTE catalog; associated municipal SH4 positions",
+  "policy": {
+    "min_interval_seconds": 0,
+    "max_attempts": 1,
+    "deadline_seconds": 300,
+    "central": false,
+    "csv": false,
+    "persistent_query_cache": false
+  },
+  "status": "not_completed",
+  "causes": [
+    {
+      "type": "ComexError",
+      "message": "Consulta oficial não concluída: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.",
+      "observed_http_status": null
+    },
+    {
+      "type": "ComexRateLimitError",
+      "message": "Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.",
+      "observed_http_status": 429
+    }
+  ],
+  "complete_snapshot_published": false,
+  "seconds": 5.31,
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/general",
+      "started_after_seconds": 0.016,
+      "http_status": 429,
+      "retry_after": null
+    }
+  ]
+}

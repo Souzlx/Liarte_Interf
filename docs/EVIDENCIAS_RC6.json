@@ -1,0 +1,188 @@
+{
+  "version": "5.0.0-rc.6",
+  "date": "2026-10-19",
+  "status": "validated_locally_pending_windows_and_powerbi_desktop_acceptance",
+  "tests": {
+    "count": 285,
+    "includes_volume": 100000,
+    "status": "ok",
+    "log": "VALIDACAO_RC6.log",
+    "seconds": 53.517,
+    "executed_from": "fresh ZIP extraction"
+  },
+  "powerbi": {
+    "pages": 6,
+    "visual_containers": 85,
+    "measures": 54,
+    "tables": 11,
+    "relationships": 12,
+    "expressions": 11,
+    "pbir_official_cli": {
+      "version": "0.5.0",
+      "errors": 0,
+      "warnings": 0,
+      "reference_rc5_errors": 7,
+      "report": "PBIR_RC6.json"
+    },
+    "tom": {
+      "version": "19.118.3",
+      "runtime": ".NET 8.0.32",
+      "status": "ok",
+      "roundtrip": "ok",
+      "report": "TMDL_RC6.json"
+    },
+    "powerquery_parser": {
+      "version": "4.0.0",
+      "sources": 22,
+      "status": "ok",
+      "report": "POWERQUERY_RC6.json"
+    },
+    "dax_execution": false,
+    "m_refresh": false,
+    "desktop_render": false,
+    "desktop_acceptance_guide": "POWERBI_USO_RC6.md"
+  },
+  "reports": {
+    "qt_export": "DOCUMENTOS_RC6.json",
+    "source_controls": {
+      "version": 1,
+      "source": "IMPORTACAO_2026-07_2026-09.xlsx",
+      "sha256": "3b827dc24a7346ef8c48df6c63e6130e93ac35da82cf4c398d18c906e5b51c13",
+      "period": {
+        "start": "2026-07",
+        "end": "2026-09"
+      },
+      "money_unit": "US$ centavos inteiros",
+      "weight_unit": "kg inteiros",
+      "catalog": {
+        "relations": 54,
+        "ncms": 35,
+        "products": 54
+      },
+      "general": {
+        "totals": {
+          "rows": 2723,
+          "zero_weight_rows": 161,
+          "kg": 449831836,
+          "fob_cents": 85160558200,
+          "freight_cents": 5625615200,
+          "insurance_cents": 41540200,
+          "cif_cents": 90827713600
+        },
+        "monthly": {
+          "2026-07": {
+            "rows": 916,
+            "zero_weight_rows": 48,
+            "kg": 158502652,
+            "fob_cents": 28520236000,
+            "freight_cents": 1873564900,
+            "insurance_cents": 13256900,
+            "cif_cents": 30407057800
+          },
+          "2026-08": {
+            "rows": 887,
+            "zero_weight_rows": 58,
+            "kg": 143191704,
+            "fob_cents": 28324116200,
+            "freight_cents": 1794087500,
+            "insurance_cents": 14087200,
+            "cif_cents": 30132290900
+          },
+          "2026-09": {
+            "rows": 920,
+            "zero_weight_rows": 55,
+            "kg": 148137480,
+            "fob_cents": 28316206000,
+            "freight_cents": 1957962800,
+            "insurance_cents": 14196100,
+            "cif_cents": 30288364900
+          }
+        }
+      },
+      "municipal": {
+        "totals": {
+          "rows": 16065,
+          "zero_weight_rows": 804,
+          "kg": 7966304862,
+          "fob_cents": 908543099500
+        },
+        "monthly": {
+          "2026-07": {
+            "rows": 5499,
+            "zero_weight_rows": 232,
+            "kg": 2911024614,
+            "fob_cents": 304044808800
+          },
+          "2026-08": {
+            "rows": 5260,
+            "zero_weight_rows": 277,
+            "kg": 2514044490,
+            "fob_cents": 292955708100
+          },
+          "2026-09": {
+            "rows": 5306,
+            "zero_weight_rows": 295,
+            "kg": 2541235758,
+            "fob_cents": 311542582600
+          }
+        }
+      }
+    },
+    "arithmetic_oracle": "ANALISES_SQL_RC6.json",
+    "preservation": "PRESERVACAO_RC6.json"
+  },
+  "frozen_linux": {
+    "status": "ok",
+    "version": "5.0.0-rc.6",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": true,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  },
+  "preserved": {
+    "native_qt_ui": true,
+    "comex_extraction_function_ast": true,
+    "pdf_function_ast": true,
+    "excel_values_formats_alignment": 253359,
+    "municipal_column_E": 64,
+    "commercial_names": 36,
+    "catalog_ncms": 35,
+    "catalog_relations": 54,
+    "source_files_byte_identical": 44,
+    "windows_installation_flow": true
+  },
+  "provenance": {
+    "base_release": "5.0.0-rc.5",
+    "base_zip_sha256": "dd03ff727801ddd38f6ba64c97621e5bc5e0871e328430d13a7144727cc7e31d",
+    "capture_sha256": "6ce170cbd27f07dd657cc12e2cce08de1325008cb31d4e4a4132ccdbb70e93b1",
+    "capture": "Previously reconciled official July-September 2026 snapshot; offline replay only; no new API reconciliation."
+  },
+  "limits": [
+    "No Windows EXE/Setup compiled in this package.",
+    "Windows installation, Shell and hardware acceptance still required.",
+    "DAX execution, M refresh and report rendering require Power BI Desktop; not performed here.",
+    "SQL/Decimal verifies source and mathematical references; it does not execute DAX.",
+    "QA Node/.NET/pythonnet are not application dependencies."
+  ]
+}

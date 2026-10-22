@@ -1,0 +1,152 @@
+test_304_requires_verified_existing_file (tests.test_comex_open_data.OpenDataTests.test_304_requires_verified_existing_file) ... ok
+test_absent_freight_is_not_silently_zero (tests.test_comex_open_data.OpenDataTests.test_absent_freight_is_not_silently_zero) ... ok
+test_cached_different_months_and_controls_do_not_redownload (tests.test_comex_open_data.OpenDataTests.test_cached_different_months_and_controls_do_not_redownload) ... ok
+test_cancelled_download_never_publishes_partial (tests.test_comex_open_data.OpenDataTests.test_cancelled_download_never_publishes_partial) ... ok
+test_changed_publication_invalid_dates_rejected (tests.test_comex_open_data.OpenDataTests.test_changed_publication_invalid_dates_rejected) ... ok
+test_corrupted_index_is_rebuilt_from_verified_source (tests.test_comex_open_data.OpenDataTests.test_corrupted_index_is_rebuilt_from_verified_source) ... ok
+test_corrupted_raw_file_is_not_trusted_after_restart (tests.test_comex_open_data.OpenDataTests.test_corrupted_raw_file_is_not_trusted_after_restart) ... ok
+test_download_limit_and_redirect_are_enforced (tests.test_comex_open_data.OpenDataTests.test_download_limit_and_redirect_are_enforced) ... ok
+test_download_lock_is_released_by_os_after_crash (tests.test_comex_open_data.OpenDataTests.test_download_lock_is_released_by_os_after_crash) ... ok
+test_file_server_failure_is_cooled_down_without_more_requests (tests.test_comex_open_data.OpenDataTests.test_file_server_failure_is_cooled_down_without_more_requests) ... ok
+test_file_server_retry_after_longer_than_an_hour_is_preserved (tests.test_comex_open_data.OpenDataTests.test_file_server_retry_after_longer_than_an_hour_is_preserved) ... ok
+test_forced_refresh_revalidates_all_inputs (tests.test_comex_open_data.OpenDataTests.test_forced_refresh_revalidates_all_inputs) ... ok
+test_full_catalog_nine_months_exact_and_dimensions_preserved (tests.test_comex_open_data.OpenDataTests.test_full_catalog_nine_months_exact_and_dimensions_preserved) ... ok
+test_independent_raw_controls_equal_detailed_sums (tests.test_comex_open_data.OpenDataTests.test_independent_raw_controls_equal_detailed_sums) ... ok
+test_latin1_accent_after_long_ascii_prefix_is_decoded_correctly (tests.test_comex_open_data.OpenDataTests.test_latin1_accent_after_long_ascii_prefix_is_decoded_correctly) ... ok
+test_missing_unselected_month_is_detected (tests.test_comex_open_data.OpenDataTests.test_missing_unselected_month_is_detected) ... ok
+test_municipal_availability_does_not_assume_general_coverage (tests.test_comex_open_data.OpenDataTests.test_municipal_availability_does_not_assume_general_coverage) ... ok
+test_municipal_is_full_heading_not_selected_ncm_and_has_no_cif (tests.test_comex_open_data.OpenDataTests.test_municipal_is_full_heading_not_selected_ncm_and_has_no_cif) ... ok
+test_national_totals_include_products_outside_catalog (tests.test_comex_open_data.OpenDataTests.test_national_totals_include_products_outside_catalog) ... ok
+test_non_integral_or_negative_published_units_are_rejected (tests.test_comex_open_data.OpenDataTests.test_non_integral_or_negative_published_units_are_rejected) ... ok
+test_publication_change_revalidates_annual_file_references_and_controls (tests.test_comex_open_data.OpenDataTests.test_publication_change_revalidates_annual_file_references_and_controls) ... ok
+test_publication_metadata_parses_current_official_format (tests.test_comex_open_data.OpenDataTests.test_publication_metadata_parses_current_official_format) ... ok
+test_redirect_is_refused_before_contacting_another_host (tests.test_comex_open_data.OpenDataTests.test_redirect_is_refused_before_contacting_another_host) ... ok
+test_ten_download_clients_obtain_same_file_once (tests.test_comex_open_data.OpenDataTests.test_ten_download_clients_obtain_same_file_once) ... ok
+test_truncated_csv_row_is_rejected (tests.test_comex_open_data.OpenDataTests.test_truncated_csv_row_is_rejected) ... ok
+test_truncated_download_preserves_prior_file (tests.test_comex_open_data.OpenDataTests.test_truncated_download_preserves_prior_file) ... ok
+test_unknown_reference_is_rejected (tests.test_comex_open_data.OpenDataTests.test_unknown_reference_is_rejected) ... ok
+test_utf8_sample_boundary_does_not_switch_to_latin1 (tests.test_comex_open_data.OpenDataTests.test_utf8_sample_boundary_does_not_switch_to_latin1) ... ok
+test_wrong_year_is_rejected (tests.test_comex_open_data.OpenDataTests.test_wrong_year_is_rejected) ... ok
+test_both_unavailable_does_not_retry_or_ignore_api_pause (tests.test_comex_open_data.SourceFallbackTests.test_both_unavailable_does_not_retry_or_ignore_api_pause) ... Arquivos MDIC indisponíveis: Não foi possível obter o arquivo oficial NCM.csv.
+ok
+test_files_can_be_read_during_api_cooldown (tests.test_comex_open_data.SourceFallbackTests.test_files_can_be_read_during_api_cooldown) ... ok
+test_new_source_exports_excel_pdf_and_powerbi_with_preserved_scope (tests.test_comex_open_data.SourceFallbackTests.test_new_source_exports_excel_pdf_and_powerbi_with_preserved_scope) ... Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+ok
+test_one_api_attempt_if_file_server_is_unavailable (tests.test_comex_open_data.SourceFallbackTests.test_one_api_attempt_if_file_server_is_unavailable) ... Arquivos MDIC indisponíveis: Não foi possível obter o arquivo oficial NCM.csv.
+ok
+test_successful_files_do_not_use_api (tests.test_comex_open_data.SourceFallbackTests.test_successful_files_do_not_use_api) ... ok
+test_ten_users_share_one_annual_download_and_keep_exact_results (tests.test_comex_open_data.SourceFallbackTests.test_ten_users_share_one_annual_download_and_keep_exact_results) ... Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Task queue depth is 1
+Task queue depth is 2
+Task queue depth is 3
+Task queue depth is 4
+Task queue depth is 5
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Task queue depth is 4
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+ok
+test_verification_script_uses_valid_contract_and_always_closes_provider (tests.test_comex_open_data.SourceFallbackTests.test_verification_script_uses_valid_contract_and_always_closes_provider) ...   3% Conferindo cobertura e cache do período
+  5% Conferindo os dados locais de 2026-01
+  5% Conferindo os dados locais de 2026-02
+  5% Conferindo os dados locais de 2026-03
+  5% Conferindo os dados locais de 2026-04
+  5% Conferindo os dados locais de 2026-05
+  5% Conferindo os dados locais de 2026-06
+  5% Conferindo os dados locais de 2026-07
+  5% Conferindo os dados locais de 2026-08
+  5% Conferindo os dados locais de 2026-09
+  5% Consultando dados gerais: lote 1/1 · 2026-01 a 2026-09
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+  5% Obtendo arquivo oficial NCM.csv
+  5% Obtendo NCM.csv · 0.0 MB
+  5% Obtendo arquivo oficial NCM_SH.csv
+  5% Obtendo NCM_SH.csv · 0.0 MB
+  5% Obtendo arquivo oficial PAIS.csv
+  5% Obtendo PAIS.csv · 0.0 MB
+  5% Obtendo arquivo oficial UF_MUN.csv
+  5% Obtendo UF_MUN.csv · 0.0 MB
+  5% Obtendo arquivo oficial URF.csv
+  5% Obtendo URF.csv · 0.0 MB
+  5% Obtendo arquivo oficial IMP_2026.csv
+  5% Obtendo IMP_2026.csv · 0.0 MB
+  5% Conferindo IMP_2026.csv · 0 registros
+  5% Conferindo os totais oficiais por mês e produto
+ 47% Dados oficiais de 2026-01 a 2026-09 recebidos e validados
+ 48% Conferindo os dados locais de 2026-01
+ 48% Conferindo os dados locais de 2026-02
+ 48% Conferindo os dados locais de 2026-03
+ 48% Conferindo os dados locais de 2026-04
+ 48% Conferindo os dados locais de 2026-05
+ 48% Conferindo os dados locais de 2026-06
+ 48% Conferindo os dados locais de 2026-07
+ 48% Conferindo os dados locais de 2026-08
+ 48% Conferindo os dados locais de 2026-09
+ 48% Consultando municípios: lote 1/1 · 2026-01 a 2026-09
+Consultando municípios 1/1 (19 posições SH4; 2026-01 a 2026-09)...
+  5% Obtendo arquivo oficial IMP_2026_MUN.csv
+  5% Obtendo IMP_2026_MUN.csv · 0.0 MB
+  5% Conferindo IMP_2026_MUN.csv · 0 registros
+ 48% Conferindo os totais oficiais por mês e produto
+ 80% Dados oficiais de 2026-01 a 2026-09 recebidos e validados
+ 90% Aplicando período e filtros
+ 97% Ordenando os registros da tabela
+ 98% Preparando a página da tabela
+100% Análise pronta
+ok
+
+----------------------------------------------------------------------
+Ran 36 tests in 7.469s
+
+OK
+{
+  "status": "ok",
+  "synthetic": false,
+  "checked_at": "2026-10-22T13:02:28+00:00",
+  "period": {
+    "from": "2026-01",
+    "to": "2026-09"
+  },
+  "published_until": "2026-09",
+  "source_updated": "2026-10-06",
+  "municipal_updated": "2026-10-06",
+  "ncm_count": 35,
+  "sh4_count": 19,
+  "general_rows": 315,
+  "municipal_rows": 171,
+  "general_control": {
+    "metricFOB": 6615000,
+    "metricFreight": 441000,
+    "metricInsurance": 126000,
+    "metricCIF": 7182000,
+    "metricKG": 640710
+  },
+  "municipal_control": {
+    "metricFOB": 102600000,
+    "metricKG": 855000
+  },
+  "money_unit": "US$ cents",
+  "weight_unit": "kg",
+  "independent_reconciliations": 2,
+  "source_channels": [
+    "mdic-csv"
+  ],
+  "note": "Base municipal SH4 e base geral NCM são universos distintos; seus totais não devem ser comparados nem somados."
+}

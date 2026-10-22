@@ -1,0 +1,36 @@
+{
+  "status": "ok",
+  "source": "captura oficial conciliada julho–setembro de 2026; sem nova consulta HTTP",
+  "qt_export_executed": true,
+  "qt_export_note": "Os três arquivos foram gerados por DesktopController.exportTo; a comparação reaproveita esses arquivos. O script inicial de comparação foi corrigido para comparar o conteúdo dos StyleProxy do openpyxl.",
+  "documents": {
+    "excel": {
+      "bytes": 1885188,
+      "sha256": "c24cb6a322535fde6df00d492f04260bc299afbb7868e33b5d3d17eb4f9c84d8"
+    },
+    "powerbi": {
+      "bytes": 2500422,
+      "sha256": "a700078d5fe726f6ba603e00c43ad229f97e0edf83b5d926f512d21c378c2623"
+    },
+    "pdf": {
+      "bytes": 717871,
+      "sha256": "66bd426c31412f1534891f9b9817ae8db442fcd5bea3edf75afd244a1627af5a"
+    }
+  },
+  "excel_preservation": {
+    "checked_cells": 254490,
+    "value_changes": [],
+    "all_number_formats_and_alignments_equal": true,
+    "column_widths_equal": true
+  },
+  "pdf_preservation": {
+    "pages": 1,
+    "extracted_text_equal": true
+  },
+  "powerbi_validation": {
+    "pages": 6,
+    "visuals": 85,
+    "json_files": 99,
+    "measures": 57
+  }
+}

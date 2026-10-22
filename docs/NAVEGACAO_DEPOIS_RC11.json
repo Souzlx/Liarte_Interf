@@ -1,0 +1,30 @@
+{
+  "synthetic": true,
+  "platform": "linux",
+  "python": "3.14.8",
+  "rows": 100000,
+  "page_changes": 10,
+  "median_page_ms": 10.902,
+  "max_page_ms": 12.301,
+  "counts": {
+    "model_resets": 0,
+    "column_notifications": 0,
+    "analysis_notifications": 0,
+    "busy_notifications": 0,
+    "global_progress_visible_samples": 0
+  },
+  "query_panel_height_range": [
+    126.0,
+    126.0
+  ],
+  "scroll_y_range": [
+    1004.0,
+    1004.0
+  ],
+  "horizontal_scroll_range": [
+    150.0,
+    150.0
+  ],
+  "qml_warnings": [],
+  "financial_totals_preserved": true
+}

@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "base_zip_sha256": "bb3cfb4d1fe252bb2aee9d02180b1108e5a0d228afbbbdb60aa50116be0a2375",
+  "byte_identical_to_rc8": {
+    "requirements.txt": true,
+    "requirements-build.txt": true,
+    "src/liarte_core/catalog.json": true,
+    "src/liarte_core/catalog.py": true,
+    "src/liarte_desktop/identity.py": true,
+    "src/liarte_desktop/windows_identity.py": true,
+    "src/liarte_desktop/windows_shell.py": true,
+    "src/liarte_desktop/installation_guard.py": true,
+    "src/liarte_desktop/assets/liarte.ico": true,
+    "src/liarte_desktop/assets/liarte-logo-transparente.png": true
+  },
+  "municipal_column_E": 64,
+  "same_filtered_pdf_text_and_pages": true,
+  "base_excel_cells_checked_exactly": 212138,
+  "excel_and_bi_scope": "entire catalog and selected period",
+  "pdf_scope": "general filters/search plus >1000 kg per observation and airport exclusion"
+}

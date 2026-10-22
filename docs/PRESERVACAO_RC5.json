@@ -1,0 +1,109 @@
+{
+  "status": "ok",
+  "unchanged_logic_files": 13,
+  "logo_assets": 3,
+  "files": [
+    {
+      "path": "src/liarte_core/comex.py",
+      "sha256": "9ee04c3e4063bf7a411e95ac7ddd129ce8ead1f859f3178f4a181e36eff1c47b",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_core/exports.py",
+      "sha256": "126bb63131c2a5272438cda8be40acd35ae1725f68f27863f3ef692e3d1f5bab",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_core/domain.py",
+      "sha256": "f4f193ef28afa8b30a43a7f9e74b0bea50dbf9a5dbd679960067b2b1021d9004",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_core/catalog.py",
+      "sha256": "7369665b2d7a1f9e7a00828871c99b6925656f9bba3bc5b4241b6b5cfd730917",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_core/catalog.json",
+      "sha256": "a5b77abbdfc95773074942aa4d2ab2b680a2d6f6bdc7fe2d83aa5a4fcd66d2c8",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_engine/comexstat_importacoes.py",
+      "sha256": "cc4cf6c89a81a096de146b49990ddef3d8b0156483d7a17c42fec331f84a5596",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_engine/liarte_dados.py",
+      "sha256": "2edb49072ce2dc74eb751301f1c07754247da374fd130902d7faf5108bac7fc9",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_engine/liarte_analise.py",
+      "sha256": "b62c00195ecb2373be0d61c0994b8fe7f4c8ad57cdfa2833fdd93e61f93c853e",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_engine/powerbi_importacoes.py",
+      "sha256": "5ea1d1766579e083ebdfb81f08833d49fcd9ca56eb3c4a7e009f552a9d42a165",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_desktop/jobs.py",
+      "sha256": "632e48f072a9cdd8136378a90619ffb592084aa08da49c70e39a91f9785a1127",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_desktop/table_model.py",
+      "sha256": "34b706d758a51c34e8127fc15a509a6401b6a47c2b4aecb015cb45a15e1df317",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_desktop/branding.py",
+      "sha256": "7bab4c91e561e0e3f532a9852ea0f679db2fe3e04592fbf81ff9d1dcb7f0776a",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_desktop/qt_runtime.py",
+      "sha256": "21f8ab41eb16ce745d7ef7676d4d231a36c9a6eac3613dae9bfa54f484554c0e",
+      "same_after_release_version_only": true
+    },
+    {
+      "path": "src/liarte_desktop/assets/liarte.ico",
+      "sha256": "27d0ca7faf0b7cfde84ca318108272caddb50ec309f0c35edefb04fdbb91f878",
+      "byte_identical": true
+    },
+    {
+      "path": "src/liarte_desktop/assets/liarte-logo-transparente.png",
+      "sha256": "10f9183c6ee1c071b3d1d947446add323df96f57fe16fa96fceb6e55288190c1",
+      "byte_identical": true
+    },
+    {
+      "path": "src/liarte_desktop/assets/liarte-simbolo.png",
+      "sha256": "39d60caf61db3696dcbdff831ebd29d86be56d0cba5ca6ea3d206e50aa6987b7",
+      "byte_identical": true
+    }
+  ],
+  "excel": {
+    "sheets": [
+      "Resumo por NCM",
+      "Resumo municipal",
+      "Base geral",
+      "Base municipal",
+      "07. Julho",
+      "08. Agosto",
+      "09. Setembro",
+      "Produtos"
+    ],
+    "nonempty_cells_identical_and_centered": 253359,
+    "column_E_municipal": 64
+  },
+  "pdf": {
+    "pages": 1,
+    "creator": "LIARTE Comex Intelligence 5.0.0-rc.5",
+    "logo_on_each_page": true,
+    "table_baseline": "160-row RC4 layout captured independently; all 988 text coordinates unchanged on 4 pages, checked in test_refinement.py"
+  },
+  "powerbi_crc": "ok",
+  "source": "Previously reconciled official July–September snapshot; examples regenerated through the Qt controller workers"
+}

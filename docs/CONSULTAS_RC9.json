@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-20",
+  "live_reconciliation_completed": false,
+  "metadata_endpoint": "https://api-comexstat.mdic.gov.br/general/dates/updated",
+  "metadata": {
+    "status": 200,
+    "updated": "2026-10-06",
+    "latest": "2026-09"
+  },
+  "api_query_attempts": {
+    "status": "not_completed",
+    "http_status": 429,
+    "bounded_retries": true,
+    "partial_results_published": false
+  },
+  "official_csv_head_checks": {
+    "http_status": 503,
+    "datasets": [
+      "IMP_2026.csv",
+      "IMP_2026_MUN.csv"
+    ]
+  },
+  "regression_source": "Official September capture and earlier reconciled July–September/2026 Excel",
+  "current_automatic_controls": "Covered by regression tests with captured responses and deliberate truncation/divergence. New online comparison not concluded here."
+}

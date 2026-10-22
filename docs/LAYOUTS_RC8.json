@@ -1,0 +1,459 @@
+{
+  "status": "ok",
+  "platform": "Linux/offscreen; escalas Qt emuladas, não homologação física Windows",
+  "executions": [
+    {
+      "scale": "1",
+      "cases": [
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "qml_warnings": [],
+      "source": "official captured July-September 2026, verified independently"
+    },
+    {
+      "scale": "1.25",
+      "cases": [
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "qml_warnings": [],
+      "source": "official captured July-September 2026, verified independently"
+    },
+    {
+      "scale": "1.5",
+      "cases": [
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "general",
+          "dark": false,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "general",
+          "dark": true,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "municipal",
+          "dark": false,
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 500,
+          "height": 400
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 620,
+          "height": 480
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 900,
+          "height": 700
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1100,
+          "height": 800
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1366,
+          "height": 768
+        },
+        {
+          "kind": "municipal",
+          "dark": true,
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "qml_warnings": [],
+      "source": "official captured July-September 2026, verified independently"
+    }
+  ]
+}

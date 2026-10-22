@@ -1,0 +1,101 @@
+{
+  "version": "5.0.0-rc.9",
+  "date": "2026-10-20",
+  "status": "validated_locally_pending_windows_acceptance",
+  "tests": {
+    "status": "ok",
+    "count": 323,
+    "seconds": 57.89,
+    "log": "VALIDACAO_RC9.log",
+    "network": "captured responses and controlled failures; no synthetic live claims",
+    "clean_zip_extraction": {
+      "status": "ok",
+      "count": 323,
+      "seconds": 58.422,
+      "source_files_unchanged_after_test": 82,
+      "log": "VALIDACAO_ZIP_RC9.log"
+    }
+  },
+  "volume": {
+    "rows": 100000,
+    "note": "Qt events continue during the query; timing in the test log"
+  },
+  "static_analysis": {
+    "status": "ok",
+    "tool": "ruff",
+    "rules": [
+      "F",
+      "E9",
+      "B"
+    ],
+    "ignored": [
+      "B008 (standard immutable QModelIndex defaults for Qt overrides)"
+    ],
+    "log": "LINT_RC9.log"
+  },
+  "layouts": {
+    "status": "ok",
+    "cases": 40,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "datasets": [
+      "general",
+      "municipal"
+    ],
+    "scales": [
+      1,
+      1.5
+    ],
+    "sizes": [
+      [
+        500,
+        400
+      ],
+      [
+        760,
+        600
+      ],
+      [
+        1120,
+        760
+      ],
+      [
+        1380,
+        900
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "qml_warnings": []
+  },
+  "documents": {
+    "status": "ok",
+    "general_rows": 2723,
+    "municipal_rows": 16065,
+    "exact_base_cells": 212138,
+    "bi_pages": 6,
+    "bi_visuals": 85,
+    "bi_measures": 57,
+    "detailed_evidence": "DOCUMENTOS_RC9.json"
+  },
+  "frozen_smoke": {
+    "status": "ok",
+    "platform": "linux",
+    "synthetic": true,
+    "evidence": "EXECUTAVEL_LINUX_RC9.json",
+    "windows_executable_produced": false
+  },
+  "online_source": {
+    "new_reconciliation_completed": false,
+    "reason": "HTTP 429 on API queries; CSV HEAD checks HTTP 503",
+    "detail": "CONSULTAS_RC9.json"
+  },
+  "remaining_acceptance": [
+    "Windows installation, upgrades, shortcuts, DPI/GPU",
+    "Power BI Desktop refresh, DAX and rendering"
+  ]
+}

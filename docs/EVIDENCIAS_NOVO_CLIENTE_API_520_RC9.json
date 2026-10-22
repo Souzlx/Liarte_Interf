@@ -1,0 +1,191 @@
+{
+  "version": "5.2.0-rc.9",
+  "base": "5.2.0-rc.8",
+  "date": "2026-10-22",
+  "runtimes": [
+    {
+      "python": "3.12.14",
+      "platform": "Linux x86_64",
+      "status": "passed",
+      "tests": 572,
+      "seconds": 132.261,
+      "volume": {
+        "rows": 100000,
+        "first_query_seconds": 1.746,
+        "qt_events": 95
+      },
+      "log": "docs/validacao_api_rc9/TESTES_PY312_520_RC9.log"
+    },
+    {
+      "python": "3.13.14",
+      "platform": "Linux x86_64",
+      "status": "passed",
+      "tests": 572,
+      "seconds": 124.563,
+      "volume": {
+        "rows": 100000,
+        "first_query_seconds": 1.485,
+        "qt_events": 88
+      },
+      "log": "docs/validacao_api_rc9/TESTES_PY313_520_RC9.log"
+    },
+    {
+      "python": "3.14.8",
+      "platform": "Linux x86_64",
+      "status": "passed",
+      "tests": 572,
+      "seconds": 129.122,
+      "volume": {
+        "rows": 100000,
+        "first_query_seconds": 1.368,
+        "qt_events": 82
+      },
+      "log": "docs/validacao_api_rc9/TESTES_PY314_520_RC9.log"
+    }
+  ],
+  "new_client_tests": 33,
+  "default_transport": "liarte_core.comex_api.ApiClient",
+  "normal_request_count": 2,
+  "max_attempts_per_endpoint": 2,
+  "fixed_preventive_interval_seconds": 0,
+  "automatic_pause_wait_budget_seconds": 45,
+  "source_policy": "official API only, independent installations, no automatic CSV/central/query cache",
+  "ui_business_generators_and_stock_preserved": true,
+  "live_full_catalog_probe": {
+    "version": "5.2.0-rc.9",
+    "started_at": "2026-10-22T18:41:57.088328+00:00",
+    "python": "3.12.14",
+    "platform": "Linux",
+    "company_network": false,
+    "synthetic": false,
+    "period": {
+      "from": "2026-01",
+      "to": "2026-09"
+    },
+    "ncm_count": 35,
+    "sh4_count": 19,
+    "policy": {
+      "client": "liarte_core.comex_api.ApiClient",
+      "max_attempts_per_endpoint": 2,
+      "fixed_interval_seconds": 0,
+      "automatic_pause_wait_budget_seconds": 45,
+      "source": "official-api-only",
+      "query_result_disk_cache": false,
+      "central": false
+    },
+    "status": "passed",
+    "general_rows": 7789,
+    "municipal_rows": 46074,
+    "general_cif_cents": 220690528300,
+    "general_kg": 1359798169,
+    "municipal_fob_cents": 2164253314200,
+    "municipal_kg": 22096602115,
+    "response_validated": true,
+    "independent_totals_verified": false,
+    "api_requests": 2,
+    "seconds": 24.796,
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/general",
+        "started_after_seconds": 0.001,
+        "http_status": 200,
+        "response_headers": {
+          "Date": "Thu, 22 Oct 2026 18:42:05 GMT",
+          "Content-Encoding": "gzip"
+        },
+        "headers_received_after_seconds": 8.812
+      },
+      {
+        "method": "POST",
+        "path": "/cities",
+        "started_after_seconds": 9.583,
+        "http_status": 200,
+        "response_headers": {
+          "Date": "Thu, 22 Oct 2026 18:42:18 GMT",
+          "Content-Encoding": "gzip"
+        },
+        "headers_received_after_seconds": 21.376
+      }
+    ]
+  },
+  "wheel_smoke": {
+    "status": "ok",
+    "version": "5.2.0-rc.9",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": false,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "https_transport": {
+      "policy": "system-openssl-v1"
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  },
+  "validation_observations": [
+    {
+      "python": "3.13.14",
+      "initial_parallel_run": "ended without a unittest completion summary at a headless Qt dialog capture; not accepted as a complete validation",
+      "action": "repeated the same suite in isolation",
+      "accepted_run": "572 tests passed in 124.563 seconds"
+    }
+  ],
+  "limitations": [
+    "The company Windows network and a compiled Windows Setup were not exercised in this Linux environment.",
+    "The successful real test is not a guarantee against future HTTP 429 or external outages.",
+    "Independent official totals queries are disabled in the normal flow; well-formed omissions by the source cannot be detected locally.",
+    "The socket timeout can delay cancellation of a currently blocking network operation."
+  ],
+  "package_kind": "source and existing graphical start/build assistants; not a compiled Windows Setup",
+  "extracted_zip_smoke": {
+    "status": "ok",
+    "version": "5.2.0-rc.9",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": false,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "https_transport": {
+      "policy": "system-openssl-v1"
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  }
+}

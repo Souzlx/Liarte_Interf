@@ -1,0 +1,90 @@
+3 Conferindo cobertura e cache do período
+5 Conferindo os dados locais de 2026-01
+5 Conferindo os dados locais de 2026-02
+5 Conferindo os dados locais de 2026-03
+5 Conferindo os dados locais de 2026-04
+5 Conferindo os dados locais de 2026-05
+5 Conferindo os dados locais de 2026-06
+5 Conferindo os dados locais de 2026-07
+5 Conferindo os dados locais de 2026-08
+5 Conferindo os dados locais de 2026-09
+5 Consultando dados gerais: lote 1/1 · 2026-01 a 2026-09
+Consultando lote 1/1 (35 NCMs; 2026-01 a 2026-09)...
+5 Aguardando a fila compartilhada
+5 Obtendo arquivo oficial NCM.csv
+Arquivos MDIC indisponíveis: Não foi possível obter o arquivo oficial NCM.csv.
+5 Acessando o Comex Stat · tentativa 1/1
+5 Conferindo os totais oficiais por mês e produto
+5 Aguardando a fila compartilhada
+Arquivos MDIC indisponíveis: O servidor dos arquivos oficiais está em pausa temporária.
+5 Aguardando o intervalo entre consultas · 15 s
+5 Aguardando o intervalo entre consultas · 14 s
+5 Aguardando o intervalo entre consultas · 13 s
+5 Aguardando o intervalo entre consultas · 12 s
+5 Aguardando o intervalo entre consultas · 11 s
+5 Aguardando o intervalo entre consultas · 10 s
+5 Aguardando o intervalo entre consultas · 9 s
+5 Aguardando o intervalo entre consultas · 8 s
+5 Aguardando o intervalo entre consultas · 7 s
+5 Aguardando o intervalo entre consultas · 6 s
+5 Aguardando o intervalo entre consultas · 5 s
+5 Aguardando o intervalo entre consultas · 4 s
+5 Aguardando o intervalo entre consultas · 3 s
+5 Aguardando o intervalo entre consultas · 2 s
+5 Aguardando o intervalo entre consultas · 1 s
+Comex Stat HTTP 429 em /general?language=pt. Retry-After: . Resposta: {"error":{"code":429,"message":"Voc\u00ea excedeu o limite de solicita\u00e7\u00f5es. Por favor, tente novamente em 10 segundos."}}
+Consulta da central não concluída: ComexRateLimitError: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.
+Resposta do Comex Stat em /general?language=pt: Os arquivos oficiais não estão acessíveis ou não passaram na conferência. A API também recusou a consulta por limite de solicitações. Os dados anteriores foram preservados.
+Traceback (most recent call last):
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_core/comex.py", line 357, in load
+    general = client.query_imports(self.codes, period.start, period.end, 50)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_engine/comexstat_importacoes.py", line 914, in query_imports
+    return self._query_cached(ncms, start_period, end_period, chunk_size, municipal=False)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_engine/comexstat_importacoes.py", line 880, in _query_cached
+    return self.cache.query(
+           ~~~~~~~~~~~~~~~~^
+        dataset="municipal" if municipal else "general",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+        progress_callback=self._notify,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_engine/liarte_dados.py", line 321, in query
+    fetched_rows = reader(batch, first, last, chunk_size)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_engine/comexstat_importacoes.py", line 1074, in _query_imports_live
+    self._verify_totals(API_GENERAL, body, batch_rows, municipal=False)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_engine/comexstat_importacoes.py", line 953, in _verify_totals
+    payload = self.request_json("POST", f"{endpoint}?language=pt", json_body=control_body)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_engine/comexstat_importacoes.py", line 694, in request_json
+    payload, shared = request(
+                      ~~~~~~~^
+        method,
+        ^^^^^^^
+    ...<6 lines>...
+        notify=self._notify,
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_core/comex_automatic.py", line 161, in request_json
+    return request_shared(
+        None,
+    ...<8 lines>...
+        connection_resolver=lambda: self.resolve(check=check, wait=wait),
+    )
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_engine/comex_gateway_client.py", line 281, in request_shared
+    raise ComexRateLimitError(
+        delay, path, str(payload.get("error", "")), payload.get("observed_http_status")
+    )
+liarte_engine.comexstat_importacoes.ComexRateLimitError: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 14, in <module>
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc5/src/liarte_core/comex.py", line 410, in load
+    raise ComexError("Consulta oficial não concluída: " + str(exc)[:500]) from exc
+liarte_core.comex.ComexError: Consulta oficial não concluída: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.
+{"requested_period": ["2026-01", "2026-09"], "catalog_size": 35, "environment": "Linux CPython 3.14.8, real public upstream", "started_at": 1792672299.5085895, "status": "failed", "type": "ComexError", "message": "Consulta oficial não concluída: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.", "seconds": 44.609}

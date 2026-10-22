@@ -1,0 +1,35 @@
+{
+  "cases": [
+    {
+      "width": 500,
+      "height": 400,
+      "dark": false,
+      "mode": "automatic; no manual fields required",
+      "screenshot": "automatic_500_400_light.png"
+    },
+    {
+      "width": 1100,
+      "height": 800,
+      "dark": false,
+      "mode": "automatic; no manual fields required",
+      "screenshot": "automatic_1100_800_light.png"
+    },
+    {
+      "width": 500,
+      "height": 400,
+      "dark": true,
+      "mode": "automatic; no manual fields required",
+      "screenshot": "automatic_500_400_dark.png"
+    },
+    {
+      "width": 1100,
+      "height": 800,
+      "dark": true,
+      "mode": "automatic; no manual fields required",
+      "screenshot": "automatic_1100_800_dark.png"
+    }
+  ],
+  "qml_warnings": [],
+  "pause_countdown_and_query_guard": "ok",
+  "execution": "Qt offscreen/software; Linux"
+}

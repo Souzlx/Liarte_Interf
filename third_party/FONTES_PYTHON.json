@@ -1,0 +1,22 @@
+[
+  {
+    "file": "PYTHON_LICENSE_3.11.txt",
+    "source": "https://raw.githubusercontent.com/python/cpython/3.11/LICENSE",
+    "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+  },
+  {
+    "file": "PYTHON_LICENSE_3.12.txt",
+    "source": "https://raw.githubusercontent.com/python/cpython/3.12/LICENSE",
+    "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+  },
+  {
+    "file": "PYTHON_LICENSE_3.13.txt",
+    "source": "https://raw.githubusercontent.com/python/cpython/3.13/LICENSE",
+    "sha256": "78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb"
+  },
+  {
+    "file": "PYTHON_LICENSE_3.14.txt",
+    "source": "https://raw.githubusercontent.com/python/cpython/v3.14.8/LICENSE",
+    "sha256": "b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231"
+  }
+]

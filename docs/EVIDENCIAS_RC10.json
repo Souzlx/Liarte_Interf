@@ -1,0 +1,127 @@
+{
+  "version": "5.0.0-rc.10",
+  "date_utc": "2026-10-20T17:51:01.698874+00:00",
+  "status": "validated_locally_pending_windows_acceptance",
+  "platform": "Linux; Qt offscreen/software; standard CPython with GIL",
+  "supported_python": ">=3.11,<3.15; Windows 64-bit standard CPython",
+  "fixed_dependency_versions_changed": false,
+  "test_suites": [
+    {
+      "python": "3.11.17",
+      "tests": 334,
+      "seconds": 62.592,
+      "status": "ok",
+      "volume_rows": 100000,
+      "first_query_seconds": 1.534,
+      "qt_events": 91,
+      "log": "VALIDACAO_PY311_RC10.log"
+    },
+    {
+      "python": "3.12.14",
+      "tests": 334,
+      "seconds": 65.32,
+      "status": "ok",
+      "volume_rows": 100000,
+      "first_query_seconds": 1.606,
+      "qt_events": 93,
+      "log": "VALIDACAO_PY312_RC10.log"
+    },
+    {
+      "python": "3.13.16",
+      "tests": 334,
+      "seconds": 60.608,
+      "status": "ok",
+      "volume_rows": 100000,
+      "first_query_seconds": 1.524,
+      "qt_events": 93,
+      "log": "VALIDACAO_PY313_RC10.log"
+    },
+    {
+      "python": "3.14.8",
+      "tests": 334,
+      "seconds": 63.42,
+      "status": "ok",
+      "volume_rows": 100000,
+      "first_query_seconds": 1.407,
+      "qt_events": 89,
+      "log": "VALIDACAO_PY314_RC10.log"
+    }
+  ],
+  "new_runtime_regressions": 11,
+  "real_environment_upgrade": {
+    "status": "ok",
+    "report": "MIGRACAO_PYTHON_RC10.json",
+    "previous_python": "3.13.16",
+    "current_python": "3.14.8",
+    "scope": "synthetic environment and sentinel reports/preferences on Linux"
+  },
+  "frozen_smoke": {
+    "status": "ok",
+    "python": "3.14.8",
+    "platform": "linux",
+    "evidence": "EXECUTAVEL_PY314_LINUX_RC10.json",
+    "windows_binary_produced": false
+  },
+  "project_wheel": {
+    "status": "built",
+    "python": "3.14.8",
+    "file": "liarte_desktop-5.0.0rc10-py3-none-any.whl",
+    "sha256": "5478fa9d0de2cf299dc642710279c6718a8c285af77b2b655a52654e7e9ec234",
+    "requires_python": "<3.15,>=3.11"
+  },
+  "windows_dependency_wheels": {
+    "status": "downloaded_and_metadata_checked",
+    "count": 15,
+    "report": "DEPENDENCIAS_PY314_WINDOWS_RC10.json",
+    "executed_on_windows": false
+  },
+  "static_analysis": {
+    "status": "ok",
+    "tool": "ruff 0.17.1",
+    "log": "LINT_RC10.log",
+    "checks": [
+      {
+        "rules": [
+          "F",
+          "E9"
+        ],
+        "scope": "tools, src, tests, iniciar.py, verificar.py"
+      },
+      {
+        "rules": [
+          "F",
+          "E9",
+          "B"
+        ],
+        "scope": "tools, src, tests/test_python_runtime.py, iniciar.py, verificar.py",
+        "ignored": [
+          "B008: standard immutable QModelIndex defaults for Qt overrides"
+        ]
+      }
+    ]
+  },
+  "preservation": {
+    "status": "ok",
+    "comparison": "PRESERVACAO_RC10.json",
+    "byte_identical_files_to_rc9": 58
+  },
+  "online_source": {
+    "new_live_reconciliation_performed": false,
+    "previous_source_provenance": "RC9 capture and offline fixtures retained unchanged"
+  },
+  "remaining_acceptance": [
+    "Windows installation, upgrades, shortcuts and DPI/GPU",
+    "Power BI Desktop refresh, DAX and rendering"
+  ],
+  "clean_zip_extraction": {
+    "status": "ok",
+    "python": "3.14.8",
+    "tests": 334,
+    "seconds": 60.753,
+    "log": "VALIDACAO_ZIP_PY314_RC10.log",
+    "source_and_configuration_files_unchanged_after_test": 101,
+    "volume_rows": 100000,
+    "qt_events": 87,
+    "repack_after_validation": "documentation and checksum manifest only"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "synthetic": false,
+  "api_requests": 0,
+  "cache_hits": 0,
+  "source_note": "Previously reconciled official July-September capture injected in QA only; network blocked. No new API aggregate controls.",
+  "general_rows": 2723,
+  "municipal_rows": 16065,
+  "gui_ticks": 1494,
+  "documents": [
+    {
+      "kind": "excel",
+      "seconds": 13.641,
+      "bytes": 1885187,
+      "ui_ticks": 656,
+      "file": "IMPORTACAO_2026-07_2026-09.xlsx"
+    },
+    {
+      "kind": "powerbi",
+      "seconds": 14.611,
+      "bytes": 1949108,
+      "ui_ticks": 660,
+      "file": "POWERBI_LIARTE_IMPORTACOES_2026-07_2026-09.zip"
+    },
+    {
+      "kind": "pdf",
+      "seconds": 0.379,
+      "bytes": 717871,
+      "ui_ticks": 23,
+      "file": "IMPORTACOES_FILTRADAS_2026-07_2026-09.pdf"
+    }
+  ],
+  "qml_warnings": [],
+  "total_seconds": 31.486
+}

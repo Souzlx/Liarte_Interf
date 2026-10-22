@@ -1,0 +1,37 @@
+{
+  "version": "5.2.0-rc.2",
+  "date": "2026-10-21",
+  "status": "ok",
+  "python_tests": {
+    "314": {
+      "tests": 431,
+      "seconds": 92.052,
+      "status": "ok"
+    },
+    "312": {
+      "tests": 430,
+      "seconds": 90.527,
+      "status": "ok"
+    }
+  },
+  "inventory_tests": 53,
+  "layout_cases": 20,
+  "qml_warnings": 0,
+  "source_reconciliation": "CONCILIACAO_ESTOQUE_520_RC2.json",
+  "integrated_use_and_export": "INTEGRACAO_ESTOQUE_520_RC2.json",
+  "base_as_of": "2026-10-21",
+  "source_modified": false,
+  "importation_files_preserved": 28,
+  "abc_large_integer_boundary": "ok: one cent below 80% and 95% at total 10^18 cents",
+  "wheel_build": "ok; embedded snapshot, integrity manifest, QML components present; wheel CRC ok",
+  "windows_build_resources": "data directory included in PyInstaller arguments; hash checked before build",
+  "live_protheus_tested": false,
+  "native_windows_installer_executed": false,
+  "environment": "Linux; Qt 6.10.3 offscreen/software; CPython 3.14.8 and 3.12.14",
+  "limits": [
+    "Dados de arquivo, sem atualização automática do ERP.",
+    "O histórico cobre somente os locais presentes na fonte.",
+    "Giro/dias originais não são uma fórmula de giro/consumo reconstruída.",
+    "Sem teste nativo de instalação, GPU, Shell ou DPI no Windows nesta entrega."
+  ]
+}

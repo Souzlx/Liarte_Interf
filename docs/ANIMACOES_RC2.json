@@ -1,0 +1,58 @@
+{
+  "status": "ok",
+  "platform": "Linux Qt 6.10.3 offscreen/software",
+  "synthetic": true,
+  "method": "Same twelve-point series and geometry; RC1 instrumented in QA copy only; count Canvas paint invocations during transition. No FPS claim.",
+  "results": [
+    {
+      "version": "rc1_instrumented",
+      "transitions": 8,
+      "curve_paints_per_transition": [
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16
+      ],
+      "transition_seconds_including_30ms_settle": [
+        0.261,
+        0.277,
+        0.273,
+        0.276,
+        0.273,
+        0.276,
+        0.276,
+        0.273
+      ],
+      "qml_warnings": []
+    },
+    {
+      "version": "rc2",
+      "transitions": 8,
+      "curve_paints_per_transition": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "transition_seconds_including_30ms_settle": [
+        0.293,
+        0.307,
+        0.292,
+        0.304,
+        0.305,
+        0.306,
+        0.308,
+        0.292
+      ],
+      "qml_warnings": []
+    }
+  ]
+}

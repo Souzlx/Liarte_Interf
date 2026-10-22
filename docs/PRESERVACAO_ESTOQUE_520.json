@@ -1,0 +1,147 @@
+{
+  "baseline": "5.1.0-rc.3",
+  "version": "5.2.0-rc.1",
+  "files_verified": 28,
+  "files": [
+    {
+      "path": "src/liarte_engine/pdf_importacoes.py",
+      "sha256": "c96d42b6654be22135829d5468306d8b28caf507bf1b61155a2bcc37b0c647f6",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/__init__.py",
+      "sha256": "23c8c4ae22f6f93d2013b037bd071278c09ef360ccdda337ff8ca8403e994e4a",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/liarte_analise.py",
+      "sha256": "b62c00195ecb2373be0d61c0994b8fe7f4c8ad57cdfa2833fdd93e61f93c853e",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/comexstat_importacoes.py",
+      "sha256": "d8a591e9afae29077eea5d425e9ac00efb73c012344c8f265900b3fa8669eec0",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/commercial_names.py",
+      "sha256": "ea2458ee0f7a2546afd962e9222f7cc2b74535e791151c259581b3e71e85072e",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/powerbi_importacoes.py",
+      "sha256": "3f623cf82880592ea000c249e1d23dc6499348c89ce48a2e3061ff7ca8967940",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/powerbi_source.py",
+      "sha256": "923b1f5273441465db1c5c547e1d703742a7a8b4957f7fb7776e9d38366ad2fc",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/powerbi_visuals.py",
+      "sha256": "732982213ee7a09bbf0249eebadd020adc61704949e10ee5e2ead5d202a42e68",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/liarte_dados.py",
+      "sha256": "2edb49072ce2dc74eb751301f1c07754247da374fd130902d7faf5108bac7fc9",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/numeric.py",
+      "sha256": "3f214cb585caf186e20e8ccccf2aea02f71226f607bdec00aecf41b075c18118",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_engine/powerbi_semantic.py",
+      "sha256": "664458f355fc89e709c769969adb95c37ab3209c5ddeb017a448ff41477ea785",
+      "unchanged": true
+    },
+    {
+      "path": "exemplos/IMPORTACAO_2026-07_2026-09.xlsx",
+      "sha256": "cad08827c761504873240eacf64fa37fc24960e56da571d6a424fc395efc4fd5",
+      "unchanged": true
+    },
+    {
+      "path": "exemplos/IMPORTACOES_FILTRADAS_2026-07_2026-09.pdf",
+      "sha256": "412fbe663c27d80f2c0b3bbb3445da00f5995a781c5a49c9f564009841d1c584",
+      "unchanged": true
+    },
+    {
+      "path": "exemplos/LEIA_PRIMEIRO.txt",
+      "sha256": "968411a2e3090b9d8604e7973bd266d2928272d9447a5a7ba07ad9a04b5001b0",
+      "unchanged": true
+    },
+    {
+      "path": "exemplos/POWERBI_LIARTE_IMPORTACOES_2026-07_2026-09.zip",
+      "sha256": "b0493511c74dbb8ab9dd4ab10544afb9106ecdc320ab8da1da18d7161d06b12c",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_core/comex.py",
+      "sha256": "d9229f8d328537a49bdd4c2fa5f674e29f007649658d03fef9732c2558e2172d",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_core/domain.py",
+      "sha256": "f4f193ef28afa8b30a43a7f9e74b0bea50dbf9a5dbd679960067b2b1021d9004",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_core/exports.py",
+      "sha256": "37e34861ada05f25d029dbe6fcc65ab0de75d5f5b1410382424f7904abcc6d48",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_core/catalog.json",
+      "sha256": "a5b77abbdfc95773074942aa4d2ab2b680a2d6f6bdc7fe2d83aa5a4fcd66d2c8",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/controller.py",
+      "sha256": "c897ab41fde65ed6ce62085c69bf797ec9cf5dab854c58785b019ca23eb0ba42",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/table_model.py",
+      "sha256": "8b371dd3c19f82e8d6e452361181db68ffdb1c06f553a211a625db40f9aa847f",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/analytics.py",
+      "sha256": "9a42a73d816baf2429ef2c36f9ee0be4fd9bd3a6fad5ad35a26621fd88dba136",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/qml/ImportsWorkspace.qml",
+      "sha256": "d9f2ae3e4f919db612de826b25f5c67b1f6de24bf2f6cbf9fcabf5255013cb5a",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/identity.py",
+      "sha256": "38d0429c1ffecaf717896310f7098032368a1bb302fda5d9e73327a340897019",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/windows_shell.py",
+      "sha256": "f6408fe7da5fcbfada78f2d69f3721f23fa6ddce9b7a004398e999aac8cab6dc",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/assets/liarte-logo-transparente.png",
+      "sha256": "10f9183c6ee1c071b3d1d947446add323df96f57fe16fa96fceb6e55288190c1",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/assets/liarte.ico",
+      "sha256": "27d0ca7faf0b7cfde84ca318108272caddb50ec309f0c35edefb04fdbb91f878",
+      "unchanged": true
+    },
+    {
+      "path": "src/liarte_desktop/assets/liarte-simbolo.png",
+      "sha256": "39d60caf61db3696dcbdff831ebd29d86be56d0cba5ca6ea3d206e50aa6987b7",
+      "unchanged": true
+    }
+  ]
+}

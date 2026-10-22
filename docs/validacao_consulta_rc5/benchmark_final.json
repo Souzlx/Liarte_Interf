@@ -1,0 +1,16 @@
+{
+  "synthetic": true,
+  "input_rows": 1000000,
+  "bytes": 51000108,
+  "catalog_rows": 1000,
+  "output_groups": 9,
+  "national_months_verified": 9,
+  "seconds": 8.223,
+  "rows_per_second": 121609,
+  "max_rss_kib": 49252,
+  "expected_cif_usd": 109000,
+  "expected_kg": 1000000,
+  "python": "3.14.8",
+  "status": "passed",
+  "note": "Synthetic ingestion benchmark, 51 MB, single product retained; not the MDIC annual file. Not a guarantee for other data/hardware."
+}

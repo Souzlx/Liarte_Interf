@@ -1,0 +1,8 @@
+{
+  "file": "liarte_desktop-5.2.0rc3-py3-none-any.whl",
+  "sha256": "b0044eddf2a2187291eb060f66f3c4b083485fceb5339cb6cc3367739804e17c",
+  "resources": "ok",
+  "shared_dependency": "waitress==3.0.2",
+  "embedded_data_unchanged": true,
+  "crc": "ok"
+}

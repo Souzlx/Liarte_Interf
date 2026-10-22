@@ -1,0 +1,229 @@
+{
+  "version": "5.2.0-rc.8",
+  "base": "5.2.0-rc.7",
+  "date": "2026-10-22",
+  "runtimes": [
+    {
+      "python": "3.12.14",
+      "platform": "Linux x86_64",
+      "status": "passed",
+      "tests": 539,
+      "seconds": 131.859,
+      "volume": {
+        "rows": 100000,
+        "first_query_seconds": 1.838,
+        "qt_events": 97
+      },
+      "log": "docs/validacao_consulta_rc8/TESTES_PY312_520_RC8.log"
+    },
+    {
+      "python": "3.13.14",
+      "platform": "Linux x86_64",
+      "status": "passed",
+      "tests": 539,
+      "seconds": 130.584,
+      "volume": {
+        "rows": 100000,
+        "first_query_seconds": 1.646,
+        "qt_events": 95
+      },
+      "log": "docs/validacao_consulta_rc8/TESTES_PY313_520_RC8.log"
+    },
+    {
+      "python": "3.14.8",
+      "platform": "Linux x86_64",
+      "status": "passed",
+      "tests": 539,
+      "seconds": 129.766,
+      "volume": {
+        "rows": 100000,
+        "first_query_seconds": 1.387,
+        "qt_events": 83
+      },
+      "log": "docs/validacao_consulta_rc8/TESTES_PY314_520_RC8.log"
+    }
+  ],
+  "desktop_policy": {
+    "upstream": "https://api-comexstat.mdic.gov.br",
+    "calls_per_successful_consultation": 2,
+    "datasets": [
+      "general",
+      "cities"
+    ],
+    "preflight_metadata_requests": 0,
+    "extra_totals_requests": 0,
+    "min_interval_seconds": 0,
+    "max_attempts": 1,
+    "whole_period_per_base": true,
+    "local_response_validation": true,
+    "independent_totals_reconciliation": false,
+    "retry_after_respected": true,
+    "central_required": false,
+    "csv_used": false,
+    "disk_query_results_used": false,
+    "filters_and_exports_are_local": true
+  },
+  "wheel_smoke": {
+    "status": "ok",
+    "version": "5.2.0-rc.8",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": false,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "https_transport": {
+      "policy": "system-openssl-v1"
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  },
+  "live_api_probe": {
+    "version": "5.2.0-rc.8",
+    "started_at": "2026-10-22T18:11:21.870624+00:00",
+    "python": "3.12.14",
+    "platform": "Linux",
+    "company_network": false,
+    "synthetic": false,
+    "period": {
+      "from": "2026-09",
+      "to": "2026-09"
+    },
+    "catalog_scope": "one NCM 29161220; associated municipal SH4 2916",
+    "policy": {
+      "min_interval_seconds": 0,
+      "max_attempts": 1,
+      "deadline_seconds": 120,
+      "central": false,
+      "csv": false,
+      "persistent_query_cache": false
+    },
+    "status": "passed",
+    "general_rows": 18,
+    "municipal_rows": 216,
+    "totals_verified": false,
+    "response_validated": true,
+    "source_channels": [
+      "comex-api"
+    ],
+    "data_api_requests": 2,
+    "persistent_cache_hits": 0,
+    "shared_cache_hits": 0,
+    "seconds": 13.909,
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/general",
+        "started_after_seconds": 0.01,
+        "http_status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/cities",
+        "started_after_seconds": 7.557,
+        "http_status": 200
+      }
+    ]
+  },
+  "live_full_catalog_probe": {
+    "version": "5.2.0-rc.8",
+    "started_at": "2026-10-22T18:13:01.595509+00:00",
+    "python": "3.12.14",
+    "platform": "Linux",
+    "company_network": false,
+    "synthetic": false,
+    "period": {
+      "from": "2026-01",
+      "to": "2026-09"
+    },
+    "catalog_scope": "complete embedded LIARTE catalog; associated municipal SH4 positions",
+    "policy": {
+      "min_interval_seconds": 0,
+      "max_attempts": 1,
+      "deadline_seconds": 300,
+      "central": false,
+      "csv": false,
+      "persistent_query_cache": false
+    },
+    "status": "not_completed",
+    "causes": [
+      {
+        "type": "ComexError",
+        "message": "Consulta oficial não concluída: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.",
+        "observed_http_status": null
+      },
+      {
+        "type": "ComexRateLimitError",
+        "message": "Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.",
+        "observed_http_status": 429
+      }
+    ],
+    "complete_snapshot_published": false,
+    "seconds": 5.31,
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/general",
+        "started_after_seconds": 0.016,
+        "http_status": 429,
+        "retry_after": null
+      }
+    ]
+  },
+  "limits": [
+    "The full January–September catalog request returned actual HTTP 429. It was not retried automatically; no complete snapshot was published.",
+    "One NCM/month and its municipal SH4 succeeded with two HTTP 200 responses in 13.909 seconds. This is not a full-catalog performance guarantee.",
+    "There is no independent totals response in the default query; well-formed source omissions cannot be detected locally.",
+    "Native Windows installer compilation and the company network were not exercised in this Linux environment."
+  ],
+  "package_kind": "source and existing GUI build/start assistants; not a compiled Windows Setup",
+  "extracted_zip_smoke": {
+    "status": "ok",
+    "version": "5.2.0-rc.8",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": false,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "https_transport": {
+      "policy": "system-openssl-v1"
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  }
+}

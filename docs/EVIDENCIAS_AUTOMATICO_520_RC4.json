@@ -1,0 +1,44 @@
+{
+  "version": "5.2.0-rc.4",
+  "date": "2026-10-22",
+  "automated_tests": "ok",
+  "python_tests": {
+    "314": {
+      "tests": 470,
+      "seconds": 126.11,
+      "status": "ok"
+    },
+    "312": {
+      "tests": 469,
+      "seconds": 124.322,
+      "status": "ok"
+    }
+  },
+  "automatic_specific_tests": 17,
+  "ten_local_instances": "one broker and one source response, simulated source and real loopback HTTP",
+  "other_process_reuse": "ok",
+  "host_handover": "ok",
+  "setup_required_for_single_profile": false,
+  "manual_remote_preserved_without_local_fallback": true,
+  "rate_limit_handling": "persisted pause, UI countdown, bounded retries; generic body without Retry-After has >=60s backoff",
+  "diagnostics": "observed HTTP status separate from logical API error; bounded source response recorded",
+  "layouts": 4,
+  "qml_warnings": 0,
+  "pause_ui_guard": "ok",
+  "volume": {
+    "rows": 100000,
+    "first_query_seconds": 1.529,
+    "qt_events": 86
+  },
+  "lint": "E4,E7,E9,F excluding E402, passed",
+  "format": "11 relevant Python files passed ruff format --check",
+  "live_small_pipeline": "ok; 18 general rows and 216 municipal rows in their different universes, control totals verified",
+  "live_full_period": "source refused with 429; a later request also failed; not claimed unblocked",
+  "live_evidence": "CONSULTA_REAL_AUTOMATICO_520_RC4.json",
+  "same_network_as_user": false,
+  "windows_native_tested": false,
+  "corporate_network_tested": false,
+  "setup_windows_compiled": false,
+  "preservation": "PRESERVACAO_AUTOMATICO_520_RC4.json",
+  "wheel": "WHEEL_AUTOMATICO_520_RC4.json"
+}

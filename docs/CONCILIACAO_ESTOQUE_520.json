@@ -1,0 +1,68 @@
+{
+  "status": "ok",
+  "source_sha256": "8fd77b51c1bf60971a4f98e2a72cb380238c9108dbf33c5c91bc49f660d3f760",
+  "snapshot_sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+  "as_of": "2026-10-21",
+  "products": 2262,
+  "current_positions": 1784,
+  "closing_positions": 100119,
+  "sales_rows_original": 51484,
+  "sales_daily_groups": 38621,
+  "cost_current_cents": 1408861767,
+  "quantities_by_unit_micro": {
+    "KG": 1653226500000,
+    "UN": 0,
+    "L": 741000000,
+    "M3": 19560000
+  },
+  "current_positions_equal_source": true,
+  "closing_positions_and_ratios_equal_source": true,
+  "sales_daily_totals_and_positive_flags_equal_source": true,
+  "snapshot_roundtrip_equal": true,
+  "original_source_unchanged": true,
+  "model_modified": false,
+  "live_erp_tested": false,
+  "source_notes": [
+    "4 códigos históricos sem cadastro de produto; valores preservados.",
+    "O BI contém indicadores de giro/dias negativos ou extremos; os valores originais foram preservados."
+  ],
+  "load_seconds": 2.346,
+  "analysis_seconds": 0.17,
+  "source_fields_retained": {
+    "products": [
+      "code",
+      "name",
+      "group",
+      "kind",
+      "unit"
+    ],
+    "balances": [
+      "product",
+      "branch",
+      "warehouse",
+      "unit",
+      "quantity",
+      "cost"
+    ],
+    "closings": [
+      "product",
+      "branch",
+      "warehouse",
+      "unit",
+      "period",
+      "quantity",
+      "cost",
+      "turnover",
+      "days"
+    ],
+    "sales": [
+      "product",
+      "branch",
+      "unit",
+      "day",
+      "quantity",
+      "cost",
+      "had_positive"
+    ]
+  }
+}

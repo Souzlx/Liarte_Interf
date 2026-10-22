@@ -1,0 +1,5 @@
+Processing ./.
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: liarte-desktop
+  Building wheel for liarte-desktop (pyproject.toml): started

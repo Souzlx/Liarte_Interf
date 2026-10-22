@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-22",
+  "small_pipeline": {
+    "status": "ok",
+    "real_comex": true,
+    "same_network_as_user": false,
+    "period": "2026-09",
+    "ncm": "29161220",
+    "municipal_scope": "SH4 2916, different statistical universe",
+    "general_rows": 18,
+    "municipal_rows": 216,
+    "totals_verified": true,
+    "data_api_requests": 4,
+    "source_updated": "2026-10-06",
+    "municipal_updated": "2026-10-06",
+    "manual_connection_file_required": false,
+    "seconds": 114.557
+  },
+  "full_catalog": {
+    "status": "not_completed",
+    "real_comex": true,
+    "same_network_as_user": false,
+    "catalog_ncms": 35,
+    "error_type": "Cancelled",
+    "error": "",
+    "seconds": 54.527,
+    "source_diagnostic": {
+      "http_status": 429,
+      "endpoint": "/general?language=pt",
+      "response_excerpt": "{\"error\":{\"code\":429,\"message\":\"Voc\\u00ea excedeu o limite de solicita\\u00e7\\u00f5es. Por favor, tente novamente em 10 segundos.\"}}",
+      "captured_at": 1792670147.1666553,
+      "retry_after_header": "",
+      "excerpt_sha256": "7876c5384e882b42017ea3ee7e241ff182852bf8489f12564699e067527418a6"
+    }
+  },
+  "later_general_retry": {
+    "status": "failed",
+    "error_type": "ComexRateLimitError",
+    "error": "Comex Stat solicitou uma pausa (HTTP 429). Aguarde 11 s antes de tentar novamente.",
+    "detail": "{\"error\":{\"code\":429,\"message\":\"Voc\\u00ea excedeu o limite de solicita\\u00e7\\u00f5es. Por favor, tente novamente em 10 segundos.\"}}",
+    "seconds": 8.383,
+    "same_network_as_user": false
+  },
+  "wire_status_observation": {
+    "observed_http_status": 429,
+    "api_error": {
+      "code": 429,
+      "message": "Você excedeu o limite de solicitações. Por favor, tente novamente em 10 segundos."
+    },
+    "success": null,
+    "retry_after": null,
+    "date": "Thu, 22 Oct 2026 12:03:57 GMT",
+    "same_network_as_user": false
+  },
+  "interpretation": "The real source refused some requests. The software coordinates, waits and diagnoses; this is not proof of removal of an external restriction. No attribution to an IP-only rule is made."
+}

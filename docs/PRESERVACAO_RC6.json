@@ -1,0 +1,90 @@
+{
+  "status": "ok",
+  "unchanged_source_files": 44,
+  "unchanged_paths": [
+    "src/liarte_core/__init__.py",
+    "src/liarte_core/catalog.json",
+    "src/liarte_core/catalog.py",
+    "src/liarte_core/comex.py",
+    "src/liarte_core/demo.py",
+    "src/liarte_core/domain.py",
+    "src/liarte_core/exports.py",
+    "src/liarte_core/package_checks.py",
+    "src/liarte_core/procurement.py",
+    "src/liarte_core/query.py",
+    "src/liarte_desktop/analytics.py",
+    "src/liarte_desktop/app.py",
+    "src/liarte_desktop/assets/liarte-logo-transparente.png",
+    "src/liarte_desktop/assets/liarte-simbolo.png",
+    "src/liarte_desktop/assets/liarte.ico",
+    "src/liarte_desktop/branding.py",
+    "src/liarte_desktop/controller.py",
+    "src/liarte_desktop/identity.py",
+    "src/liarte_desktop/installation_guard.py",
+    "src/liarte_desktop/jobs.py",
+    "src/liarte_desktop/qml/Main.qml",
+    "src/liarte_desktop/qml/components/ActionButton.qml",
+    "src/liarte_desktop/qml/components/AppCheck.qml",
+    "src/liarte_desktop/qml/components/AppCombo.qml",
+    "src/liarte_desktop/qml/components/AppDialog.qml",
+    "src/liarte_desktop/qml/components/BrandLogo.qml",
+    "src/liarte_desktop/qml/components/FilterChip.qml",
+    "src/liarte_desktop/qml/components/Icon.qml",
+    "src/liarte_desktop/qml/components/LinePlot.qml",
+    "src/liarte_desktop/qml/components/MetricCard.qml",
+    "src/liarte_desktop/qml/components/MultiCombo.qml",
+    "src/liarte_desktop/qml/components/OriginChart.qml",
+    "src/liarte_desktop/qml/components/OriginComparison.qml",
+    "src/liarte_desktop/qml/components/TaskProgress.qml",
+    "src/liarte_desktop/qml/components/Theme.qml",
+    "src/liarte_desktop/qml/components/TrendDialog.qml",
+    "src/liarte_desktop/qml/components/qmldir",
+    "src/liarte_desktop/qt_runtime.py",
+    "src/liarte_desktop/table_model.py",
+    "src/liarte_desktop/windows_identity.py",
+    "src/liarte_desktop/windows_shell.py",
+    "src/liarte_engine/__init__.py",
+    "src/liarte_engine/liarte_analise.py",
+    "src/liarte_engine/liarte_dados.py"
+  ],
+  "function_and_class_ast": [
+    {
+      "module": "comexstat_importacoes.py",
+      "definitions_preserved": 54
+    },
+    {
+      "module": "pdf_importacoes.py",
+      "definitions_preserved": 12
+    }
+  ],
+  "commercial_names_identical": 36,
+  "logo_assets_identical": 3,
+  "excel": {
+    "sheets": [
+      "Resumo por NCM",
+      "Resumo municipal",
+      "Base geral",
+      "Base municipal",
+      "07. Julho",
+      "08. Agosto",
+      "09. Setembro",
+      "Produtos"
+    ],
+    "nonempty_cells_same_values_formats_alignment": 253359,
+    "all_nonempty_vertical_center": true,
+    "municipal_column_E_width": 64,
+    "row_heights_unchanged": true
+  },
+  "pdf": {
+    "pages": 1,
+    "text_fragments_same_text_and_coordinates": 178,
+    "logo_dimensions_per_page": [
+      [
+        2167,
+        725
+      ]
+    ],
+    "transparent_logo": true
+  },
+  "source_note": "Replayed previously reconciled official snapshot; only release provenance in Excel differs."
+}

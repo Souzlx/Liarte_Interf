@@ -1,0 +1,188 @@
+{
+  "cases": [
+    {
+      "width": 500,
+      "height": 400,
+      "theme": "light",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "500_400_light_overview.png"
+    },
+    {
+      "width": 500,
+      "height": 400,
+      "theme": "light",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "500_400_light_products.png"
+    },
+    {
+      "width": 760,
+      "height": 600,
+      "theme": "light",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "760_600_light_overview.png"
+    },
+    {
+      "width": 760,
+      "height": 600,
+      "theme": "light",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "760_600_light_products.png"
+    },
+    {
+      "width": 1120,
+      "height": 760,
+      "theme": "light",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1120_760_light_overview.png"
+    },
+    {
+      "width": 1120,
+      "height": 760,
+      "theme": "light",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1120_760_light_products.png"
+    },
+    {
+      "width": 1380,
+      "height": 900,
+      "theme": "light",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1380_900_light_overview.png"
+    },
+    {
+      "width": 1380,
+      "height": 900,
+      "theme": "light",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1380_900_light_products.png"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "theme": "light",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1920_1080_light_overview.png"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "theme": "light",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1920_1080_light_products.png"
+    },
+    {
+      "width": 500,
+      "height": 400,
+      "theme": "dark",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "500_400_dark_overview.png"
+    },
+    {
+      "width": 500,
+      "height": 400,
+      "theme": "dark",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "500_400_dark_products.png"
+    },
+    {
+      "width": 760,
+      "height": 600,
+      "theme": "dark",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "760_600_dark_overview.png"
+    },
+    {
+      "width": 760,
+      "height": 600,
+      "theme": "dark",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "760_600_dark_products.png"
+    },
+    {
+      "width": 1120,
+      "height": 760,
+      "theme": "dark",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1120_760_dark_overview.png"
+    },
+    {
+      "width": 1120,
+      "height": 760,
+      "theme": "dark",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1120_760_dark_products.png"
+    },
+    {
+      "width": 1380,
+      "height": 900,
+      "theme": "dark",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1380_900_dark_overview.png"
+    },
+    {
+      "width": 1380,
+      "height": 900,
+      "theme": "dark",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1380_900_dark_products.png"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "theme": "dark",
+      "section": "overview",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1920_1080_dark_overview.png"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "theme": "dark",
+      "section": "products",
+      "qml_warnings": [],
+      "horizontal_filter_bounds": "ok",
+      "screenshot": "1920_1080_dark_products.png"
+    }
+  ],
+  "source": "PBIX fornecido, extraído localmente",
+  "as_of": "21/10/2026",
+  "qt_platform": "offscreen/software",
+  "windows_native_tested": false
+}

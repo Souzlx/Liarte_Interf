@@ -1,0 +1,16 @@
+{
+  "version": "5.2.0-rc.2",
+  "embedded_first_use": "ok",
+  "positions": 1784,
+  "current_cost_cents": 1408861767,
+  "source_snapshot_sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+  "load_seconds": 2.111,
+  "suggestions_mean_ms_100_queries": 1.115,
+  "keyboard_completer": "ok",
+  "popup_bounds": "ok",
+  "chart_column_values_and_dark": "ok",
+  "excel_cost_equal_snapshot": true,
+  "source_unchanged": true,
+  "qml_warnings": [],
+  "execution": "Qt offscreen/software Linux; not native Windows"
+}

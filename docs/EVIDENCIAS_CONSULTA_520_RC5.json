@@ -1,0 +1,125 @@
+{
+  "version": "5.2.0-rc.5",
+  "generated_at": "2026-10-22T12:59:45.130669+00:00",
+  "release_status": "candidate_external_homologation_pending",
+  "tests": {
+    "cpython_3_14_8": {
+      "status": "passed",
+      "tests": 507,
+      "seconds": 138.743,
+      "log": "validacao_consulta_rc5/VALIDACAO_PY314_520_RC5_RELEASE.log"
+    },
+    "cpython_3_12_14": {
+      "status": "passed",
+      "tests": 506,
+      "seconds": 136.161,
+      "log": "validacao_consulta_rc5/VALIDACAO_PY312_520_RC5_RELEASE.log"
+    },
+    "source_and_verifier_regressions_3_14": {
+      "status": "passed",
+      "tests": 36,
+      "seconds": 7.469,
+      "log": "validacao_consulta_rc5/VALIDACAO_FONTES_520_RC5_FINAL.log"
+    }
+  },
+  "concurrency": {
+    "clients": 10,
+    "transport": "real HTTP loopback",
+    "upstream": "synthetic official-layout fixtures",
+    "result": "one annual download for general and one for municipal; same totals for all clients; no API fallback"
+  },
+  "exports": "Excel/PDF/Power BI generated from controlled CSV data; existing API-fixture export suites also passed",
+  "wheel": {
+    "status": "passed",
+    "version": "5.2.0-rc.5",
+    "installed_python_modules_match_source": 49,
+    "catalog_size": 35,
+    "stock_sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+    "qml_warnings": [],
+    "synthetic_ui": true,
+    "platform": "Linux Qt offscreen CPython3.14.8",
+    "new_sources_importable": true
+  },
+  "synthetic_volume": {
+    "synthetic": true,
+    "input_rows": 1000000,
+    "bytes": 51000108,
+    "catalog_rows": 1000,
+    "output_groups": 9,
+    "national_months_verified": 9,
+    "seconds": 8.223,
+    "rows_per_second": 121609,
+    "max_rss_kib": 49252,
+    "expected_cif_usd": 109000,
+    "expected_kg": 1000000,
+    "python": "3.14.8",
+    "status": "passed",
+    "note": "Synthetic ingestion benchmark, 51 MB, single product retained; not the MDIC annual file. Not a guarantee for other data/hardware."
+  },
+  "live_attempts_during_development": [
+    {
+      "requested_period": [
+        "2026-01",
+        "2026-09"
+      ],
+      "catalog_size": 35,
+      "environment": "Linux CPython 3.14.8, real public upstream",
+      "started_at": 1792672299.5085895,
+      "status": "failed",
+      "type": "ComexError",
+      "message": "Consulta oficial não concluída: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.",
+      "seconds": 44.609
+    },
+    {
+      "requested_period": [
+        "2026-01",
+        "2026-09"
+      ],
+      "catalog_size": 35,
+      "environment": "Linux CPython 3.14.8, real public upstream",
+      "started_at": 1792672528.601869,
+      "api_interval_seconds": 65,
+      "api_max_attempts": 3,
+      "status": "failed",
+      "type": "ComexError",
+      "message": "Consulta oficial não concluída: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 240 s antes de tentar novamente.",
+      "seconds": 211.204
+    }
+  ],
+  "live_detail_received": {
+    "status": "partial_only_not_published",
+    "rows": 7789,
+    "codes": 35,
+    "period": [
+      "2026-01",
+      "2026-09"
+    ],
+    "independent_control": "HTTP 429, not reconciled",
+    "source": "real Comex Stat API",
+    "not_a_successful_full_period_validation": true
+  },
+  "file_server_observation": {
+    "hosts": [
+      "balanca.mdic.gov.br",
+      "balanca.economia.gov.br"
+    ],
+    "status": 503,
+    "response": "upstream connect error or disconnect/reset before headers. reset reason: remote connection failure",
+    "meaning": "observed connectivity failure from this environment; not evidence of worldwide unavailability"
+  },
+  "lint": "ruff isolated E4/E7/E9/F, E402 excluded for existing bootstrap imports; passed",
+  "format": "11 changed/new Python files checked; passed",
+  "limitations": [
+    "The full period did not complete against real upstream sources.",
+    "CSV ingestion has controlled-fixture validation and a synthetic benchmark, but no successful annual MDIC download in this environment.",
+    "Windows installation, native file locking, shortcuts, DPAPI, firewall and GPU/DPI require Windows QA.",
+    "Multi-PC sharing requires a common company central; local automatic queues do not coordinate separate computers."
+  ],
+  "primary_sources": [
+    "https://api-comexstat.mdic.gov.br/docs/doc.yaml",
+    "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta",
+    "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas/informativos/informativo-2024-086",
+    "https://www.rfc-editor.org/rfc/rfc6585.html#section-4",
+    "https://www.rfc-editor.org/rfc/rfc9110.html#section-10.2.3"
+  ]
+}

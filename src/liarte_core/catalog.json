@@ -1,0 +1,272 @@
+{
+  "source_version": "4.7.2",
+  "source_zip_sha256": "8e17ad10ee85269c7d04018250e7f5b4a57cf9c156a067498ed87945e38da5b1",
+  "links": 54,
+  "ncms": 35,
+  "items": [
+    {
+      "ncm": "27101931",
+      "name": "Óleo lubrificante",
+      "products": [
+        "OL60",
+        "OLA3",
+        "OLP40"
+      ]
+    },
+    {
+      "ncm": "28112290",
+      "name": "Sílica",
+      "products": [
+        "SILHB151",
+        "SILHL200"
+      ]
+    },
+    {
+      "ncm": "28151100",
+      "name": "Soda cáustica",
+      "products": [
+        "B1"
+      ]
+    },
+    {
+      "ncm": "28252020",
+      "name": "Hidróxido de lítio",
+      "products": [
+        "LI4196"
+      ]
+    },
+    {
+      "ncm": "29021100",
+      "name": "Ciclohexano",
+      "products": [
+        "S28"
+      ]
+    },
+    {
+      "ncm": "29025000",
+      "name": "Estireno",
+      "products": [
+        "G28"
+      ]
+    },
+    {
+      "ncm": "29051210",
+      "name": "Álcool propílico",
+      "products": [
+        "S120",
+        "S63"
+      ]
+    },
+    {
+      "ncm": "29051220",
+      "name": "Álcool isopropílico",
+      "products": [
+        "S34"
+      ]
+    },
+    {
+      "ncm": "29053100",
+      "name": "Monoetilenoglicol",
+      "products": [
+        "V31"
+      ]
+    },
+    {
+      "ncm": "29094310",
+      "name": "Butilglicol",
+      "products": [
+        "S23"
+      ]
+    },
+    {
+      "ncm": "29141100",
+      "name": "Acetona",
+      "products": [
+        "S2"
+      ]
+    },
+    {
+      "ncm": "29141200",
+      "name": "Metiletilcetona",
+      "products": [
+        "S45"
+      ]
+    },
+    {
+      "ncm": "29141300",
+      "name": "Metilisobutilcetona",
+      "products": [
+        "S6-IM"
+      ]
+    },
+    {
+      "ncm": "29153100",
+      "name": "Acetato de etila",
+      "products": [
+        "S19"
+      ]
+    },
+    {
+      "ncm": "29153300",
+      "name": "Acetato de butila",
+      "products": [
+        "S130"
+      ]
+    },
+    {
+      "ncm": "29153931",
+      "name": "Acetato de propila",
+      "products": [
+        "S103"
+      ]
+    },
+    {
+      "ncm": "29156019",
+      "name": "Éster de ácido butírico",
+      "products": [
+        "C16"
+      ]
+    },
+    {
+      "ncm": "29161220",
+      "name": "Acrilato de etila",
+      "products": [
+        "G10"
+      ]
+    },
+    {
+      "ncm": "29161230",
+      "name": "Acrilato de butila",
+      "products": [
+        "G12"
+      ]
+    },
+    {
+      "ncm": "29161240",
+      "name": "Acrilato 2-etilexila",
+      "products": [
+        "G13"
+      ]
+    },
+    {
+      "ncm": "29161310",
+      "name": "Ácido metacrílico",
+      "products": [
+        "G20"
+      ]
+    },
+    {
+      "ncm": "29161410",
+      "name": "Metacrilato de metila",
+      "products": [
+        "G2"
+      ]
+    },
+    {
+      "ncm": "29161430",
+      "name": "Metacrilato de butila",
+      "products": [
+        "G3"
+      ]
+    },
+    {
+      "ncm": "29161490",
+      "name": "Outros metacrilatos",
+      "products": [
+        "G5"
+      ]
+    },
+    {
+      "ncm": "29171990",
+      "name": "Ácido policarboxílico",
+      "products": [
+        "G501"
+      ]
+    },
+    {
+      "ncm": "29221100",
+      "name": "Monoetanolamina",
+      "products": [
+        "B36"
+      ]
+    },
+    {
+      "ncm": "32061110",
+      "name": "Dióxido de titânio",
+      "products": [
+        "P50"
+      ]
+    },
+    {
+      "ncm": "34024200",
+      "name": "Tensoativo não iônico",
+      "products": [
+        "W09-IM"
+      ]
+    },
+    {
+      "ncm": "38249941",
+      "name": "Aditivo anticorrosivo",
+      "products": [
+        "AC7015",
+        "AC7050",
+        "AT6030"
+      ]
+    },
+    {
+      "ncm": "39022000",
+      "name": "Poliisobutileno",
+      "products": [
+        "PIB128",
+        "PIB30",
+        "PIB32"
+      ]
+    },
+    {
+      "ncm": "39073022",
+      "name": "Resina epóxi",
+      "products": [
+        "601R",
+        "607",
+        "DY-128"
+      ]
+    },
+    {
+      "ncm": "39100011",
+      "name": "Óleo de silicone",
+      "products": [
+        "OF201-100",
+        "OF201-1000",
+        "OF201-200",
+        "OF201-350",
+        "OF201-50",
+        "OF408",
+        "OF57"
+      ]
+    },
+    {
+      "ncm": "39100012",
+      "name": "Óleo de silicone",
+      "products": [
+        "OF201-12500",
+        "OF201-5000",
+        "OF201-60000"
+      ]
+    },
+    {
+      "ncm": "39100019",
+      "name": "Silicone em forma primária",
+      "products": [
+        "MOISIL SE-31"
+      ]
+    },
+    {
+      "ncm": "39111029",
+      "name": "Resina de petróleo",
+      "products": [
+        "BA100",
+        "BA120"
+      ]
+    }
+  ]
+}

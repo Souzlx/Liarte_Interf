@@ -1,0 +1,58 @@
+{
+  "status": "ok",
+  "platform": "Linux Qt 6.10.3 offscreen/software",
+  "synthetic": true,
+  "method": "Same 12-point series and geometry; RC4 keeps the rolling series, adds point markers and persistent selection in the same Canvas; count paint invocations during transition. No FPS claim.",
+  "results": [
+    {
+      "version": "rc3",
+      "transitions": 8,
+      "curve_paints_per_transition": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "transition_seconds_including_30ms_settle": [
+        0.308,
+        0.304,
+        0.305,
+        0.307,
+        0.305,
+        0.304,
+        0.304,
+        0.305
+      ],
+      "qml_warnings": []
+    },
+    {
+      "version": "rc4",
+      "transitions": 8,
+      "curve_paints_per_transition": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "transition_seconds_including_30ms_settle": [
+        0.308,
+        0.304,
+        0.305,
+        0.292,
+        0.306,
+        0.307,
+        0.304,
+        0.304
+      ],
+      "qml_warnings": []
+    }
+  ]
+}

@@ -1,0 +1,733 @@
+test_abandoned_lease_expires_and_a_stale_owner_cannot_release_the_new_one (tests.test_comex_access.ComexAccessTests.test_abandoned_lease_expires_and_a_stale_owner_cannot_release_the_new_one) ... ok
+test_configuration_roundtrip_pairing_and_invalid_config_fail_closed (tests.test_comex_access.ComexAccessTests.test_configuration_roundtrip_pairing_and_invalid_config_fail_closed) ... ok
+test_json_rate_limit_also_sets_the_shared_pause (tests.test_comex_access.ComexAccessTests.test_json_rate_limit_also_sets_the_shared_pause) ... ok
+test_last_429_persists_pause_for_a_new_client_and_cancel_prevents_network (tests.test_comex_access.ComexAccessTests.test_last_429_persists_pause_for_a_new_client_and_cancel_prevents_network) ... ok
+test_retry_after_is_not_shortened_and_accepts_http_dates_without_date_header (tests.test_comex_access.ComexAccessTests.test_retry_after_is_not_shortened_and_accepts_http_dates_without_date_header) ... ok
+test_shared_response_expiry_and_corruption_are_not_silently_used (tests.test_comex_access.ComexAccessTests.test_shared_response_expiry_and_corruption_are_not_silently_used) ... Resposta compartilhada inválida removida; será consultada novamente.
+ok
+test_ten_local_clients_are_serial_and_have_spacing (tests.test_comex_access.ComexAccessTests.test_ten_local_clients_are_serial_and_have_spacing) ... ok
+test_two_processes_share_a_pause_without_network_storage (tests.test_comex_access.ComexAccessTests.test_two_processes_share_a_pause_without_network_storage) ... ok
+test_unreadable_connection_never_enables_direct_access (tests.test_comex_access.ComexAccessTests.test_unreadable_connection_never_enables_direct_access) ... ok
+test_auth_and_ssrf_blocking_never_contact_origin (tests.test_comex_access.ComexCentralTests.test_auth_and_ssrf_blocking_never_contact_origin) ... ok
+test_central_unavailable_never_falls_back_to_the_official_api (tests.test_comex_access.ComexCentralTests.test_central_unavailable_never_falls_back_to_the_official_api) ... ok
+test_force_refresh_keeps_old_ticket_immutable_and_submission_idempotent (tests.test_comex_access.ComexCentralTests.test_force_refresh_keeps_old_ticket_immutable_and_submission_idempotent) ... ok
+test_full_provider_uses_shared_responses_and_keeps_exact_general_and_municipal_totals (tests.test_comex_access.ComexCentralTests.test_full_provider_uses_shared_responses_and_keeps_exact_general_and_municipal_totals) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_invalid_source_is_not_cached_or_published (tests.test_comex_access.ComexCentralTests.test_invalid_source_is_not_cached_or_published) ... Consulta da central não concluída: ComexStatError
+ok
+test_revision_and_control_dimensions_never_share_a_wrong_result (tests.test_comex_access.ComexCentralTests.test_revision_and_control_dimensions_never_share_a_wrong_result) ... ok
+test_shutdown_closes_keepalive_connections_and_is_idempotent (tests.test_comex_access.ComexCentralTests.test_shutdown_closes_keepalive_connections_and_is_idempotent) ... ok
+test_ten_computers_same_request_use_one_origin_response (tests.test_comex_access.ComexCentralTests.test_ten_computers_same_request_use_one_origin_response) ... ok
+test_central_gui_starts_checks_health_and_stops_without_console_commands (tests.test_comex_access.ComexConnectionUiTests.test_central_gui_starts_checks_health_and_stops_without_console_commands) ... ok
+test_configuration_cannot_change_during_a_query (tests.test_comex_access.ComexConnectionUiTests.test_configuration_cannot_change_during_a_query) ... ok
+test_native_connection_dialog_keeps_modules_and_filters_unchanged (tests.test_comex_access.ComexConnectionUiTests.test_native_connection_dialog_keeps_modules_and_filters_unchanged) ... ok
+test_save_and_import_are_persistent_without_deleting_valid_cache (tests.test_comex_access.ComexConnectionUiTests.test_save_and_import_are_persistent_without_deleting_valid_cache) ... ok
+test_source_check_starts_only_on_imports_once_and_never_on_filter_or_module_roundtrip (tests.test_comex_access.ComexConnectionUiTests.test_source_check_starts_only_on_imports_once_and_never_on_filter_or_module_roundtrip) ... ok
+test_abc_and_product_count_use_net_product_balances (tests.test_inventory.InventoryMathTests.test_abc_and_product_count_use_net_product_balances) ... ok
+test_abc_uses_positive_capital_before_abc_filter (tests.test_inventory.InventoryMathTests.test_abc_uses_positive_capital_before_abc_filter) ... ok
+test_activity_and_balance_filters_preserve_positions (tests.test_inventory.InventoryMathTests.test_activity_and_balance_filters_preserve_positions) ... ok
+test_completer_ranks_exact_codes_preserves_zeroes_and_ignores_accents (tests.test_inventory.InventoryMathTests.test_completer_ranks_exact_codes_preserves_zeroes_and_ignores_accents) ... ok
+test_coverage_uses_entire_branch_without_duplicating_sales_by_warehouse (tests.test_inventory.InventoryMathTests.test_coverage_uses_entire_branch_without_duplicating_sales_by_warehouse) ... ok
+test_currency_rounding_and_quantities_use_decimal (tests.test_inventory.InventoryMathTests.test_currency_rounding_and_quantities_use_decimal) ... ok
+test_current_cost_preserves_negative_balances_and_does_not_sum_history (tests.test_inventory.InventoryMathTests.test_current_cost_preserves_negative_balances_and_does_not_sum_history) ... ok
+test_empty_recorte_is_valid_and_future_start_is_rejected (tests.test_inventory.InventoryMathTests.test_empty_recorte_is_valid_and_future_start_is_rejected) ... ok
+test_incomplete_month_excluded_from_cv_but_used_in_daily_coverage (tests.test_inventory.InventoryMathTests.test_incomplete_month_excluded_from_cv_but_used_in_daily_coverage) ... ok
+test_last_positive_sale_survives_same_day_returns (tests.test_inventory.InventoryMathTests.test_last_positive_sale_survives_same_day_returns) ... ok
+test_missing_closing_is_not_zero_or_interpolated (tests.test_inventory.InventoryMathTests.test_missing_closing_is_not_zero_or_interpolated) ... ok
+test_mixed_units_never_become_a_fictitious_total (tests.test_inventory.InventoryMathTests.test_mixed_units_never_become_a_fictitious_total) ... ok
+test_month_sequence_crosses_year_and_checks_interval (tests.test_inventory.InventoryMathTests.test_month_sequence_crosses_year_and_checks_interval) ... ok
+test_monthly_change_never_bridges_gaps_or_uses_unavailable_october (tests.test_inventory.InventoryMathTests.test_monthly_change_never_bridges_gaps_or_uses_unavailable_october) ... ok
+test_months_without_sales_are_zero_and_cv_is_sample_std (tests.test_inventory.InventoryMathTests.test_months_without_sales_are_zero_and_cv_is_sample_std) ... ok
+test_nonpositive_monthly_demand_does_not_generate_cv (tests.test_inventory.InventoryMathTests.test_nonpositive_monthly_demand_does_not_generate_cv) ... ok
+test_ranking_share_has_the_same_denominator_and_order_as_abc (tests.test_inventory.InventoryMathTests.test_ranking_share_has_the_same_denominator_and_order_as_abc) ... ok
+test_sales_months_keep_observed_zeroes_and_distinguish_missing_and_partial (tests.test_inventory.InventoryMathTests.test_sales_months_keep_observed_zeroes_and_distinguish_missing_and_partial) ... ok
+test_search_without_accents_restricts_all_analysis (tests.test_inventory.InventoryMathTests.test_search_without_accents_restricts_all_analysis) ... ok
+test_source_giro_is_latest_not_sum_or_average_across_months (tests.test_inventory.InventoryMathTests.test_source_giro_is_latest_not_sum_or_average_across_months) ... ok
+test_source_scope_is_disclosed_and_unmatched_branch_has_no_history (tests.test_inventory.InventoryMathTests.test_source_scope_is_disclosed_and_unmatched_branch_has_no_history) ... ok
+test_warehouse_filter_disables_unallocatable_coverage (tests.test_inventory.InventoryMathTests.test_warehouse_filter_disables_unallocatable_coverage) ... ok
+test_atomic_replace_failure_keeps_previous_base (tests.test_inventory.InventoryFileTests.test_atomic_replace_failure_keeps_previous_base) ... ok
+test_cancelled_write_keeps_existing_snapshot_and_removes_temporary (tests.test_inventory.InventoryFileTests.test_cancelled_write_keeps_existing_snapshot_and_removes_temporary) ... ok
+test_corrupt_and_unknown_snapshots_rejected_without_execution (tests.test_inventory.InventoryFileTests.test_corrupt_and_unknown_snapshots_rejected_without_execution) ... ok
+test_duplicate_or_orphan_positions_and_invalid_values_are_rejected (tests.test_inventory.InventoryFileTests.test_duplicate_or_orphan_positions_and_invalid_values_are_rejected) ... ok
+test_embedded_manifest_rejects_corruption_and_missing_file (tests.test_inventory.InventoryFileTests.test_embedded_manifest_rejects_corruption_and_missing_file) ... ok
+test_excel_matches_filtered_result_units_formats_and_escapes_formula_text (tests.test_inventory.InventoryFileTests.test_excel_matches_filtered_result_units_formats_and_escapes_formula_text) ... ok
+test_negative_source_ratios_are_preserved_instead_of_silently_changed (tests.test_inventory.InventoryFileTests.test_negative_source_ratios_are_preserved_instead_of_silently_changed) ... ok
+test_pbix_projection_uses_column_names_not_schema_order_and_keeps_orphans (tests.test_inventory.InventoryFileTests.test_pbix_projection_uses_column_names_not_schema_order_and_keeps_orphans) ... ok
+test_pbix_without_embedded_data_has_actionable_error (tests.test_inventory.InventoryFileTests.test_pbix_without_embedded_data_has_actionable_error) ... ok
+test_roundtrip_preserves_codes_dates_units_money_and_source (tests.test_inventory.InventoryFileTests.test_roundtrip_preserves_codes_dates_units_money_and_source) ... ok
+test_bad_source_and_bad_interval_never_replace_valid_results (tests.test_inventory.InventoryUiTests.test_bad_source_and_bad_interval_never_replace_valid_results) ... Falha na operação de estoque
+Traceback (most recent call last):
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_desktop/inventory.py", line 126, in run
+    result = self.action(self.cancel, self.progress.emit)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_desktop/inventory.py", line 387, in action
+    data = read(path)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_desktop/inventory.py", line 384, in read
+    return load_inventory(candidate, cancel, progress)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_core/inventory_io.py", line 442, in load_inventory
+    raise ValueError("Arquivo não encontrado. Selecione novamente a base de estoque.")
+ValueError: Arquivo não encontrado. Selecione novamente a base de estoque.
+Falha na operação de estoque
+Traceback (most recent call last):
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_desktop/inventory.py", line 126, in run
+    result = self.action(self.cancel, self.progress.emit)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_desktop/inventory.py", line 468, in <lambda>
+    lambda cancel, progress: ("analysis", analyze_inventory(data, selected)), "analysis"
+                                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_core/inventory.py", line 219, in analyze_inventory
+    periods = month_range(selected.start, selected.end)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_core/inventory.py", line 84, in month_range
+    raise ValueError("Selecione um período válido de até 20 anos.")
+ValueError: Selecione um período válido de até 20 anos.
+ok
+test_cached_source_restored_only_when_entering_stock (tests.test_inventory.InventoryUiTests.test_cached_source_restored_only_when_entering_stock) ... ok
+test_cancel_after_staging_never_replaces_previous_cached_base (tests.test_inventory.InventoryUiTests.test_cancel_after_staging_never_replaces_previous_cached_base) ... ok
+test_cancel_reverts_unapplied_filters_and_keeps_previous_rows (tests.test_inventory.InventoryUiTests.test_cancel_reverts_unapplied_filters_and_keeps_previous_rows) ... ok
+test_chart_mode_values_average_and_nice_axis_do_not_change_the_selection (tests.test_inventory.InventoryUiTests.test_chart_mode_values_average_and_nice_axis_do_not_change_the_selection) ... ok
+test_closing_running_stock_requires_cancel_and_finishes_cleanly (tests.test_inventory.InventoryUiTests.test_closing_running_stock_requires_cancel_and_finishes_cleanly) ... ok
+test_compact_preference_changes_actual_row_height_without_resetting_model (tests.test_inventory.InventoryUiTests.test_compact_preference_changes_actual_row_height_without_resetting_model) ... ok
+test_existing_user_base_takes_precedence_over_embedded_snapshot (tests.test_inventory.InventoryUiTests.test_existing_user_base_takes_precedence_over_embedded_snapshot) ... ok
+test_export_preserves_selected_row_model_and_filter (tests.test_inventory.InventoryUiTests.test_export_preserves_selected_row_model_and_filter) ... ok
+test_first_use_loads_embedded_base_and_recovers_invalid_cache (tests.test_inventory.InventoryUiTests.test_first_use_loads_embedded_base_and_recovers_invalid_cache) ... Cópia local de estoque indisponível; recuperando base integrada
+Traceback (most recent call last):
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_core/inventory_io.py", line 135, in read_snapshot
+    body = stream.read(MAX_JSON + 1)
+  File "/workspace/scratch/d4c2b58ee5ea/central_python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/gzip.py", line 351, in read
+    return self._buffer.read(size)
+           ~~~~~~~~~~~~~~~~~^^^^^^
+  File "/workspace/scratch/d4c2b58ee5ea/central_python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/compression/_common/_streams.py", line 68, in readinto
+    data = self.read(len(byte_view))
+  File "/workspace/scratch/d4c2b58ee5ea/central_python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/gzip.py", line 572, in read
+    if not self._read_gzip_header():
+           ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/workspace/scratch/d4c2b58ee5ea/central_python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/gzip.py", line 541, in _read_gzip_header
+    last_mtime = _read_gzip_header(self._fp)
+  File "/workspace/scratch/d4c2b58ee5ea/central_python/cpython-3.14.8-linux-x86_64-gnu/lib/python3.14/gzip.py", line 501, in _read_gzip_header
+    raise BadGzipFile('Not a gzipped file (%r)' % magic)
+gzip.BadGzipFile: Not a gzipped file (b'co')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_desktop/inventory.py", line 387, in action
+    data = read(path)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_desktop/inventory.py", line 384, in read
+    return load_inventory(candidate, cancel, progress)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_core/inventory_io.py", line 447, in load_inventory
+    data = read_snapshot(path, cancel)
+  File "/workspace/scratch/d4c2b58ee5ea/comex_520_rc3/src/liarte_core/inventory_io.py", line 181, in read_snapshot
+    raise ValueError(
+        "Não foi possível ler esta base de estoque. Selecione um arquivo .liarte válido."
+    ) from exc
+ValueError: Não foi possível ler esta base de estoque. Selecione um arquivo .liarte válido.
+ok
+test_keyboard_route_reaches_stock_without_loading_another_module (tests.test_inventory.InventoryUiTests.test_keyboard_route_reaches_stock_without_loading_another_module) ... ok
+test_latest_filter_wins_while_previous_analysis_runs (tests.test_inventory.InventoryUiTests.test_latest_filter_wins_while_previous_analysis_runs) ... ok
+test_live_filters_numeric_sort_and_reset (tests.test_inventory.InventoryUiTests.test_live_filters_numeric_sort_and_reset) ... ok
+test_module_is_available_and_load_does_not_query_comex (tests.test_inventory.InventoryUiTests.test_module_is_available_and_load_does_not_query_comex) ... ok
+test_module_roundtrip_preserves_stock_and_import_sessions (tests.test_inventory.InventoryUiTests.test_module_roundtrip_preserves_stock_and_import_sessions) ... ok
+test_open_and_save_dialogs_load_without_qml_errors (tests.test_inventory.InventoryUiTests.test_open_and_save_dialogs_load_without_qml_errors) ... ok
+test_product_detail_exposes_scope_and_demand_series (tests.test_inventory.InventoryUiTests.test_product_detail_exposes_scope_and_demand_series) ... ok
+test_rapid_theme_layout_and_advanced_filters_have_no_qml_warnings (tests.test_inventory.InventoryUiTests.test_rapid_theme_layout_and_advanced_filters_have_no_qml_warnings) ... ok
+test_row_selection_and_sort_do_not_repaint_or_animate_the_overview_chart (tests.test_inventory.InventoryUiTests.test_row_selection_and_sort_do_not_repaint_or_animate_the_overview_chart) ... ok
+test_search_keyboard_and_reset_keep_text_and_filters_synchronized (tests.test_inventory.InventoryUiTests.test_search_keyboard_and_reset_keep_text_and_filters_synchronized) ... ok
+test_suggestions_support_arrow_selection_escape_and_clear_without_losing_text (tests.test_inventory.InventoryUiTests.test_suggestions_support_arrow_selection_escape_and_clear_without_losing_text) ... ok
+test_01_exact_source_controls_and_months (tests.test_powerbi.PowerBiTests.test_01_exact_source_controls_and_months) ... ok
+test_02_embedded_excel_is_byte_identical (tests.test_powerbi.PowerBiTests.test_02_embedded_excel_is_byte_identical) ... ok
+test_03_cif_discrepancy_is_rejected (tests.test_powerbi.PowerBiTests.test_03_cif_discrepancy_is_rejected) ... ok
+test_04_monetary_values_are_not_guessed_or_rounded (tests.test_powerbi.PowerBiTests.test_04_monetary_values_are_not_guessed_or_rounded) ... ok
+test_05_fractional_kg_is_rejected (tests.test_powerbi.PowerBiTests.test_05_fractional_kg_is_rejected) ... ok
+test_06_formulas_in_data_are_rejected (tests.test_powerbi.PowerBiTests.test_06_formulas_in_data_are_rejected) ... ok
+test_07_duplicate_fact_grain_is_rejected (tests.test_powerbi.PowerBiTests.test_07_duplicate_fact_grain_is_rejected) ... ok
+test_08_missing_dimensions_and_unknown_codes_are_rejected (tests.test_powerbi.PowerBiTests.test_08_missing_dimensions_and_unknown_codes_are_rejected) ... ok
+test_09_months_cross_year_require_explicit_year (tests.test_powerbi.PowerBiTests.test_09_months_cross_year_require_explicit_year) ... ok
+test_10_empty_dataset_has_valid_zero_controls (tests.test_powerbi.PowerBiTests.test_10_empty_dataset_has_valid_zero_controls) ... ok
+test_11_source_failure_preserves_existing_destination (tests.test_powerbi.PowerBiTests.test_11_source_failure_preserves_existing_destination) ... ok
+test_12_cancel_preserves_destination_and_cleans_temporary (tests.test_powerbi.PowerBiTests.test_12_cancel_preserves_destination_and_cleans_temporary) ... ok
+test_13_source_hash_tampering_is_detected (tests.test_powerbi.PowerBiTests.test_13_source_hash_tampering_is_detected) ... ok
+test_14_unknown_field_is_detected (tests.test_powerbi.PowerBiTests.test_14_unknown_field_is_detected) ... ok
+test_15_implicit_numeric_projection_is_detected (tests.test_powerbi.PowerBiTests.test_15_implicit_numeric_projection_is_detected) ... ok
+test_16_invalid_geometry_is_detected (tests.test_powerbi.PowerBiTests.test_16_invalid_geometry_is_detected) ... ok
+test_17_relationship_cardinality_tampering_is_detected (tests.test_powerbi.PowerBiTests.test_17_relationship_cardinality_tampering_is_detected) ... ok
+test_18_municipal_slicers_cannot_share_general_group (tests.test_powerbi.PowerBiTests.test_18_municipal_slicers_cannot_share_general_group) ... ok
+test_19_money_and_grain_are_explicit (tests.test_powerbi.PowerBiTests.test_19_money_and_grain_are_explicit) ... ok
+test_20_layout_and_ids_are_deterministic_and_compact (tests.test_powerbi.PowerBiTests.test_20_layout_and_ids_are_deterministic_and_compact) ... ok
+test_21_weighted_measures_and_monthly_context_are_preserved (tests.test_powerbi.PowerBiTests.test_21_weighted_measures_and_monthly_context_are_preserved) ... ok
+test_22_m_path_and_tmdl_mask_escaping (tests.test_powerbi.PowerBiTests.test_22_m_path_and_tmdl_mask_escaping) ... ok
+test_23_detail_tables_are_flat_single_fact_column_queries (tests.test_powerbi.PowerBiTests.test_23_detail_tables_are_flat_single_fact_column_queries) ... ok
+test_24_details_recompute_price_from_values_not_cached_ratio (tests.test_powerbi.PowerBiTests.test_24_details_recompute_price_from_values_not_cached_ratio) ... ok
+test_25_price_guidance_prioritizes_single_ncm_selection (tests.test_powerbi.PowerBiTests.test_25_price_guidance_prioritizes_single_ncm_selection) ... ok
+test_26_uf_slicer_has_room_for_default_label (tests.test_powerbi.PowerBiTests.test_26_uf_slicer_has_room_for_default_label) ... ok
+test_27_city_label_does_not_append_same_uf_twice (tests.test_powerbi.PowerBiTests.test_27_city_label_does_not_append_same_uf_twice) ... ok
+test_28_logistics_overview_uses_full_freight_not_incomplete_ratio (tests.test_powerbi.PowerBiTests.test_28_logistics_overview_uses_full_freight_not_incomplete_ratio) ... ok
+test_29_detail_validator_rejects_mixed_dimension_and_measure_query (tests.test_powerbi.PowerBiTests.test_29_detail_validator_rejects_mixed_dimension_and_measure_query) ... ok
+test_30_axis_measures_preserve_value_and_explicit_chart_units (tests.test_powerbi.PowerBiTests.test_30_axis_measures_preserve_value_and_explicit_chart_units) ... ok
+test_31_nominal_trends_use_zero_baseline_and_price_is_explicit (tests.test_powerbi.PowerBiTests.test_31_nominal_trends_use_zero_baseline_and_price_is_explicit) ... ok
+test_aggregation_uses_weighted_price (tests.test_core.CoreTests.test_aggregation_uses_weighted_price) ... ok
+test_cancel_does_not_publish_partial_dataset (tests.test_core.CoreTests.test_cancel_does_not_publish_partial_dataset) ... ok
+test_catalog_matches_baseline_unique_ncms (tests.test_core.CoreTests.test_catalog_matches_baseline_unique_ncms) ... ok
+test_chart_months_reconcile (tests.test_core.CoreTests.test_chart_months_reconcile) ... ok
+test_cif_is_exact_sum (tests.test_core.CoreTests.test_cif_is_exact_sum) ... ok
+test_combined_filters (tests.test_core.CoreTests.test_combined_filters) ... ok
+test_compact_money_keeps_currency (tests.test_core.CoreTests.test_compact_money_keeps_currency) ... ok
+test_core_has_no_ui_or_network_dependencies (tests.test_core.CoreTests.test_core_has_no_ui_or_network_dependencies) ... ok
+test_filters_must_belong_to_demo (tests.test_core.CoreTests.test_filters_must_belong_to_demo) ... ok
+test_financial_format_is_numeric_and_localized (tests.test_core.CoreTests.test_financial_format_is_numeric_and_localized) ... ok
+test_invalid_periods_and_reversed_range (tests.test_core.CoreTests.test_invalid_periods_and_reversed_range) ... ok
+test_invalid_record_is_rejected (tests.test_core.CoreTests.test_invalid_record_is_rejected) ... ok
+test_invalid_selection_is_rejected (tests.test_core.CoreTests.test_invalid_selection_is_rejected) ... ok
+test_missing_price_sorts_last_both_directions (tests.test_core.CoreTests.test_missing_price_sorts_last_both_directions) ... ok
+test_month_label_is_portuguese (tests.test_core.CoreTests.test_month_label_is_portuguese) ... ok
+test_page_is_clamped_to_last (tests.test_core.CoreTests.test_page_is_clamped_to_last) ... ok
+test_period_filter_is_inclusive (tests.test_core.CoreTests.test_period_filter_is_inclusive) ... ok
+test_period_round_trip_across_year (tests.test_core.CoreTests.test_period_round_trip_across_year) ... ok
+test_search_does_not_change_metrics_or_charts (tests.test_core.CoreTests.test_search_does_not_change_metrics_or_charts) ... ok
+test_search_is_accent_insensitive (tests.test_core.CoreTests.test_search_is_accent_insensitive) ... ok
+test_sort_is_numeric_before_paging (tests.test_core.CoreTests.test_sort_is_numeric_before_paging) ... ok
+test_synthetic_provider_is_deterministic (tests.test_core.CoreTests.test_synthetic_provider_is_deterministic) ... ok
+test_zero_results_is_valid (tests.test_core.CoreTests.test_zero_results_is_valid) ... ok
+test_zero_weight_has_no_unit_price (tests.test_core.CoreTests.test_zero_weight_has_no_unit_price) ... ok
+test_burst_progress_is_coalesced_without_losing_completion (tests.test_qt.QtTests.test_burst_progress_is_coalesced_without_losing_completion) ... ok
+test_cancellation_has_no_partial_result (tests.test_qt.QtTests.test_cancellation_has_no_partial_result) ... ok
+test_clear_filters_resets_search_and_scope (tests.test_qt.QtTests.test_clear_filters_resets_search_and_scope) ... ok
+test_close_while_busy_requires_confirmation (tests.test_qt.QtTests.test_close_while_busy_requires_confirmation) ... ok
+test_compact_mode_relayouts_without_qml_warnings (tests.test_qt.QtTests.test_compact_mode_relayouts_without_qml_warnings) ... ok
+test_control_f_reveals_search_below_fold (tests.test_qt.QtTests.test_control_f_reveals_search_below_fold) ... ok
+test_country_share_rounds_decimal_half_up (tests.test_qt.QtTests.test_country_share_rounds_decimal_half_up) ... ok
+test_invalid_period_preserves_previous_results (tests.test_qt.QtTests.test_invalid_period_preserves_previous_results) ... ok
+test_keyboard_keeps_selected_row_visible (tests.test_qt.QtTests.test_keyboard_keeps_selected_row_visible) ... ok
+test_keyboard_selects_row_and_opens_details (tests.test_qt.QtTests.test_keyboard_selects_row_and_opens_details) ... ok
+test_latest_filter_wins_after_rapid_changes (tests.test_qt.QtTests.test_latest_filter_wins_after_rapid_changes) ... ok
+test_model_rejects_update_from_background_thread (tests.test_qt.QtTests.test_model_rejects_update_from_background_thread) ... ok
+test_month_ticks_align_with_actual_first_and_last_points (tests.test_qt.QtTests.test_month_ticks_align_with_actual_first_and_last_points) ... ok
+test_native_popups_open_and_restore (tests.test_qt.QtTests.test_native_popups_open_and_restore) ... ok
+test_new_request_replaces_running_request (tests.test_qt.QtTests.test_new_request_replaces_running_request) ... ok
+test_page_and_sort_and_size (tests.test_qt.QtTests.test_page_and_sort_and_size) ... ok
+test_portuguese_month_dropdown (tests.test_qt.QtTests.test_portuguese_month_dropdown) ... ok
+test_qml_loads_without_warnings_and_without_query (tests.test_qt.QtTests.test_qml_loads_without_warnings_and_without_query) ... ok
+test_query_button_runs_native_worker (tests.test_qt.QtTests.test_query_button_runs_native_worker) ... ok
+test_responsive_window_and_dialogs (tests.test_qt.QtTests.test_responsive_window_and_dialogs) ... ok
+test_search_changes_only_table (tests.test_qt.QtTests.test_search_changes_only_table) ... ok
+test_selection_details_and_clipboard (tests.test_qt.QtTests.test_selection_details_and_clipboard) ... ok
+test_settings_are_separate_and_survive_new_controller (tests.test_qt.QtTests.test_settings_are_separate_and_survive_new_controller) ... ok
+test_table_model_contract (tests.test_qt.QtTests.test_table_model_contract) ... ok
+test_theme_button_and_native_brand (tests.test_qt.QtTests.test_theme_button_and_native_brand) ... ok
+test_worker_error_is_visible_and_previous_results_stay (tests.test_qt.QtTests.test_worker_error_is_visible_and_previous_results_stay) ... ok
+test_dependency_repair_uses_only_its_own_interpreter (tests.test_bootstrap.BootstrapTests.test_dependency_repair_uses_only_its_own_interpreter) ... ok
+test_explicit_repair_does_not_reinstall_twice (tests.test_bootstrap.BootstrapTests.test_explicit_repair_does_not_reinstall_twice) ... ok
+test_frozen_bundle_can_hold_qt_dlls_at_its_internal_root (tests.test_bootstrap.BootstrapTests.test_frozen_bundle_can_hold_qt_dlls_at_its_internal_root) ... ok
+test_load_failure_keeps_code_and_closes_directory_handles (tests.test_bootstrap.BootstrapTests.test_load_failure_keeps_code_and_closes_directory_handles) ... ok
+test_missing_plugin_is_reported_before_loading_any_dll (tests.test_bootstrap.BootstrapTests.test_missing_plugin_is_reported_before_loading_any_dll) ... ok
+test_non_windows_does_not_change_loader_or_environment (tests.test_bootstrap.BootstrapTests.test_non_windows_does_not_change_loader_or_environment) ... ok
+test_prepare_retries_once_and_launches_only_after_success (tests.test_bootstrap.BootstrapTests.test_prepare_retries_once_and_launches_only_after_success) ... ok
+test_prepare_stops_after_failed_repair (tests.test_bootstrap.BootstrapTests.test_prepare_stops_after_failed_repair) ... ok
+test_probe_does_not_accept_a_stale_success_report (tests.test_bootstrap.BootstrapTests.test_probe_does_not_accept_a_stale_success_report) ... ok
+test_probe_rejects_qml_warnings (tests.test_bootstrap.BootstrapTests.test_probe_rejects_qml_warnings) ... ok
+test_probe_requires_success_and_both_themes (tests.test_bootstrap.BootstrapTests.test_probe_requires_success_and_both_themes) ... ok
+test_probe_timeout_fails_without_opening_the_application (tests.test_bootstrap.BootstrapTests.test_probe_timeout_fails_without_opening_the_application) ... ok
+test_registration_is_idempotent (tests.test_bootstrap.BootstrapTests.test_registration_is_idempotent) ... ok
+test_windows_keeps_directory_handles_and_loads_absolute_plugins (tests.test_bootstrap.BootstrapTests.test_windows_keeps_directory_handles_and_loads_absolute_plugins) ... ok
+test_500_independent_filter_and_aggregation_scenarios (tests.test_review.ReviewCoreTests.test_500_independent_filter_and_aggregation_scenarios) ... ok
+test_ascii_ncm_dates_and_valid_uf (tests.test_review.ReviewCoreTests.test_ascii_ncm_dates_and_valid_uf) ... ok
+test_cancelled_cache_hit_does_not_return_data (tests.test_review.ReviewCoreTests.test_cancelled_cache_hit_does_not_return_data) ... ok
+test_format_ignores_ambient_decimal_context (tests.test_review.ReviewCoreTests.test_format_ignores_ambient_decimal_context) ... ok
+test_invalid_filter_types_are_rejected (tests.test_review.ReviewCoreTests.test_invalid_filter_types_are_rejected) ... ok
+test_memory_caches_are_bounded (tests.test_review.ReviewCoreTests.test_memory_caches_are_bounded) ... ok
+test_page_and_size_reuse_scope_and_order (tests.test_review.ReviewCoreTests.test_page_and_size_reuse_scope_and_order) ... ok
+test_port_filter_intersects_other_filters (tests.test_review.ReviewCoreTests.test_port_filter_intersects_other_filters) ... ok
+test_price_order_is_exact_for_very_close_ratios (tests.test_review.ReviewCoreTests.test_price_order_is_exact_for_very_close_ratios) ... ok
+test_search_reuses_index_without_changing_totals (tests.test_review.ReviewCoreTests.test_search_reuses_index_without_changing_totals) ... ok
+test_sorting_can_cancel_before_publishing_order (tests.test_review.ReviewCoreTests.test_sorting_can_cancel_before_publishing_order) ... ok
+test_source_replacement_invalidates_cached_data (tests.test_review.ReviewCoreTests.test_source_replacement_invalidates_cached_data) ... ok
+test_text_order_folds_accents_and_case (tests.test_review.ReviewCoreTests.test_text_order_folds_accents_and_case) ... ok
+test_brand_requested_pixel_size_and_bounded_cache (tests.test_review.ReviewQtTests.test_brand_requested_pixel_size_and_bounded_cache) ... ok
+test_cancel_pending_filter_restores_visible_selection (tests.test_review.ReviewQtTests.test_cancel_pending_filter_restores_visible_selection) ... ok
+test_dialogs_stay_inside_small_window (tests.test_review.ReviewQtTests.test_dialogs_stay_inside_small_window) ... ok
+test_draft_period_is_explicit (tests.test_review.ReviewQtTests.test_draft_period_is_explicit) ... ok
+test_extended_keyboard_navigation (tests.test_review.ReviewQtTests.test_extended_keyboard_navigation) ... ok
+test_failed_result_commit_preserves_previous_table (tests.test_review.ReviewQtTests.test_failed_result_commit_preserves_previous_table) ... ok
+test_first_and_last_page_navigation (tests.test_review.ReviewQtTests.test_first_and_last_page_navigation) ... ok
+test_header_actions_keep_their_complete_labels (tests.test_review.ReviewQtTests.test_header_actions_keep_their_complete_labels) ... ok
+test_invalid_preference_does_not_prevent_startup (tests.test_review.ReviewQtTests.test_invalid_preference_does_not_prevent_startup) ... ok
+test_modal_suppresses_background_shortcuts (tests.test_review.ReviewQtTests.test_modal_suppresses_background_shortcuts) ... ok
+test_port_control_and_filter_are_consistent (tests.test_review.ReviewQtTests.test_port_control_and_filter_are_consistent) ... ok
+test_preference_save_failure_keeps_session_functional (tests.test_review.ReviewQtTests.test_preference_save_failure_keeps_session_functional) ... ok
+test_search_changes_only_table_notifications (tests.test_review.ReviewQtTests.test_search_changes_only_table_notifications) ... ok
+test_selection_theme_page_preserve_analysis_notifications (tests.test_review.ReviewQtTests.test_selection_theme_page_preserve_analysis_notifications) ... ok
+test_shutdown_is_idempotent_after_deferred_deletes (tests.test_review.ReviewQtTests.test_shutdown_is_idempotent_after_deferred_deletes) ... ok
+test_stale_result_during_debounce_does_not_commit (tests.test_review.ReviewQtTests.test_stale_result_during_debounce_does_not_commit) ... ok
+test_child_does_not_inherit_foreign_python_or_qt_paths (tests.test_preparation.PreparationTests.test_child_does_not_inherit_foreign_python_or_qt_paths) ... ok
+test_early_process_exit_does_not_report_success (tests.test_preparation.PreparationTests.test_early_process_exit_does_not_report_success) ... ok
+test_failed_preparation_does_not_leave_a_stale_lock (tests.test_preparation.PreparationTests.test_failed_preparation_does_not_leave_a_stale_lock) ... ok
+test_lock_excludes_another_process_and_releases_after_close (tests.test_preparation.PreparationTests.test_lock_excludes_another_process_and_releases_after_close) ... ok
+test_matching_versions_skip_installation_probe (tests.test_preparation.PreparationTests.test_matching_versions_skip_installation_probe) ... ok
+test_publish_keeps_previous_bundle_backup (tests.test_preparation.PreparationTests.test_publish_keeps_previous_bundle_backup) ... ok
+test_publish_preserves_partial_copy_and_restores_old_path (tests.test_preparation.PreparationTests.test_publish_preserves_partial_copy_and_restores_old_path) ... ok
+test_publish_rolls_back_previous_bundle_when_move_fails (tests.test_preparation.PreparationTests.test_publish_rolls_back_previous_bundle_when_move_fails) ... ok
+test_startup_captures_child_output_without_a_console (tests.test_preparation.PreparationTests.test_startup_captures_child_output_without_a_console) ... ok
+test_startup_failure_does_not_report_success_or_leave_a_process (tests.test_preparation.PreparationTests.test_startup_failure_does_not_report_success_or_leave_a_process) ... ok
+test_startup_requires_a_ready_signal (tests.test_preparation.PreparationTests.test_startup_requires_a_ready_signal) ... ok
+test_startup_timeout_terminates_only_its_own_process (tests.test_preparation.PreparationTests.test_startup_timeout_terminates_only_its_own_process) ... ok
+test_freezer_resources_and_icon_exist (tests.test_build.DistributionTests.test_freezer_resources_and_icon_exist) ... ok
+test_qml_collection_keeps_controls_and_excludes_unrelated_modules (tests.test_build.DistributionTests.test_qml_collection_keeps_controls_and_excludes_unrelated_modules) ... ok
+test_source_smoke_uses_real_qt_entrypoint (tests.test_build.DistributionTests.test_source_smoke_uses_real_qt_entrypoint) ... ok
+test_backoff_is_cancellable (tests.test_comex.ComexTests.test_backoff_is_cancellable) ... ok
+test_cancel_prevents_any_network_access (tests.test_comex.ComexTests.test_cancel_prevents_any_network_access) ... ok
+test_catalog_ncms_and_product_relationships_match_engine (tests.test_comex.ComexTests.test_catalog_ncms_and_product_relationships_match_engine) ... ok
+test_city_filter_matches_independent_sum (tests.test_comex.ComexTests.test_city_filter_matches_independent_sum) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_decimal_precision_never_rounds_imported_metrics (tests.test_comex.ComexTests.test_decimal_precision_never_rounds_imported_metrics) ... ok
+test_divergent_cif_does_not_replace_a_snapshot (tests.test_comex.ComexTests.test_divergent_cif_does_not_replace_a_snapshot) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+ok
+test_exact_general_totals_from_official_fixture (tests.test_comex.ComexTests.test_exact_general_totals_from_official_fixture) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_filters_pages_and_dataset_switch_do_not_call_network (tests.test_comex.ComexTests.test_filters_pages_and_dataset_switch_do_not_call_network) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_force_refresh_fetches_both_sources (tests.test_comex.ComexTests.test_force_refresh_fetches_both_sources) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_future_period_is_rejected_before_dataset_post (tests.test_comex.ComexTests.test_future_period_is_rejected_before_dataset_post) ... ok
+test_http_rate_limit_retries_are_bounded (tests.test_comex.ComexTests.test_http_rate_limit_retries_are_bounded) ... ok
+test_multiple_countries_and_states_use_union_then_intersection (tests.test_comex.ComexTests.test_multiple_countries_and_states_use_union_then_intersection) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_multiple_values_are_canonical_and_validated (tests.test_comex.ComexTests.test_multiple_values_are_canonical_and_validated) ... ok
+test_municipal_is_sh4_fob_and_never_cif (tests.test_comex.ComexTests.test_municipal_is_sh4_fob_and_never_cif) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_offline_availability_is_explicit (tests.test_comex.ComexTests.test_offline_availability_is_explicit) ... ok
+test_out_of_catalog_code_is_rejected (tests.test_comex.ComexTests.test_out_of_catalog_code_is_rejected) ... ok
+test_pdf_rounding_uses_decimal_half_up (tests.test_comex.ComexTests.test_pdf_rounding_uses_decimal_half_up) ... ok
+test_persistent_cache_is_used_by_a_new_provider (tests.test_comex.ComexTests.test_persistent_cache_is_used_by_a_new_provider) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_revision_change_invalidates_cached_rows (tests.test_comex.ComexTests.test_revision_change_invalidates_cached_rows) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_second_source_failure_preserves_complete_snapshot (tests.test_comex.ComexTests.test_second_source_failure_preserves_complete_snapshot) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_unknown_uf_is_not_silently_dropped (tests.test_comex.ComexTests.test_unknown_uf_is_not_silently_dropped) ... ok
+test_audit_failure_does_not_hide_a_saved_document (tests.test_comex.ExportTests.test_audit_failure_does_not_hide_a_saved_document) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_cancelled_excel_preserves_existing_destination (tests.test_comex.ExportTests.test_cancelled_excel_preserves_existing_destination) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_excel_ignores_analytical_filters (tests.test_comex.ExportTests.test_excel_ignores_analytical_filters) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_excel_totals_uf_width_and_vertical_alignment (tests.test_comex.ExportTests.test_excel_totals_uf_width_and_vertical_alignment) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_municipal_pdf_is_not_misrepresented_as_cif (tests.test_comex.ExportTests.test_municipal_pdf_is_not_misrepresented_as_cif) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_pdf_commercial_names_no_ncm_code_or_noisy_footer (tests.test_comex.ExportTests.test_pdf_commercial_names_no_ncm_code_or_noisy_footer) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_pdf_excludes_exactly_1000kg_and_airports (tests.test_comex.ExportTests.test_pdf_excludes_exactly_1000kg_and_airports) ... ok
+test_pdf_repeats_headers_when_multiple_pages (tests.test_comex.ExportTests.test_pdf_repeats_headers_when_multiple_pages) ... ok
+test_pdf_uses_filters_and_search_across_all_pages (tests.test_comex.ExportTests.test_pdf_uses_filters_and_search_across_all_pages) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_powerbi_package_contains_valid_pages_and_source (tests.test_comex.ExportTests.test_powerbi_package_contains_valid_pages_and_source) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_cancelling_pending_multi_filters_restores_controls (tests.test_comex.RealQtTests.test_cancelling_pending_multi_filters_restores_controls) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_clear_filters_resets_search_text (tests.test_comex.RealQtTests.test_clear_filters_resets_search_text) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_excel_export_runs_in_a_worker_and_saves (tests.test_comex.RealQtTests.test_excel_export_runs_in_a_worker_and_saves) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_failed_refresh_disables_export_until_a_successful_query (tests.test_comex.RealQtTests.test_failed_refresh_disables_export_until_a_successful_query) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consulta oficial não concluída: Consulta oficial não concluída: Falha municipal controlada
+ok
+test_headers_fit_when_switching_back_to_general (tests.test_comex.RealQtTests.test_headers_fit_when_switching_back_to_general) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_metadata_refresh_keeps_ui_responsive_and_updates_periods (tests.test_comex.RealQtTests.test_metadata_refresh_keeps_ui_responsive_and_updates_periods) ... ok
+test_multiple_filters_can_be_cleared_without_hidden_selection (tests.test_comex.RealQtTests.test_multiple_filters_can_be_cleared_without_hidden_selection) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_municipal_tab_has_correct_headers_metrics_and_city_filter (tests.test_comex.RealQtTests.test_municipal_tab_has_correct_headers_metrics_and_city_filter) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_native_save_dialog_opens_with_the_right_format (tests.test_comex.RealQtTests.test_native_save_dialog_opens_with_the_right_format) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_pdf_export_has_no_success_notification (tests.test_comex.RealQtTests.test_pdf_export_has_no_success_notification) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_pending_filters_disable_export (tests.test_comex.RealQtTests.test_pending_filters_disable_export) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_period_without_a_selected_country_keeps_the_filter_visible (tests.test_comex.RealQtTests.test_period_without_a_selected_country_keeps_the_filter_visible) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-08 a 2026-08)...
+Consultando municípios 1/1 (1 posições SH4; 2026-08 a 2026-08)...
+ok
+test_quick_month_uses_the_published_month (tests.test_comex.RealQtTests.test_quick_month_uses_the_published_month) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_real_mode_loads_official_data_without_synthetic_fallback (tests.test_comex.RealQtTests.test_real_mode_loads_official_data_without_synthetic_fallback) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_searchable_filter_accepts_accentless_typing_and_keyboard (tests.test_comex.RealQtTests.test_searchable_filter_accepts_accentless_typing_and_keyboard) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_source_failure_preserves_previous_rows_and_disables_export (tests.test_comex.RealQtTests.test_source_failure_preserves_previous_rows_and_disables_export) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consulta oficial não concluída: Consulta oficial não concluída: Falha municipal controlada
+ok
+test_appid_failure_does_not_record_success (tests.test_windows_shell.WindowsShellTests.test_appid_failure_does_not_record_success) ... ok
+test_corrupted_marker_does_not_prevent_recreation (tests.test_windows_shell.WindowsShellTests.test_corrupted_marker_does_not_prevent_recreation) ... ok
+test_create_and_skip_repeated_startup (tests.test_windows_shell.WindowsShellTests.test_create_and_skip_repeated_startup) ... ok
+test_deleted_shortcut_is_recreated (tests.test_windows_shell.WindowsShellTests.test_deleted_shortcut_is_recreated) ... ok
+test_legacy_marker_gets_appid_migration_once (tests.test_windows_shell.WindowsShellTests.test_legacy_marker_gets_appid_migration_once) ... ok
+test_moved_application_updates_only_its_owned_destinations (tests.test_windows_shell.WindowsShellTests.test_moved_application_updates_only_its_owned_destinations) ... ok
+test_powershell_literals_do_not_expand_paths (tests.test_windows_shell.WindowsShellTests.test_powershell_literals_do_not_expand_paths) ... ok
+test_shortcut_success_requires_files_to_exist (tests.test_windows_shell.WindowsShellTests.test_shortcut_success_requires_files_to_exist) ... ok
+test_active_chips_wrap_inside_a_compact_workspace (tests.test_interface.InterfaceTests.test_active_chips_wrap_inside_a_compact_workspace) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_clear_search_preserves_analysis_filters_and_totals (tests.test_interface.InterfaceTests.test_clear_search_preserves_analysis_filters_and_totals) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_curve_reveal_does_not_repaint_canvas_each_frame (tests.test_interface.InterfaceTests.test_curve_reveal_does_not_repaint_canvas_each_frame) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_hover_guide_does_not_repaint_the_curve (tests.test_interface.InterfaceTests.test_hover_guide_does_not_repaint_the_curve) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_initial_workspace_has_one_clear_action_and_no_empty_graphs (tests.test_interface.InterfaceTests.test_initial_workspace_has_one_clear_action_and_no_empty_graphs) ... ok
+test_monthly_sheets_option_remains_available_in_preferences (tests.test_interface.InterfaceTests.test_monthly_sheets_option_remains_available_in_preferences) ... ok
+test_origin_bars_use_all_origins_as_denominator (tests.test_interface.InterfaceTests.test_origin_bars_use_all_origins_as_denominator) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_primary_button_captions_are_not_truncated (tests.test_interface.InterfaceTests.test_primary_button_captions_are_not_truncated) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_rate_limit_message_is_readable_and_preserves_technical_diagnostic (tests.test_interface.InterfaceTests.test_rate_limit_message_is_readable_and_preserves_technical_diagnostic) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_reduce_motion_stops_a_running_reveal (tests.test_interface.InterfaceTests.test_reduce_motion_stops_a_running_reveal) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_refresh_option_remains_available_in_preferences (tests.test_interface.InterfaceTests.test_refresh_option_remains_available_in_preferences) ... ok
+test_removing_one_chip_preserves_other_dimensions (tests.test_interface.InterfaceTests.test_removing_one_chip_preserves_other_dimensions) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_validation_errors_remain_explicit (tests.test_interface.InterfaceTests.test_validation_errors_remain_explicit) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_workspace_omits_internal_platform_and_cache_descriptions (tests.test_interface.InterfaceTests.test_workspace_omits_internal_platform_and_cache_descriptions) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_zero_single_and_long_series_are_finite_and_accessible (tests.test_interface.InterfaceTests.test_zero_single_and_long_series_are_finite_and_accessible) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_text_and_emphasized_card_contrast_in_both_themes (tests.test_interface.PaletteTests.test_text_and_emphasized_card_contrast_in_both_themes) ... ok
+test_calculations_do_not_inherit_display_precision (tests.test_procurement.ProcurementTests.test_calculations_do_not_inherit_display_precision) ... ok
+test_country_comparison_uses_weight_and_same_scope (tests.test_procurement.ProcurementTests.test_country_comparison_uses_weight_and_same_scope) ... ok
+test_empty_scope_has_no_fabricated_reference (tests.test_procurement.ProcurementTests.test_empty_scope_has_no_fabricated_reference) ... ok
+test_finalization_remains_cancellable (tests.test_procurement.ProcurementTests.test_finalization_remains_cancellable) ... ok
+test_known_totals_weighted_reference_and_costs (tests.test_procurement.ProcurementTests.test_known_totals_weighted_reference_and_costs) ... ok
+test_large_values_and_tiny_unit_values_remain_finite (tests.test_procurement.ProcurementTests.test_large_values_and_tiny_unit_values_remain_finite) ... ok
+test_missing_month_is_not_connected_or_used_as_zero_price (tests.test_procurement.ProcurementTests.test_missing_month_is_not_connected_or_used_as_zero_price) ... ok
+test_mix_is_explicit_and_origin_comparison_requires_one_code (tests.test_procurement.ProcurementTests.test_mix_is_explicit_and_origin_comparison_requires_one_code) ... ok
+test_municipal_is_fob_and_never_fabricates_cif_or_freight (tests.test_procurement.ProcurementTests.test_municipal_is_fob_and_never_fabricates_cif_or_freight) ... ok
+test_no_borrowing_of_months_outside_selected_period (tests.test_procurement.ProcurementTests.test_no_borrowing_of_months_outside_selected_period) ... ok
+test_search_sort_and_page_do_not_change_procurement_scope (tests.test_procurement.ProcurementTests.test_search_sort_and_page_do_not_change_procurement_scope) ... ok
+test_top3_concentration_uses_all_origins_not_only_visible_eight (tests.test_procurement.ProcurementTests.test_top3_concentration_uses_all_origins_not_only_visible_eight) ... ok
+test_unit_series_volume_and_monthly_change (tests.test_procurement.ProcurementTests.test_unit_series_volume_and_monthly_change) ... ok
+test_valueless_zero_weight_does_not_invalidate_real_prices (tests.test_procurement.ProcurementTests.test_valueless_zero_weight_does_not_invalidate_real_prices) ... ok
+test_zero_price_is_observed_but_zero_comparison_base_is_undefined (tests.test_procurement.ProcurementTests.test_zero_price_is_observed_but_zero_comparison_base_is_undefined) ... ok
+test_zero_weight_records_preserve_published_totals_and_raise_quality_note (tests.test_procurement.ProcurementTests.test_zero_weight_records_preserve_published_totals_and_raise_quality_note) ... ok
+test_installer_uses_the_same_appid_on_both_links (tests.test_identity.IdentityTests.test_installer_uses_the_same_appid_on_both_links) ... ok
+test_other_platforms_do_not_load_windows_libraries (tests.test_identity.IdentityTests.test_other_platforms_do_not_load_windows_libraries) ... ok
+test_process_identity_failure_does_not_prevent_startup (tests.test_identity.IdentityTests.test_process_identity_failure_does_not_prevent_startup) ... ok
+test_process_uses_stable_id_with_typed_windows_api (tests.test_identity.IdentityTests.test_process_uses_stable_id_with_typed_windows_api) ... ok
+test_propvariant_abi_and_shell_key_match_windows_sdk (tests.test_identity.IdentityTests.test_propvariant_abi_and_shell_key_match_windows_sdk) ... ok
+test_shortcut_com_apartment_lifetime_and_store_access (tests.test_identity.IdentityTests.test_shortcut_com_apartment_lifetime_and_store_access) ... ok
+test_shortcut_failure_uninitializes_its_apartment (tests.test_identity.IdentityTests.test_shortcut_failure_uninitializes_its_apartment) ... ok
+test_window_has_original_multisize_icon_and_short_title_before_use (tests.test_identity.IdentityQtTests.test_window_has_original_multisize_icon_and_short_title_before_use) ... ok
+test_all_metric_choices_are_local_and_preserve_documents_and_filters (tests.test_procurement_ui.ProcurementUiTests.test_all_metric_choices_are_local_and_preserve_documents_and_filters) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_country_comparator_minimum_weight_is_local_to_chart (tests.test_procurement_ui.ProcurementUiTests.test_country_comparator_minimum_weight_is_local_to_chart) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_municipal_chart_choices_remove_freight_and_keep_fob_basis (tests.test_procurement_ui.ProcurementUiTests.test_municipal_chart_choices_remove_freight_and_keep_fob_basis) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_origin_click_uses_existing_country_filter (tests.test_procurement_ui.ProcurementUiTests.test_origin_click_uses_existing_country_filter) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_paging_sorting_and_table_search_reuse_formatted_analysis (tests.test_procurement_ui.ProcurementUiTests.test_paging_sorting_and_table_search_reuse_formatted_analysis) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_price_chart_keeps_missing_values_and_low_prices_distinct (tests.test_procurement_ui.ProcurementUiTests.test_price_chart_keeps_missing_values_and_low_prices_distinct) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_table_search_does_not_change_price_reference (tests.test_procurement_ui.ProcurementUiTests.test_table_search_does_not_change_price_reference) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_unloaded_interface_has_no_unsupported_negotiation_indicators (tests.test_procurement_ui.ProcurementUiTests.test_unloaded_interface_has_no_unsupported_negotiation_indicators) ... ok
+test_copy_values_use_full_dollars_and_kg_not_scaled_graph_units (tests.test_usability.DescriptiveTests.test_copy_values_use_full_dollars_and_kg_not_scaled_graph_units) ... ok
+test_month_coverage_is_weight_coverage_not_number_of_orders (tests.test_usability.DescriptiveTests.test_month_coverage_is_weight_coverage_not_number_of_orders) ... ok
+test_moving_weight_copy_preserves_fractional_monthly_mean (tests.test_usability.DescriptiveTests.test_moving_weight_copy_preserves_fractional_monthly_mean) ... ok
+test_price_order_uses_exact_ratio_before_formatting (tests.test_usability.DescriptiveTests.test_price_order_uses_exact_ratio_before_formatting) ... ok
+test_action_captions_fit_in_supported_window_sizes (tests.test_usability.UsabilityTests.test_action_captions_fit_in_supported_window_sizes) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_animated_navigation_is_bounded_and_can_be_reduced (tests.test_usability.UsabilityTests.test_animated_navigation_is_bounded_and_can_be_reduced) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_chart_accessibility_exposes_current_value_without_reading_whole_series (tests.test_usability.UsabilityTests.test_chart_accessibility_exposes_current_value_without_reading_whole_series) ... Consultando lote 1/1 (1 NCMs; 2026-07 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-07 a 2026-09)...
+ok
+test_chart_can_be_read_by_keyboard_without_hover (tests.test_usability.UsabilityTests.test_chart_can_be_read_by_keyboard_without_hover) ... Consultando lote 1/1 (1 NCMs; 2026-07 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-07 a 2026-09)...
+ok
+test_comparator_sorts_all_origins_before_eight_row_display (tests.test_usability.UsabilityTests.test_comparator_sorts_all_origins_before_eight_row_display) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_empty_filter_intersection_offers_recovery_and_preserves_full_exports (tests.test_usability.UsabilityTests.test_empty_filter_intersection_offers_recovery_and_preserves_full_exports) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_graph_scale_remains_consistent_for_very_small_values (tests.test_usability.UsabilityTests.test_graph_scale_remains_consistent_for_very_small_values) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_navigation_reaches_existing_sections_and_preserves_filters (tests.test_usability.UsabilityTests.test_navigation_reaches_existing_sections_and_preserves_filters) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_no_search_results_disable_pdf_but_keep_full_excel_and_bi (tests.test_usability.UsabilityTests.test_no_search_results_disable_pdf_but_keep_full_excel_and_bi) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_presets_clip_at_first_available_month_and_reject_invalid_counts (tests.test_usability.UsabilityTests.test_presets_clip_at_first_available_month_and_reject_invalid_counts) ... ok
+test_presets_fill_draft_without_network_or_losing_result (tests.test_usability.UsabilityTests.test_presets_fill_draft_without_network_or_losing_result) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_price_axis_detail_is_explicit_and_never_changes_values (tests.test_usability.UsabilityTests.test_price_axis_detail_is_explicit_and_never_changes_values) ... Consultando lote 1/1 (1 NCMs; 2026-07 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-07 a 2026-09)...
+ok
+test_product_name_remains_readable_in_records (tests.test_usability.UsabilityTests.test_product_name_remains_readable_in_records) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_quick_download_uses_same_save_dialog_and_scope (tests.test_usability.UsabilityTests.test_quick_download_uses_same_save_dialog_and_scope) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_quick_menu_municipal_pdf_disabled_and_modal_shortcuts_guarded (tests.test_usability.UsabilityTests.test_quick_menu_municipal_pdf_disabled_and_modal_shortcuts_guarded) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_reduce_motion_stops_navigation_in_progress (tests.test_usability.UsabilityTests.test_reduce_motion_stops_navigation_in_progress) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_trend_dialog_stays_inside_small_window (tests.test_usability.UsabilityTests.test_trend_dialog_stays_inside_small_window) ... Consultando lote 1/1 (1 NCMs; 2026-07 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-07 a 2026-09)...
+ok
+test_trend_values_dialog_has_full_units_and_copies_exact_totals (tests.test_usability.UsabilityTests.test_trend_values_dialog_has_full_units_and_copies_exact_totals) ... Consultando lote 1/1 (1 NCMs; 2026-07 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-07 a 2026-09)...
+ok
+test_compiler_failure_preserves_previous_installer (tests.test_refinement.InstallationTests.test_compiler_failure_preserves_previous_installer) ... ok
+test_dos_signature_alone_is_not_a_valid_installer (tests.test_refinement.InstallationTests.test_dos_signature_alone_is_not_a_valid_installer) ... ok
+test_failed_ready_handshake_invalidates_verification (tests.test_refinement.InstallationTests.test_failed_ready_handshake_invalidates_verification) ... ok
+test_fingerprint_changes_with_code_resources_runtime_and_requirements (tests.test_refinement.InstallationTests.test_fingerprint_changes_with_code_resources_runtime_and_requirements) ... ok
+test_guard_failure_is_logged_without_preventing_app_start (tests.test_refinement.InstallationTests.test_guard_failure_is_logged_without_preventing_app_start) ... ok
+test_installer_is_published_for_current_version_from_fresh_staging (tests.test_refinement.InstallationTests.test_installer_is_published_for_current_version_from_fresh_staging) ... ok
+test_invalid_configured_compiler_does_not_fall_back_to_another_tool (tests.test_refinement.InstallationTests.test_invalid_configured_compiler_does_not_fall_back_to_another_tool) ... ok
+test_missing_inno_is_reported_before_creating_or_installing_environment (tests.test_refinement.InstallationTests.test_missing_inno_is_reported_before_creating_or_installing_environment) ... ok
+test_old_success_file_cannot_mask_a_compiler_that_produced_nothing (tests.test_refinement.InstallationTests.test_old_success_file_cannot_mask_a_compiler_that_produced_nothing) ... ok
+test_other_version_smoke_does_not_authorize_publication (tests.test_refinement.InstallationTests.test_other_version_smoke_does_not_authorize_publication) ... ok
+test_release_metadata_agrees_in_project_pe_and_installer (tests.test_refinement.InstallationTests.test_release_metadata_agrees_in_project_pe_and_installer) ... ok
+test_repair_and_build_always_repeat_the_full_probe (tests.test_refinement.InstallationTests.test_repair_and_build_always_repeat_the_full_probe) ... ok
+test_repeated_opening_reuses_probe_but_still_checks_pins_and_ready_signal (tests.test_refinement.InstallationTests.test_repeated_opening_reuses_probe_but_still_checks_pins_and_ready_signal) ... ok
+test_setup_preserves_identity_and_uses_short_explicit_wizard (tests.test_refinement.InstallationTests.test_setup_preserves_identity_and_uses_short_explicit_wizard) ... ok
+test_verification_stamp_is_bounded_and_rejects_invalid_data (tests.test_refinement.InstallationTests.test_verification_stamp_is_bounded_and_rejects_invalid_data) ... ok
+test_version_comes_from_application_literal_without_running_it (tests.test_refinement.InstallationTests.test_version_comes_from_application_literal_without_running_it) ... ok
+test_windows_guard_uses_pointer_width_and_keeps_reference (tests.test_refinement.InstallationTests.test_windows_guard_uses_pointer_width_and_keeps_reference) ... ok
+test_logo_is_embedded_with_fixed_proportions_in_reserved_header_every_page (tests.test_refinement.BrandedPdfTests.test_logo_is_embedded_with_fixed_proportions_in_reserved_header_every_page) ... ok
+test_long_filter_caption_stays_inside_header_and_does_not_move_table (tests.test_refinement.BrandedPdfTests.test_long_filter_caption_stays_inside_header_and_does_not_move_table) ... ok
+test_missing_or_corrupt_brand_does_not_replace_existing_pdf (tests.test_refinement.BrandedPdfTests.test_missing_or_corrupt_brand_does_not_replace_existing_pdf) ... ok
+test_table_coordinates_text_and_page_count_match_rc4_baseline (tests.test_refinement.BrandedPdfTests.test_table_coordinates_text_and_page_count_match_rc4_baseline) ... ok
+test_dropdown_rapid_open_close_remains_operable (tests.test_refinement.MotionRefinementTests.test_dropdown_rapid_open_close_remains_operable) ... ok
+test_fast_series_updates_settle_to_last_series_and_remain_bounded (tests.test_refinement.MotionRefinementTests.test_fast_series_updates_settle_to_last_series_and_remain_bounded) ... Instalador pronto: /tmp/tmplh9qd2ui/instalador/LIARTE_Desktop_5.2.0-rc.3_Setup.exe
+SHA256: 890b867af65a94aec3005eea6975c72b95c92b23dd64a7338fde7472f6fc96b4
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_filter_accepts_typing_during_opening_without_resetting_text (tests.test_refinement.MotionRefinementTests.test_filter_accepts_typing_during_opening_without_resetting_text) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_hiding_window_finishes_chart_animation_without_replaying_on_restore (tests.test_refinement.MotionRefinementTests.test_hiding_window_finishes_chart_animation_without_replaying_on_restore) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_indeterminate_progress_stops_when_hidden_or_motion_reduced (tests.test_refinement.MotionRefinementTests.test_indeterminate_progress_stops_when_hidden_or_motion_reduced) ... ok
+test_minimizing_window_finishes_reveal (tests.test_refinement.MotionRefinementTests.test_minimizing_window_finishes_reveal) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_navigation_settles_when_window_is_hidden (tests.test_refinement.MotionRefinementTests.test_navigation_settles_when_window_is_hidden) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_progress_smoothing_never_changes_the_reported_percentage (tests.test_refinement.MotionRefinementTests.test_progress_smoothing_never_changes_the_reported_percentage) ... ok
+test_mix_and_missing_weight_are_explicit_without_changing_published_totals (tests.test_workspace.WorkspaceDataTests.test_mix_and_missing_weight_are_explicit_without_changing_published_totals) ... ok
+test_monthly_variation_uses_previous_calendar_month_and_handles_zero (tests.test_workspace.WorkspaceDataTests.test_monthly_variation_uses_previous_calendar_month_and_handles_zero) ... ok
+test_port_label_preserves_code_and_handles_names_that_contain_hyphens (tests.test_workspace.WorkspaceDataTests.test_port_label_preserves_code_and_handles_names_that_contain_hyphens) ... ok
+test_profile_is_only_a_projection_and_original_copy_retains_every_column (tests.test_workspace.WorkspaceDataTests.test_profile_is_only_a_projection_and_original_copy_retains_every_column) ... ok
+test_single_product_keeps_commercial_reference_and_no_mix_warning (tests.test_workspace.WorkspaceDataTests.test_single_product_keeps_commercial_reference_and_no_mix_warning) ... ok
+test_variation_is_not_computed_from_rounded_millions (tests.test_workspace.WorkspaceDataTests.test_variation_is_not_computed_from_rounded_millions) ... ok
+test_collapsing_filters_keeps_active_criteria_and_product_action_reopens_them (tests.test_workspace.WorkspaceUiTests.test_collapsing_filters_keeps_active_criteria_and_product_action_reopens_them) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_column_profile_preserves_selection_and_does_not_query_or_filter_data (tests.test_workspace.WorkspaceUiTests.test_column_profile_preserves_selection_and_does_not_query_or_filter_data) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_export_status_is_short_and_pdf_remains_silent (tests.test_workspace.WorkspaceUiTests.test_export_status_is_short_and_pdf_remains_silent) ... ok
+test_methodology_is_optional_and_weight_issue_is_local_to_the_metric (tests.test_workspace.WorkspaceUiTests.test_methodology_is_optional_and_weight_issue_is_local_to_the_metric) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_municipal_profile_keeps_fob_basis_and_price_mapping_after_switch (tests.test_workspace.WorkspaceUiTests.test_municipal_profile_keeps_fob_basis_and_price_mapping_after_switch) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_price_header_sorts_by_exact_price_not_by_visual_column_index (tests.test_workspace.WorkspaceUiTests.test_price_header_sorts_by_exact_price_not_by_visual_column_index) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_variation_chart_supports_declines_and_copy_uses_percent_units (tests.test_workspace.WorkspaceUiTests.test_variation_chart_supports_declines_and_copy_uses_percent_units) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_context_cannot_round_an_imported_integer_or_fraction_of_cent (tests.test_accuracy.AccuracyTests.test_context_cannot_round_an_imported_integer_or_fraction_of_cent) ... ok
+test_distinct_large_cent_amounts_have_distinct_duplicate_signatures (tests.test_accuracy.AccuracyTests.test_distinct_large_cent_amounts_have_distinct_duplicate_signatures) ... ok
+test_fractional_kg_is_rejected_in_both_api_contracts (tests.test_accuracy.AccuracyTests.test_fractional_kg_is_rejected_in_both_api_contracts) ... ok
+test_missing_or_repeated_control_does_not_become_an_empty_valid_cache (tests.test_accuracy.AccuracyTests.test_missing_or_repeated_control_does_not_become_an_empty_valid_cache) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+ok
+test_omitted_detailed_row_is_detected_before_cache_or_snapshot_publication (tests.test_accuracy.AccuracyTests.test_omitted_detailed_row_is_detected_before_cache_or_snapshot_publication) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+ok
+test_one_cent_cif_divergence_is_never_accepted_even_above_float_precision (tests.test_accuracy.AccuracyTests.test_one_cent_cif_divergence_is_never_accepted_even_above_float_precision) ... ok
+test_one_cent_in_control_blocks_the_batch_and_keeps_previous_snapshot (tests.test_accuracy.AccuracyTests.test_one_cent_in_control_blocks_the_batch_and_keeps_previous_snapshot) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_pdf_does_not_merge_distinct_ncms_with_the_same_commercial_name (tests.test_accuracy.AccuracyTests.test_pdf_does_not_merge_distinct_ncms_with_the_same_commercial_name) ... ok
+test_pdf_preserves_distinct_urf_keys_and_relevance_is_per_observation (tests.test_accuracy.AccuracyTests.test_pdf_preserves_distinct_urf_keys_and_relevance_is_per_observation) ... ok
+test_verified_cache_needs_no_new_control_requests_for_filters (tests.test_accuracy.AccuracyTests.test_verified_cache_needs_no_new_control_requests_for_filters) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_zero_totals_cannot_hide_an_entirely_omitted_code_month (tests.test_accuracy.AccuracyTests.test_zero_totals_cannot_hide_an_entirely_omitted_code_month) ... ok
+test_cent_values_are_preserved_and_shown_in_excel (tests.test_accuracy.AccuracyExportTests.test_cent_values_are_preserved_and_shown_in_excel) ... ok
+test_direct_excel_call_rejects_duplicate_grains_and_preserves_previous_file (tests.test_accuracy.AccuracyExportTests.test_direct_excel_call_rejects_duplicate_grains_and_preserves_previous_file) ... ok
+test_export_progress_does_not_regress_or_reach_100_before_publishing (tests.test_accuracy.AccuracyExportTests.test_export_progress_does_not_regress_or_reach_100_before_publishing) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_period_mismatch_and_pdf_length_mismatch_do_not_overwrite_good_files (tests.test_accuracy.AccuracyExportTests.test_period_mismatch_and_pdf_length_mismatch_do_not_overwrite_good_files) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_summary_cannot_move_values_between_groups_while_preserving_total (tests.test_accuracy.AccuracyExportTests.test_summary_cannot_move_values_between_groups_while_preserving_total) ... ok
+test_broken_runtime_probe_does_not_report_a_usable_environment (tests.test_python_runtime.PythonRuntimeTests.test_broken_runtime_probe_does_not_report_a_usable_environment) ... ok
+test_existing_directory_link_is_not_followed_or_modified (tests.test_python_runtime.PythonRuntimeTests.test_existing_directory_link_is_not_followed_or_modified) ... ok
+test_failed_migration_restores_previous_environment (tests.test_python_runtime.PythonRuntimeTests.test_failed_migration_restores_previous_environment) ... ok
+test_free_threaded_runtime_is_rejected_before_venv_creation (tests.test_python_runtime.PythonRuntimeTests.test_free_threaded_runtime_is_rejected_before_venv_creation) ... ok
+test_matching_runtime_reuses_environment_without_rebuilding (tests.test_python_runtime.PythonRuntimeTests.test_matching_runtime_reuses_environment_without_rebuilding) ... ok
+test_migration_preserves_previous_environment_reports_and_preferences (tests.test_python_runtime.PythonRuntimeTests.test_migration_preserves_previous_environment_reports_and_preferences) ... ok
+test_python_and_pythonw_share_the_same_runtime_identity (tests.test_python_runtime.PythonRuntimeTests.test_python_and_pythonw_share_the_same_runtime_identity) ... ok
+test_real_venv_is_created_verified_and_reused_by_the_current_runtime (tests.test_python_runtime.PythonRuntimeTests.test_real_venv_is_created_verified_and_reused_by_the_current_runtime) ... ok
+test_runtime_probe_rejects_different_version_bitness_and_base_path (tests.test_python_runtime.PythonRuntimeTests.test_runtime_probe_rejects_different_version_bitness_and_base_path) ... ok
+test_supported_versions_include_314_and_keep_previous_releases (tests.test_python_runtime.PythonRuntimeTests.test_supported_versions_include_314_and_keep_previous_releases) ... ok
+test_windows_rejects_32bit_before_downloading_qt (tests.test_python_runtime.PythonRuntimeTests.test_windows_rejects_32bit_before_downloading_qt) ... ok
+test_available_module_without_a_mounted_page_cannot_open_the_wrong_workspace (tests.test_platform.PlatformTests.test_available_module_without_a_mounted_page_cannot_open_the_wrong_workspace) ... ok
+test_disabled_or_corrupt_saved_page_falls_back_to_home (tests.test_platform.PlatformTests.test_disabled_or_corrupt_saved_page_falls_back_to_home) ... ok
+test_existing_preferences_and_unrelated_keys_are_preserved (tests.test_platform.PlatformTests.test_existing_preferences_and_unrelated_keys_are_preserved) ... ok
+test_failed_preferences_write_keeps_navigation_and_session_operable (tests.test_platform.PlatformTests.test_failed_preferences_write_keeps_navigation_and_session_operable) ... ok
+test_only_available_registered_modules_can_open (tests.test_platform.PlatformTests.test_only_available_registered_modules_can_open) ... ok
+test_opening_current_page_is_idempotent_and_does_not_emit_again (tests.test_platform.PlatformTests.test_opening_current_page_is_idempotent_and_does_not_emit_again) ... ok
+test_preferences_are_shared_without_query_or_analysis_updates (tests.test_platform.PlatformTests.test_preferences_are_shared_without_query_or_analysis_updates) ... ok
+test_registry_definition_cannot_be_mutated_by_a_consumer (tests.test_platform.PlatformTests.test_registry_definition_cannot_be_mutated_by_a_consumer) ... ok
+test_registry_rejects_duplicates_reserved_keys_and_incomplete_names (tests.test_platform.PlatformTests.test_registry_rejects_duplicates_reserved_keys_and_incomplete_names) ... ok
+test_startup_choices_only_include_usable_routes_and_track_current_page (tests.test_platform.PlatformTests.test_startup_choices_only_include_usable_routes_and_track_current_page) ... ok
+test_closing_from_home_still_protects_a_running_import_task (tests.test_platform.PlatformUiTests.test_closing_from_home_still_protects_a_running_import_task) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_home_opens_without_data_query_and_shows_only_real_module_actions (tests.test_platform.PlatformUiTests.test_home_opens_without_data_query_and_shows_only_real_module_actions) ... ok
+test_modal_prevents_page_shortcuts_until_closed (tests.test_platform.PlatformUiTests.test_modal_prevents_page_shortcuts_until_closed) ... ok
+test_module_roundtrip_preserves_models_totals_filters_and_viewport_for_both_bases (tests.test_platform.PlatformUiTests.test_module_roundtrip_preserves_models_totals_filters_and_viewport_for_both_bases) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_pending_query_completes_while_home_is_visible_without_restart (tests.test_platform.PlatformUiTests.test_pending_query_completes_while_home_is_visible_without_restart) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_query_shortcut_is_inactive_on_home_and_routes_work_from_keyboard (tests.test_platform.PlatformUiTests.test_query_shortcut_is_inactive_on_home_and_routes_work_from_keyboard) ... ok
+test_reduced_motion_finishes_page_transition_and_rapid_routes_settle (tests.test_platform.PlatformUiTests.test_reduced_motion_finishes_page_transition_and_rapid_routes_settle) ... ok
+test_shared_preferences_apply_on_home_and_remain_in_imports (tests.test_platform.PlatformUiTests.test_shared_preferences_apply_on_home_and_remain_in_imports) ... ok
+test_short_window_keeps_help_accessible_and_navigation_scrolls_to_keyboard_focus (tests.test_platform.PlatformUiTests.test_short_window_keeps_help_accessible_and_navigation_scrolls_to_keyboard_focus) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_startup_page_can_be_selected_in_the_shared_preferences (tests.test_platform.PlatformUiTests.test_startup_page_can_be_selected_in_the_shared_preferences) ... ok
+test_cached_pages_match_worker_results_without_filtering_or_sorting (tests.test_navigation.NavigationCoreTests.test_cached_pages_match_worker_results_without_filtering_or_sorting) ... ok
+test_empty_completed_views_are_reused_without_requerying (tests.test_navigation.NavigationCoreTests.test_empty_completed_views_are_reused_without_requerying) ... ok
+test_evicted_views_are_not_rebuilt_on_the_visual_thread (tests.test_navigation.NavigationCoreTests.test_evicted_views_are_not_rebuilt_on_the_visual_thread) ... ok
+test_replacing_the_source_invalidates_even_the_same_selection (tests.test_navigation.NavigationCoreTests.test_replacing_the_source_invalidates_even_the_same_selection) ... ok
+test_unprepared_scope_or_order_never_returns_an_old_view (tests.test_navigation.NavigationCoreTests.test_unprepared_scope_or_order_never_returns_an_old_view) ... ok
+test_identical_rows_do_not_trigger_redraws (tests.test_navigation.NavigationModelTests.test_identical_rows_do_not_trigger_redraws) ... ok
+test_pagination_updates_cells_without_resetting_columns_or_model (tests.test_navigation.NavigationModelTests.test_pagination_updates_cells_without_resetting_columns_or_model) ... ok
+test_row_insertions_removals_and_empty_pages_keep_model_contract (tests.test_navigation.NavigationModelTests.test_row_insertions_removals_and_empty_pages_keep_model_contract) ... ok
+test_schema_and_profile_changes_still_notify_the_view (tests.test_navigation.NavigationModelTests.test_schema_and_profile_changes_still_notify_the_view) ... ok
+test_an_explicit_query_still_uses_the_validated_worker_path (tests.test_navigation.NavigationQtTests.test_an_explicit_query_still_uses_the_validated_worker_path) ... ok
+test_cached_lookup_never_runs_concurrently_with_a_worker (tests.test_navigation.NavigationQtTests.test_cached_lookup_never_runs_concurrently_with_a_worker) ... ok
+test_debounced_filters_keep_the_layout_stable (tests.test_navigation.NavigationQtTests.test_debounced_filters_keep_the_layout_stable) ... ok
+test_long_local_update_uses_only_a_delayed_thin_indicator_and_can_cancel (tests.test_navigation.NavigationQtTests.test_long_local_update_uses_only_a_delayed_thin_indicator_and_can_cancel) ... ok
+test_page_size_change_reuses_the_same_prepared_order (tests.test_navigation.NavigationQtTests.test_page_size_change_reuses_the_same_prepared_order) ... ok
+test_pending_explicit_query_survives_a_new_filter_during_local_work (tests.test_navigation.NavigationQtTests.test_pending_explicit_query_survives_a_new_filter_during_local_work) ... ok
+test_ready_pagination_has_no_worker_global_progress_or_analysis_reset (tests.test_navigation.NavigationQtTests.test_ready_pagination_has_no_worker_global_progress_or_analysis_reset) ... ok
+test_subtle_transition_never_blanks_the_table_and_obeys_reduced_motion (tests.test_navigation.NavigationQtTests.test_subtle_transition_never_blanks_the_table_and_obeys_reduced_motion) ... ok
+test_explicit_revalidation_and_force_refresh_refuse_cached_navigation (tests.test_navigation.NavigationComexTests.test_explicit_revalidation_and_force_refresh_refuse_cached_navigation) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_base_switches_keep_the_window_and_source_and_reuse_prepared_results (tests.test_navigation.NavigationMunicipalTests.test_base_switches_keep_the_window_and_source_and_reuse_prepared_results) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_explicit_same_period_query_cannot_skip_the_provider_after_navigation (tests.test_navigation.NavigationMunicipalTests.test_explicit_same_period_query_cannot_skip_the_provider_after_navigation) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_pending_filter_does_not_turn_an_explicit_source_query_into_cached_navigation (tests.test_navigation.NavigationMunicipalTests.test_pending_filter_does_not_turn_an_explicit_source_query_into_cached_navigation) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_rapid_base_switch_cancels_unfinished_municipal_view_without_stale_rows (tests.test_navigation.NavigationMunicipalTests.test_rapid_base_switch_cancels_unfinished_municipal_view_without_stale_rows) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_table_has_no_residual_pixels_after_schema_changes (tests.test_navigation.NavigationMunicipalTests.test_table_has_no_residual_pixels_after_schema_changes) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_visible_cell_values_match_the_model_after_base_theme_and_search_changes (tests.test_navigation.NavigationMunicipalTests.test_visible_cell_values_match_the_model_after_base_theme_and_search_changes) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_100k_records_stay_paginated_and_ui_keeps_processing (tests.test_qt.VolumeTests.test_100k_records_stay_paginated_and_ui_keeps_processing) ... ok
+
+----------------------------------------------------------------------
+Ran 453 tests in 179.782s
+
+OK
+VOLUME: 100000 registros, primeira consulta 1.620s, 95 eventos Qt.

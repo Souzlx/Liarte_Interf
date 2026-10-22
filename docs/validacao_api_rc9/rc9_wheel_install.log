@@ -1,0 +1,6 @@
+Processing ./d4c2b58ee5ea/rc9_wheels/liarte_desktop-5.2.0rc9-py3-none-any.whl
+Installing collected packages: liarte-desktop
+Successfully installed liarte-desktop-5.2.0rc9
+
+[notice] A new release of pip is available: 26.2.1 -> 26.2.2
+[notice] To update, run: /workspace/scratch/d4c2b58ee5ea/central_qa314/bin/python -m pip install --upgrade pip

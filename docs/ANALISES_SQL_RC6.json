@@ -1,0 +1,835 @@
+{
+  "status": "ok",
+  "method": "SQLite integer aggregates and Decimal reference arithmetic; DAX not executed",
+  "dax_execution": false,
+  "general_rows": 2723,
+  "municipal_rows": 16065,
+  "municipal_city_uf_count": 711,
+  "general_and_monthly_controls": "exact",
+  "municipal_and_monthly_controls": "exact",
+  "ncm_month_scopes": 105,
+  "price_reference_scopes": [
+    {
+      "ncm": "27101931",
+      "period": "2026-07",
+      "cif_cents": 13082193000,
+      "kg": 60705589,
+      "weighted_price": null
+    },
+    {
+      "ncm": "27101931",
+      "period": "2026-08",
+      "cif_cents": 16693654400,
+      "kg": 74241649,
+      "weighted_price": null
+    },
+    {
+      "ncm": "27101931",
+      "period": "2026-09",
+      "cif_cents": 14442057700,
+      "kg": 61825681,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "28112290",
+      "period": "2026-07",
+      "cif_cents": 183388200,
+      "kg": 483735,
+      "weighted_price": null
+    },
+    {
+      "ncm": "28112290",
+      "period": "2026-08",
+      "cif_cents": 257921100,
+      "kg": 497818,
+      "weighted_price": null
+    },
+    {
+      "ncm": "28112290",
+      "period": "2026-09",
+      "cif_cents": 206778200,
+      "kg": 549244,
+      "weighted_price": "3.76477849553204040462890809913262593674214010531",
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "28151100",
+      "period": "2026-07",
+      "cif_cents": 124006500,
+      "kg": 1556003,
+      "weighted_price": null
+    },
+    {
+      "ncm": "28151100",
+      "period": "2026-08",
+      "cif_cents": 92408400,
+      "kg": 1292691,
+      "weighted_price": "0.714852969503152725593355256592642789344089190688"
+    },
+    {
+      "ncm": "28151100",
+      "period": "2026-09",
+      "cif_cents": 154903000,
+      "kg": 2367614,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "28252020",
+      "period": "2026-07",
+      "cif_cents": 17169700,
+      "kg": 9602,
+      "weighted_price": "17.8813788794001249739637575505103103520099979171"
+    },
+    {
+      "ncm": "28252020",
+      "period": "2026-08",
+      "cif_cents": 18728700,
+      "kg": 9000,
+      "weighted_price": null
+    },
+    {
+      "ncm": "28252020",
+      "period": "2026-09",
+      "cif_cents": 25948100,
+      "kg": 10000,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29021100",
+      "period": "2026-07",
+      "cif_cents": 11739600,
+      "kg": 76980,
+      "weighted_price": "1.52501948558067030397505845674201091192517537023"
+    },
+    {
+      "ncm": "29021100",
+      "period": "2026-08",
+      "cif_cents": 36253500,
+      "kg": 284065,
+      "weighted_price": "1.27623959305088624082516325488884586274268213261"
+    },
+    {
+      "ncm": "29021100",
+      "period": "2026-09",
+      "cif_cents": 33563900,
+      "kg": 206823,
+      "weighted_price": "1.62283208347234108392200093800012571135705409940",
+      "mm3_reference": "1.43619644001775060401360879641043341058133228145",
+      "mom_reference": "0.271573215804185995846754648387068035352839236891"
+    },
+    {
+      "ncm": "29025000",
+      "period": "2026-07",
+      "cif_cents": 4502818100,
+      "kg": 30070694,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29025000",
+      "period": "2026-08",
+      "cif_cents": 1674594500,
+      "kg": 11288859,
+      "weighted_price": "1.48340456728177754722598625777857620508857449632"
+    },
+    {
+      "ncm": "29025000",
+      "period": "2026-09",
+      "cif_cents": 3126718100,
+      "kg": 21584754,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29051210",
+      "period": "2026-07",
+      "cif_cents": 349438700,
+      "kg": 2301553,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29051210",
+      "period": "2026-08",
+      "cif_cents": 207551500,
+      "kg": 1459167,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29051210",
+      "period": "2026-09",
+      "cif_cents": 367637000,
+      "kg": 2515598,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29051220",
+      "period": "2026-07",
+      "cif_cents": 58346900,
+      "kg": 333381,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29051220",
+      "period": "2026-08",
+      "cif_cents": 195328200,
+      "kg": 1104697,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29051220",
+      "period": "2026-09",
+      "cif_cents": 85428600,
+      "kg": 537837,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29053100",
+      "period": "2026-07",
+      "cif_cents": 1351349300,
+      "kg": 24436068,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29053100",
+      "period": "2026-08",
+      "cif_cents": 1125584600,
+      "kg": 18362004,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29053100",
+      "period": "2026-09",
+      "cif_cents": 1415214600,
+      "kg": 19923782,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29094310",
+      "period": "2026-07",
+      "cif_cents": 121823400,
+      "kg": 651773,
+      "weighted_price": "1.86910780287001762883703375254881684267375297841"
+    },
+    {
+      "ncm": "29094310",
+      "period": "2026-08",
+      "cif_cents": 221336000,
+      "kg": 1379586,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29094310",
+      "period": "2026-09",
+      "cif_cents": 257536600,
+      "kg": 1603979,
+      "weighted_price": "1.60561079665008083023530856700742341389756349678",
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29141100",
+      "period": "2026-07",
+      "cif_cents": 73231600,
+      "kg": 549983,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29141100",
+      "period": "2026-08",
+      "cif_cents": 45120400,
+      "kg": 319569,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29141100",
+      "period": "2026-09",
+      "cif_cents": 115787600,
+      "kg": 877742,
+      "weighted_price": "1.31915300851503061264016077617340858703354744333",
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29141200",
+      "period": "2026-07",
+      "cif_cents": 53757500,
+      "kg": 222475,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29141200",
+      "period": "2026-08",
+      "cif_cents": 99996500,
+      "kg": 501302,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29141200",
+      "period": "2026-09",
+      "cif_cents": 47425100,
+      "kg": 272795,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29141300",
+      "period": "2026-07",
+      "cif_cents": 5548400,
+      "kg": 39072,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29141300",
+      "period": "2026-08",
+      "cif_cents": 22907800,
+      "kg": 120682,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29141300",
+      "period": "2026-09",
+      "cif_cents": 67549600,
+      "kg": 363102,
+      "weighted_price": "1.86034778106427395057036314864693667344162246421",
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29153100",
+      "period": "2026-07",
+      "cif_cents": 61530100,
+      "kg": 528920,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29153100",
+      "period": "2026-08",
+      "cif_cents": 29458500,
+      "kg": 172057,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29153100",
+      "period": "2026-09",
+      "cif_cents": 41134700,
+      "kg": 319444,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29153300",
+      "period": "2026-07",
+      "cif_cents": 90626600,
+      "kg": 686515,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29153300",
+      "period": "2026-08",
+      "cif_cents": 114088200,
+      "kg": 844290,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29153300",
+      "period": "2026-09",
+      "cif_cents": 162427900,
+      "kg": 1218124,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29153931",
+      "period": "2026-07",
+      "cif_cents": 66264100,
+      "kg": 469300,
+      "weighted_price": "1.41197741316854890262092478158960153419987215001"
+    },
+    {
+      "ncm": "29153931",
+      "period": "2026-08",
+      "cif_cents": 35393500,
+      "kg": 261108,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29153931",
+      "period": "2026-09",
+      "cif_cents": 57388600,
+      "kg": 410440,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29156019",
+      "period": "2026-07",
+      "cif_cents": 99827600,
+      "kg": 349429,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29156019",
+      "period": "2026-08",
+      "cif_cents": 48016500,
+      "kg": 121282,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29156019",
+      "period": "2026-09",
+      "cif_cents": 80287200,
+      "kg": 311557,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29161220",
+      "period": "2026-07",
+      "cif_cents": 181492800,
+      "kg": 1039586,
+      "weighted_price": "1.74581804679939899152162495454921478357730865941"
+    },
+    {
+      "ncm": "29161220",
+      "period": "2026-08",
+      "cif_cents": 133711300,
+      "kg": 808660,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29161220",
+      "period": "2026-09",
+      "cif_cents": 234015200,
+      "kg": 1420804,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29161230",
+      "period": "2026-07",
+      "cif_cents": 166083300,
+      "kg": 975000,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29161230",
+      "period": "2026-08",
+      "cif_cents": 206367300,
+      "kg": 1204759,
+      "weighted_price": "1.71293428810243376476125100538779955161156712670"
+    },
+    {
+      "ncm": "29161230",
+      "period": "2026-09",
+      "cif_cents": 356939600,
+      "kg": 1721429,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29161240",
+      "period": "2026-07",
+      "cif_cents": 57398300,
+      "kg": 370560,
+      "weighted_price": "1.54896103195164075993091537132987910189982728843"
+    },
+    {
+      "ncm": "29161240",
+      "period": "2026-08",
+      "cif_cents": 32834000,
+      "kg": 179088,
+      "weighted_price": "1.83340033949790047351022960779058340033949790047"
+    },
+    {
+      "ncm": "29161240",
+      "period": "2026-09",
+      "cif_cents": 104839600,
+      "kg": 659188,
+      "weighted_price": "1.59043550550070693034460578772671832618312226558",
+      "mm3_reference": "1.61371683172903520411370938655036746092935683583",
+      "mom_reference": "-0.132521429587894856729138206394583262473402569596"
+    },
+    {
+      "ncm": "29161310",
+      "period": "2026-07",
+      "cif_cents": 140485600,
+      "kg": 510820,
+      "weighted_price": "2.75019772131083356172428644140793234407423358522"
+    },
+    {
+      "ncm": "29161310",
+      "period": "2026-08",
+      "cif_cents": 217707900,
+      "kg": 825134,
+      "weighted_price": "2.63845508729491209912571776220589625442655374763"
+    },
+    {
+      "ncm": "29161310",
+      "period": "2026-09",
+      "cif_cents": 131367300,
+      "kg": 539823,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29161410",
+      "period": "2026-07",
+      "cif_cents": 329674400,
+      "kg": 1255649,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29161410",
+      "period": "2026-08",
+      "cif_cents": 237498800,
+      "kg": 954764,
+      "weighted_price": "2.48751314460955796406232325475195964657234667415"
+    },
+    {
+      "ncm": "29161410",
+      "period": "2026-09",
+      "cif_cents": 431133300,
+      "kg": 1579370,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29161430",
+      "period": "2026-07",
+      "cif_cents": 24563700,
+      "kg": 88960,
+      "weighted_price": "2.76120728417266187050359712230215827338129496403"
+    },
+    {
+      "ncm": "29161430",
+      "period": "2026-08",
+      "cif_cents": 5897000,
+      "kg": 23440,
+      "weighted_price": "2.51578498293515358361774744027303754266211604096"
+    },
+    {
+      "ncm": "29161430",
+      "period": "2026-09",
+      "cif_cents": 18974900,
+      "kg": 65560,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29161490",
+      "period": "2026-07",
+      "cif_cents": 145912800,
+      "kg": 427082,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29161490",
+      "period": "2026-08",
+      "cif_cents": 130311900,
+      "kg": 371760,
+      "weighted_price": "3.50526952872821174951581665590703679793415106520"
+    },
+    {
+      "ncm": "29161490",
+      "period": "2026-09",
+      "cif_cents": 180598600,
+      "kg": 515514,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29171990",
+      "period": "2026-07",
+      "cif_cents": 200517700,
+      "kg": 545897,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29171990",
+      "period": "2026-08",
+      "cif_cents": 133319600,
+      "kg": 338270,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29171990",
+      "period": "2026-09",
+      "cif_cents": 159080300,
+      "kg": 551933,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "29221100",
+      "period": "2026-07",
+      "cif_cents": 96558700,
+      "kg": 576830,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29221100",
+      "period": "2026-08",
+      "cif_cents": 174407100,
+      "kg": 1072480,
+      "weighted_price": null
+    },
+    {
+      "ncm": "29221100",
+      "period": "2026-09",
+      "cif_cents": 216383500,
+      "kg": 1336059,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "32061110",
+      "period": "2026-07",
+      "cif_cents": 3523442600,
+      "kg": 12808549,
+      "weighted_price": "2.75085226281290722313667223352153315726863362899"
+    },
+    {
+      "ncm": "32061110",
+      "period": "2026-08",
+      "cif_cents": 3120475100,
+      "kg": 10893760,
+      "weighted_price": "2.86446103090209441001086860734952853743794612696"
+    },
+    {
+      "ncm": "32061110",
+      "period": "2026-09",
+      "cif_cents": 2398173200,
+      "kg": 8062121,
+      "weighted_price": "2.97461821771218764888296764585894952457300008273",
+      "mm3_reference": "2.84660889554762984885924287009085319648424353908",
+      "mom_reference": "0.0384565143745041042594865641373773491354686785101"
+    },
+    {
+      "ncm": "34024200",
+      "period": "2026-07",
+      "cif_cents": 2443528900,
+      "kg": 8346646,
+      "weighted_price": null
+    },
+    {
+      "ncm": "34024200",
+      "period": "2026-08",
+      "cif_cents": 2222600200,
+      "kg": 7105175,
+      "weighted_price": null
+    },
+    {
+      "ncm": "34024200",
+      "period": "2026-09",
+      "cif_cents": 2884610400,
+      "kg": 9336433,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "38249941",
+      "period": "2026-07",
+      "cif_cents": 173277800,
+      "kg": 391189,
+      "weighted_price": null
+    },
+    {
+      "ncm": "38249941",
+      "period": "2026-08",
+      "cif_cents": 177600900,
+      "kg": 465271,
+      "weighted_price": null
+    },
+    {
+      "ncm": "38249941",
+      "period": "2026-09",
+      "cif_cents": 202050500,
+      "kg": 475109,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "39022000",
+      "period": "2026-07",
+      "cif_cents": 317300900,
+      "kg": 1144427,
+      "weighted_price": "2.77257439749324334361213078684791603134144860266"
+    },
+    {
+      "ncm": "39022000",
+      "period": "2026-08",
+      "cif_cents": 157269600,
+      "kg": 604622,
+      "weighted_price": "2.60112268491718792898703652860795670683501427338"
+    },
+    {
+      "ncm": "39022000",
+      "period": "2026-09",
+      "cif_cents": 186374300,
+      "kg": 650658,
+      "weighted_price": "2.86439727168497121375592092927467271592756870737",
+      "mm3_reference": "2.75427291748534300229152975759123926379345478427",
+      "mom_reference": "0.101215751296315794790304308079826722296971854057"
+    },
+    {
+      "ncm": "39073022",
+      "period": "2026-07",
+      "cif_cents": 1164026600,
+      "kg": 3442466,
+      "weighted_price": "3.38137428227323087577335549574055342885013243413"
+    },
+    {
+      "ncm": "39073022",
+      "period": "2026-08",
+      "cif_cents": 957442700,
+      "kg": 2762175,
+      "weighted_price": null
+    },
+    {
+      "ncm": "39073022",
+      "period": "2026-09",
+      "cif_cents": 888865200,
+      "kg": 2767215,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "39100011",
+      "period": "2026-07",
+      "cif_cents": 210448000,
+      "kg": 919401,
+      "weighted_price": "2.28896857845488530032053478297282687314893066246"
+    },
+    {
+      "ncm": "39100011",
+      "period": "2026-08",
+      "cif_cents": 294392200,
+      "kg": 1302299,
+      "weighted_price": "2.26055767531112286809711133925465657272254681913"
+    },
+    {
+      "ncm": "39100011",
+      "period": "2026-09",
+      "cif_cents": 334825700,
+      "kg": 1563171,
+      "weighted_price": "2.14196463470727130940888744737459945201132825519",
+      "mm3_reference": "2.21847957301583065842930974397806424578274926675",
+      "mom_reference": "-0.0524618512940748026028255117396135183761999212616"
+    },
+    {
+      "ncm": "39100012",
+      "period": "2026-07",
+      "cif_cents": 246165900,
+      "kg": 290583,
+      "weighted_price": null
+    },
+    {
+      "ncm": "39100012",
+      "period": "2026-08",
+      "cif_cents": 280642900,
+      "kg": 228503,
+      "weighted_price": null
+    },
+    {
+      "ncm": "39100012",
+      "period": "2026-09",
+      "cif_cents": 244587900,
+      "kg": 198832,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "39100019",
+      "period": "2026-07",
+      "cif_cents": 463982100,
+      "kg": 889363,
+      "weighted_price": null
+    },
+    {
+      "ncm": "39100019",
+      "period": "2026-08",
+      "cif_cents": 498423400,
+      "kg": 863744,
+      "weighted_price": null
+    },
+    {
+      "ncm": "39100019",
+      "period": "2026-09",
+      "cif_cents": 322718100,
+      "kg": 598515,
+      "weighted_price": null,
+      "mm3_reference": null,
+      "mom_reference": null
+    },
+    {
+      "ncm": "39111029",
+      "period": "2026-07",
+      "cif_cents": 269138400,
+      "kg": 1008572,
+      "weighted_price": "2.66850953625522025199985722387692698191105840733"
+    },
+    {
+      "ncm": "39111029",
+      "period": "2026-08",
+      "cif_cents": 233046700,
+      "kg": 927974,
+      "weighted_price": null
+    },
+    {
+      "ncm": "39111029",
+      "period": "2026-09",
+      "cif_cents": 305040800,
+      "kg": 1197230,
+      "weighted_price": "2.54788804156260701786624124019611937555858105794",
+      "mm3_reference": null,
+      "mom_reference": null
+    }
+  ],
+  "catalog_alias_example": {
+    "products": [
+      "OL60",
+      "OLA3",
+      "OLP40"
+    ],
+    "union_cif_cents": 44217905100,
+    "naive_join_cif_cents": 132653715300,
+    "ratio": 3
+  },
+  "top5_country_share": "0.798471831179068675796766946250643041618962430868",
+  "top5_with_three_selected_countries": "1",
+  "dax_dependency_graph": {
+    "measures": 54,
+    "cycles": 0,
+    "unknown_symbols": 0
+  }
+}

@@ -1,0 +1,407 @@
+{
+  "status": "ok",
+  "platform": "Linux Qt offscreen/software",
+  "mode": "Replay of the earlier official capture, not a new HTTP query",
+  "cases": [
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": false,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": false,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": true,
+      "dataset": "general",
+      "scale": "1.5",
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": true,
+      "dataset": "municipal",
+      "scale": "1.5",
+      "qml_warnings": []
+    }
+  ]
+}

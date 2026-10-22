@@ -1,0 +1,18 @@
+EXEMPLOS HISTÓRICOS REAIS - COMEX STAT
+
+Período: julho a setembro de 2026. Fonte atualizada em 06/10/2026.
+Documentos regenerados pela RC9 com a captura oficial anterior conciliada.
+Não representam uma nova extração HTTP; tentativas atuais encontraram HTTP 429.
+35 NCMs/19 SH4; 2.723 registros gerais e 16.065 municipais.
+
+Excel: período/cadastro completos, com abas mensais e descrição municipal de
+largura 64. O BI incorpora esse mesmo Excel, byte a byte, em um projeto PBIP.
+Extraia o ZIP do BI antes de abrir no Power BI Desktop.
+
+PDF: somente acrilatos NCM 29161220/29161230/29161240, China e Estados Unidos,
+com as regras acima de 1.000 kg por observação e exclusão de aeroportos.
+Logo e cabeçalhos repetidos; não representa todo o período.
+
+Municipal é SH4/FOB e tem universo mais amplo; não some seus valores aos gerais.
+As linhas não são pedidos individuais. Revisões oficiais podem alterar totais.
+Os exemplos não são carregados como cache automático da aplicação.

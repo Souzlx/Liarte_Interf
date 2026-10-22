@@ -1,0 +1,26 @@
+name: Validar e compilar LIARTE no Windows
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - name: Preparar dependências
+        run: python -m pip install -r requirements-build.txt
+      - name: Compilar e testar a pasta portátil
+        run: python tools/build_windows.py
+      - name: Disponibilizar pacote
+        uses: actions/upload-artifact@v4
+        with:
+          name: LIARTE_Desktop_Python_${{ matrix.python-version }}_Windows
+          path: dist/LIARTE_Desktop

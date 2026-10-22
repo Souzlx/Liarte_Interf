@@ -1,0 +1,58 @@
+{
+  "status": "ok",
+  "platform": "Linux Qt 6.10.3 offscreen/software",
+  "synthetic": true,
+  "method": "Same 12-point series and geometry; RC5 keeps the same curve and selected-month geometry; bounded reveals and minimized-window behavior; count paint invocations during transition. No FPS claim.",
+  "results": [
+    {
+      "version": "rc4",
+      "transitions": 8,
+      "curve_paints_per_transition": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "transition_seconds_including_30ms_settle": [
+        0.306,
+        0.308,
+        0.306,
+        0.306,
+        0.306,
+        0.306,
+        0.306,
+        0.292
+      ],
+      "qml_warnings": []
+    },
+    {
+      "version": "rc5",
+      "transitions": 8,
+      "curve_paints_per_transition": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "transition_seconds_including_30ms_settle": [
+        0.305,
+        0.305,
+        0.306,
+        0.306,
+        0.305,
+        0.292,
+        0.305,
+        0.304
+      ],
+      "qml_warnings": []
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "version": "5.2.0-rc.6",
+  "date": "2026-10-22",
+  "base": "5.2.0-rc.5",
+  "runtimes": [
+    {
+      "python": "3.12.14",
+      "platform": "Linux x86_64",
+      "tests": 523,
+      "seconds": 138.806,
+      "status": "passed",
+      "volume": {
+        "rows": 100000,
+        "query_seconds": 1.936,
+        "qt_events": 106
+      },
+      "log": "docs/validacao_acesso_rc6/TESTES_PY312_520_RC6.log"
+    },
+    {
+      "python": "3.13.14",
+      "platform": "Linux x86_64",
+      "tests": 523,
+      "seconds": 138.759,
+      "status": "passed",
+      "volume": {
+        "rows": 100000,
+        "query_seconds": 1.759,
+        "qt_events": 97
+      },
+      "log": "docs/validacao_acesso_rc6/TESTES_PY313_520_RC6.log"
+    },
+    {
+      "python": "3.14.8",
+      "platform": "Linux x86_64",
+      "tests": 523,
+      "seconds": 138.705,
+      "status": "passed",
+      "volume": {
+        "rows": 100000,
+        "query_seconds": 1.714,
+        "qt_events": 97
+      },
+      "log": "docs/validacao_acesso_rc6/TESTES_PY314_520_RC6.log"
+    }
+  ],
+  "controlled_concurrency": {
+    "same_profile_clients": 10,
+    "remote_profiles": 10,
+    "one_upstream_response_for_identical_request": true,
+    "network": "loopback; not ten physical company PCs"
+  },
+  "https_tests": {
+    "native_windows_context_selection": "mocked on Linux",
+    "wrong_hostname": "rejected in real local TLS handshake",
+    "untrusted_issuer": "rejected in real local TLS handshake",
+    "global_ssl_monkeypatch": false,
+    "windows_cryptoapi_live_test": false
+  },
+  "wheel": {
+    "status": "ok",
+    "version": "5.2.0-rc.6",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": false,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "https_transport": {
+      "policy": "system-openssl-v1"
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  },
+  "external_file_probe": {
+    "checked_at": "2026-10-22T17:06:16.724630+00:00",
+    "python": "3.14.8",
+    "platform": "Linux",
+    "windows_native_test": false,
+    "transport": {
+      "policy": "system-openssl-v1"
+    },
+    "endpoint": "https://balanca.mdic.gov.br/balanca/bd/tabelas/PAIS.csv",
+    "attempts": 1,
+    "api_data_requests": 0,
+    "status": "failed",
+    "error_type": "OpenDataError",
+    "message": "Não foi possível obter o arquivo oficial PAIS.csv.",
+    "causes": [
+      {
+        "type": "OpenDataError",
+        "http_status": null,
+        "message": "Não foi possível obter o arquivo oficial PAIS.csv."
+      },
+      {
+        "type": "HTTPError",
+        "http_status": 503,
+        "message": "HTTP Error 503: Service Unavailable"
+      }
+    ],
+    "seconds": 11.187
+  },
+  "real_company_network_acceptance": "pending",
+  "windows_compiled_setup": "not produced on Linux",
+  "data_contracts_and_exports": "preserved; full controlled regressions passed"
+}

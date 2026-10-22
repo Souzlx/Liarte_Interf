@@ -1,0 +1,21 @@
+{
+  "method": "Independent Python grouping of actual Excel rows and price reference checks; no Power BI render or M execution",
+  "status": "ok",
+  "datasets": {
+    "Base geral": {
+      "rows": 2723,
+      "unique_statistical_keys": 2723,
+      "price_rows_with_zero_kg_preserved_as_blank": 161,
+      "positive_value_without_weight": 160,
+      "negative_price_rows": 0
+    },
+    "Base municipal": {
+      "rows": 16065,
+      "unique_statistical_keys": 16065,
+      "price_rows_with_zero_kg_preserved_as_blank": 804,
+      "positive_value_without_weight": 783,
+      "negative_price_rows": 0,
+      "unique_city_uf_labels": 711
+    }
+  }
+}

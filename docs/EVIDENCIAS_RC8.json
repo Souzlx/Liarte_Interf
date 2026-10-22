@@ -1,0 +1,55 @@
+{
+  "version": "5.0.0-rc.8",
+  "date": "2026-10-19",
+  "status": "validated_locally_pending_windows_acceptance",
+  "base": "5.0.0-rc.7 enviado pelo usuário",
+  "scope": "Interface nativa Qt e apresentação; cadastro, consultas e geradores preservados",
+  "tests": {
+    "status": "ok",
+    "method": "CRC e SHA-256 de todos os arquivos; suíte completa da extração limpa do ZIP",
+    "tests": 307,
+    "seconds": 57.968,
+    "platform": "Linux/offscreen",
+    "code_unchanged_after_archive_test": true,
+    "log": "VALIDACAO_RC8.log",
+    "executed_from": "fresh ZIP extraction"
+  },
+  "layouts": {
+    "status": "ok",
+    "cases": 72,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "scales": [
+      1,
+      1.25,
+      1.5
+    ],
+    "qml_warnings": [],
+    "report": "LAYOUTS_RC8.json"
+  },
+  "preservation_report": "PRESERVACAO_RC8.json",
+  "documents_report": "DOCUMENTOS_RC8.json",
+  "frozen_linux_report": "EXECUTAVEL_LINUX_RC8.json",
+  "powerbi": {
+    "generator_identical_to_rc7": true,
+    "pages": 6,
+    "visuals": 85,
+    "measures": 57,
+    "structural_validation": "ok",
+    "desktop_render_executed": false,
+    "dax_execution": false,
+    "previous_detailed_checks": "EVIDENCIAS_RC7.json"
+  },
+  "windows_installer_compiled_here": false,
+  "windows_acceptance_pending": true,
+  "api_requests_in_this_revision": false,
+  "data_used": "captura oficial conciliada julho–setembro/2026 + dados sintéticos identificados nos testes",
+  "synthetic_volume": {
+    "rows": 100000,
+    "first_query_seconds": 1.494,
+    "qt_timer_events": 90,
+    "synthetic": true
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "reference_version": "4.7.2",
+  "reference_zip_sha256": "8e17ad10ee85269c7d04018250e7f5b4a57cf9c156a067498ed87945e38da5b1",
+  "files": [
+    {
+      "file": "comexstat_importacoes.py",
+      "original_sha256": "80cf466956f0d0696aad29d6bd4c25082ac9fafc83dbd2e23b3969fa7814314a",
+      "native_sha256": "d6863d64bf0038064728b5576cfa0f6f8259188e0e21b9ceeabdf2388e1944c0"
+    },
+    {
+      "file": "liarte_dados.py",
+      "original_sha256": "0006b64f1becb829f70338be4e6056324446fdc0a3482ebb4cd55a22129248d0",
+      "native_sha256": "2edb49072ce2dc74eb751301f1c07754247da374fd130902d7faf5108bac7fc9"
+    },
+    {
+      "file": "liarte_analise.py",
+      "original_sha256": "6a5116c5db2c94305cd6e538ba15b73b1d5bf218df7b799525b34faa19801b88",
+      "native_sha256": "b62c00195ecb2373be0d61c0994b8fe7f4c8ad57cdfa2833fdd93e61f93c853e"
+    },
+    {
+      "file": "pdf_importacoes.py",
+      "original_sha256": "0d5ab55a3c6ac012960959cafcdc42f227027cd6666d8ca3fccb040f24e52e27",
+      "native_sha256": "2eafdc1389147eda70288a049e7c8692da86b5d0a524bdf29097447c521b4ff8"
+    },
+    {
+      "file": "powerbi_importacoes.py",
+      "original_sha256": "e4a7c04341ba34fecfa4ae4a417ba9c270436e1431b090136997ea2cae543ca3",
+      "native_sha256": "811125c6229beb964ce1930faecd664246f5acd2d2c90df2328ec66537c7cfa0"
+    }
+  ],
+  "changes": [
+    "relative imports",
+    "formatting",
+    "cooperative cancellation injection in API client",
+    "Decimal/ROUND_HALF_UP for PDF aggregation and display",
+    "release version"
+  ],
+  "preserved": [
+    "35 NCMs and 54 product relationships",
+    "worksheet structure and headers",
+    "municipal E width 64",
+    "vertical center alignment",
+    "PDF commercial rules",
+    "six-page PBIP structure"
+  ]
+}

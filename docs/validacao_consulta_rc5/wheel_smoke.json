@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "version": "5.2.0-rc.5",
+  "installed_python_modules_match_source": 49,
+  "catalog_size": 35,
+  "stock_sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+  "qml_warnings": [],
+  "synthetic_ui": true,
+  "platform": "Linux Qt offscreen CPython3.14.8",
+  "new_sources_importable": true
+}

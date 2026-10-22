@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "previous_python": [
+    3,
+    13,
+    16
+  ],
+  "current_python": [
+    3,
+    14,
+    8
+  ],
+  "recreated": true,
+  "second_start_reused": true,
+  "old_environment_preserved": true,
+  "reports_and_preferences_unchanged": true,
+  "synthetic_sentinels": true,
+  "platform": "linux"
+}

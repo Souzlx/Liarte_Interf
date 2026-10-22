@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "synthetic": false,
+  "checked_at": "2026-10-16T12:10:19+00:00",
+  "period": {
+    "from": "2026-07",
+    "to": "2026-09"
+  },
+  "published_until": "2026-09",
+  "source_updated": "2026-10-06",
+  "municipal_updated": "2026-10-06",
+  "ncm_count": 35,
+  "sh4_count": 19,
+  "general_rows": 2723,
+  "municipal_rows": 16065,
+  "general_control": {
+    "metricFOB": 85160558200,
+    "metricFreight": 5625615200,
+    "metricInsurance": 41540200,
+    "metricCIF": 90827713600,
+    "metricKG": 449831836
+  },
+  "municipal_control": {
+    "metricFOB": 908543099500,
+    "metricKG": 7966304862
+  },
+  "money_unit": "US$ cents",
+  "weight_unit": "kg",
+  "independent_reconciliations": 2,
+  "note": "Base municipal SH4 e base geral NCM são universos distintos; seus totais não devem ser comparados nem somados."
+}

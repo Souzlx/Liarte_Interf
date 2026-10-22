@@ -1,0 +1,58 @@
+{
+  "version": "5.2.0-rc.9",
+  "started_at": "2026-10-22T18:41:57.088328+00:00",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "company_network": false,
+  "synthetic": false,
+  "period": {
+    "from": "2026-01",
+    "to": "2026-09"
+  },
+  "ncm_count": 35,
+  "sh4_count": 19,
+  "policy": {
+    "client": "liarte_core.comex_api.ApiClient",
+    "max_attempts_per_endpoint": 2,
+    "fixed_interval_seconds": 0,
+    "automatic_pause_wait_budget_seconds": 45,
+    "source": "official-api-only",
+    "query_result_disk_cache": false,
+    "central": false
+  },
+  "status": "passed",
+  "general_rows": 7789,
+  "municipal_rows": 46074,
+  "general_cif_cents": 220690528300,
+  "general_kg": 1359798169,
+  "municipal_fob_cents": 2164253314200,
+  "municipal_kg": 22096602115,
+  "response_validated": true,
+  "independent_totals_verified": false,
+  "api_requests": 2,
+  "seconds": 24.796,
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/general",
+      "started_after_seconds": 0.001,
+      "http_status": 200,
+      "response_headers": {
+        "Date": "Thu, 22 Oct 2026 18:42:05 GMT",
+        "Content-Encoding": "gzip"
+      },
+      "headers_received_after_seconds": 8.812
+    },
+    {
+      "method": "POST",
+      "path": "/cities",
+      "started_after_seconds": 9.583,
+      "http_status": 200,
+      "response_headers": {
+        "Date": "Thu, 22 Oct 2026 18:42:18 GMT",
+        "Content-Encoding": "gzip"
+      },
+      "headers_received_after_seconds": 21.376
+    }
+  ]
+}

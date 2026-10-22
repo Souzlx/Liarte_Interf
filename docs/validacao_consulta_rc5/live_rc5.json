@@ -1,0 +1,13 @@
+{
+  "requested_period": [
+    "2026-01",
+    "2026-09"
+  ],
+  "catalog_size": 35,
+  "environment": "Linux CPython 3.14.8, real public upstream",
+  "started_at": 1792672299.5085895,
+  "status": "failed",
+  "type": "ComexError",
+  "message": "Consulta oficial não concluída: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 60 s antes de tentar novamente.",
+  "seconds": 44.609
+}

@@ -1,0 +1,208 @@
+{
+  "status": "ok",
+  "platform": "linux/offscreen/software",
+  "captured_fixture": true,
+  "live_comex_query": false,
+  "cases": [
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": false,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": false,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": true,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        500,
+        400
+      ],
+      "dark": true,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": false,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": false,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": true,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        760,
+        600
+      ],
+      "dark": true,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": false,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": false,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": true,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1120,
+        760
+      ],
+      "dark": true,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": false,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": false,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": true,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1380,
+        900
+      ],
+      "dark": true,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": false,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": false,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": true,
+      "kind": "municipal",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    },
+    {
+      "size": [
+        1920,
+        1080
+      ],
+      "dark": true,
+      "kind": "general",
+      "query_panel_stable": true,
+      "qml_warnings": []
+    }
+  ]
+}

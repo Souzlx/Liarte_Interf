@@ -1,0 +1,34 @@
+{
+  "status": "ok",
+  "synthetic": false,
+  "mode": "offline replay of previously reconciled official capture; no new Comex request",
+  "capture_sha256": "6ce170cbd27f07dd657cc12e2cce08de1325008cb31d4e4a4132ccdbb70e93b1",
+  "general_rows": 2723,
+  "municipal_rows": 16065,
+  "gui_ticks": 1707,
+  "documents": [
+    {
+      "kind": "excel",
+      "seconds": 16.419,
+      "bytes": 1885186,
+      "ui_ticks": 734,
+      "file": "IMPORTACAO_2026-07_2026-09.xlsx"
+    },
+    {
+      "kind": "powerbi",
+      "seconds": 19.348,
+      "bytes": 2498750,
+      "ui_ticks": 898,
+      "file": "POWERBI_LIARTE_IMPORTACOES_2026-07_2026-09.zip"
+    },
+    {
+      "kind": "pdf",
+      "seconds": 0.495,
+      "bytes": 717871,
+      "ui_ticks": 21,
+      "file": "IMPORTACOES_FILTRADAS_2026-07_2026-09.pdf"
+    }
+  ],
+  "qml_warnings": [],
+  "total_seconds": 37.526
+}

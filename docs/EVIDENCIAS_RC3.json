@@ -1,0 +1,1654 @@
+{
+  "version": "5.0.0-rc.3",
+  "created_utc": "2026-10-16T17:40:12.648283+00:00",
+  "tests": {
+    "status": "ok",
+    "count": 212,
+    "log": "VALIDACAO_RC3.log",
+    "executed_from": "fresh ZIP extraction",
+    "seconds": 35.702
+  },
+  "layout": {
+    "status": "ok",
+    "general_views": 96,
+    "buying_views": 24,
+    "dialog_checks": 288,
+    "scale_factors": [
+      1,
+      1.25,
+      1.5,
+      2
+    ],
+    "platform": "Linux Qt6.10.3 offscreen/software",
+    "qml_warnings": []
+  },
+  "analytics_sql": {
+    "status": "ok",
+    "method": "SQLite SUM/GROUP BY independent from application aggregation; exact Fraction reference for ratios",
+    "source": "Official July–September 2026 capture, independently reconciled in RC1; not a new network download",
+    "source_sha256": "6ce170cbd27f07dd657cc12e2cce08de1325008cb31d4e4a4132ccdbb70e93b1",
+    "general_rows": 2723,
+    "municipal_rows": 16065,
+    "scopes": 218,
+    "checks": [
+      {
+        "kind": "general",
+        "code": "all",
+        "country": "all",
+        "records": 2723
+      },
+      {
+        "kind": "general",
+        "code": "27101931",
+        "country": "all",
+        "records": 173
+      },
+      {
+        "kind": "general",
+        "code": "28112290",
+        "country": "all",
+        "records": 129
+      },
+      {
+        "kind": "general",
+        "code": "28151100",
+        "country": "all",
+        "records": 65
+      },
+      {
+        "kind": "general",
+        "code": "28252020",
+        "country": "all",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "29021100",
+        "country": "all",
+        "records": 19
+      },
+      {
+        "kind": "general",
+        "code": "29025000",
+        "country": "all",
+        "records": 25
+      },
+      {
+        "kind": "general",
+        "code": "29051210",
+        "country": "all",
+        "records": 45
+      },
+      {
+        "kind": "general",
+        "code": "29051220",
+        "country": "all",
+        "records": 81
+      },
+      {
+        "kind": "general",
+        "code": "29053100",
+        "country": "all",
+        "records": 49
+      },
+      {
+        "kind": "general",
+        "code": "29094310",
+        "country": "all",
+        "records": 32
+      },
+      {
+        "kind": "general",
+        "code": "29141100",
+        "country": "all",
+        "records": 45
+      },
+      {
+        "kind": "general",
+        "code": "29141200",
+        "country": "all",
+        "records": 36
+      },
+      {
+        "kind": "general",
+        "code": "29141300",
+        "country": "all",
+        "records": 21
+      },
+      {
+        "kind": "general",
+        "code": "29153100",
+        "country": "all",
+        "records": 58
+      },
+      {
+        "kind": "general",
+        "code": "29153300",
+        "country": "all",
+        "records": 33
+      },
+      {
+        "kind": "general",
+        "code": "29153931",
+        "country": "all",
+        "records": 16
+      },
+      {
+        "kind": "general",
+        "code": "29156019",
+        "country": "all",
+        "records": 139
+      },
+      {
+        "kind": "general",
+        "code": "29161220",
+        "country": "all",
+        "records": 49
+      },
+      {
+        "kind": "general",
+        "code": "29161230",
+        "country": "all",
+        "records": 28
+      },
+      {
+        "kind": "general",
+        "code": "29161240",
+        "country": "all",
+        "records": 14
+      },
+      {
+        "kind": "general",
+        "code": "29161310",
+        "country": "all",
+        "records": 36
+      },
+      {
+        "kind": "general",
+        "code": "29161410",
+        "country": "all",
+        "records": 43
+      },
+      {
+        "kind": "general",
+        "code": "29161430",
+        "country": "all",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "29161490",
+        "country": "all",
+        "records": 65
+      },
+      {
+        "kind": "general",
+        "code": "29171990",
+        "country": "all",
+        "records": 100
+      },
+      {
+        "kind": "general",
+        "code": "29221100",
+        "country": "all",
+        "records": 48
+      },
+      {
+        "kind": "general",
+        "code": "32061110",
+        "country": "all",
+        "records": 131
+      },
+      {
+        "kind": "general",
+        "code": "34024200",
+        "country": "all",
+        "records": 356
+      },
+      {
+        "kind": "general",
+        "code": "38249941",
+        "country": "all",
+        "records": 242
+      },
+      {
+        "kind": "general",
+        "code": "39022000",
+        "country": "all",
+        "records": 42
+      },
+      {
+        "kind": "general",
+        "code": "39073022",
+        "country": "all",
+        "records": 156
+      },
+      {
+        "kind": "general",
+        "code": "39100011",
+        "country": "all",
+        "records": 31
+      },
+      {
+        "kind": "general",
+        "code": "39100012",
+        "country": "all",
+        "records": 104
+      },
+      {
+        "kind": "general",
+        "code": "39100019",
+        "country": "all",
+        "records": 224
+      },
+      {
+        "kind": "general",
+        "code": "39111029",
+        "country": "all",
+        "records": 72
+      },
+      {
+        "kind": "general",
+        "code": "27101931",
+        "country": "Alemanha",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "27101931",
+        "country": "Argentina",
+        "records": 8
+      },
+      {
+        "kind": "general",
+        "code": "27101931",
+        "country": "Arábia Saudita",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "28112290",
+        "country": "Alemanha",
+        "records": 27
+      },
+      {
+        "kind": "general",
+        "code": "28112290",
+        "country": "Bélgica",
+        "records": 5
+      },
+      {
+        "kind": "general",
+        "code": "28112290",
+        "country": "China",
+        "records": 21
+      },
+      {
+        "kind": "general",
+        "code": "28151100",
+        "country": "Alemanha",
+        "records": 12
+      },
+      {
+        "kind": "general",
+        "code": "28151100",
+        "country": "Argentina",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "28151100",
+        "country": "China",
+        "records": 11
+      },
+      {
+        "kind": "general",
+        "code": "28252020",
+        "country": "Austrália",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "28252020",
+        "country": "Chile",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "28252020",
+        "country": "China",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "29021100",
+        "country": "Alemanha",
+        "records": 8
+      },
+      {
+        "kind": "general",
+        "code": "29021100",
+        "country": "Argentina",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "29021100",
+        "country": "Estados Unidos",
+        "records": 4
+      },
+      {
+        "kind": "general",
+        "code": "29025000",
+        "country": "Alemanha",
+        "records": 3
+      },
+      {
+        "kind": "general",
+        "code": "29025000",
+        "country": "Bélgica",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29025000",
+        "country": "China",
+        "records": 8
+      },
+      {
+        "kind": "general",
+        "code": "29051210",
+        "country": "Alemanha",
+        "records": 5
+      },
+      {
+        "kind": "general",
+        "code": "29051210",
+        "country": "Bélgica",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29051210",
+        "country": "Canadá",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29051220",
+        "country": "Alemanha",
+        "records": 11
+      },
+      {
+        "kind": "general",
+        "code": "29051220",
+        "country": "Austrália",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "29051220",
+        "country": "Canadá",
+        "records": 5
+      },
+      {
+        "kind": "general",
+        "code": "29053100",
+        "country": "Alemanha",
+        "records": 8
+      },
+      {
+        "kind": "general",
+        "code": "29053100",
+        "country": "Arábia Saudita",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "29053100",
+        "country": "Bélgica",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "29094310",
+        "country": "Arábia Saudita",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29094310",
+        "country": "China",
+        "records": 13
+      },
+      {
+        "kind": "general",
+        "code": "29094310",
+        "country": "Coreia do Sul",
+        "records": 3
+      },
+      {
+        "kind": "general",
+        "code": "29141100",
+        "country": "Alemanha",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "29141100",
+        "country": "Arábia Saudita",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "29141100",
+        "country": "China",
+        "records": 6
+      },
+      {
+        "kind": "general",
+        "code": "29141200",
+        "country": "Alemanha",
+        "records": 5
+      },
+      {
+        "kind": "general",
+        "code": "29141200",
+        "country": "China",
+        "records": 15
+      },
+      {
+        "kind": "general",
+        "code": "29141200",
+        "country": "Estados Unidos",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "29141300",
+        "country": "Alemanha",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29141300",
+        "country": "Brasil",
+        "records": 3
+      },
+      {
+        "kind": "general",
+        "code": "29141300",
+        "country": "China",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29153100",
+        "country": "Alemanha",
+        "records": 10
+      },
+      {
+        "kind": "general",
+        "code": "29153100",
+        "country": "China",
+        "records": 12
+      },
+      {
+        "kind": "general",
+        "code": "29153100",
+        "country": "Espanha",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "29153300",
+        "country": "Alemanha",
+        "records": 5
+      },
+      {
+        "kind": "general",
+        "code": "29153300",
+        "country": "China",
+        "records": 16
+      },
+      {
+        "kind": "general",
+        "code": "29153300",
+        "country": "Espanha",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29153931",
+        "country": "Alemanha",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29153931",
+        "country": "China",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "29153931",
+        "country": "Estados Unidos",
+        "records": 4
+      },
+      {
+        "kind": "general",
+        "code": "29156019",
+        "country": "Alemanha",
+        "records": 12
+      },
+      {
+        "kind": "general",
+        "code": "29156019",
+        "country": "Austrália",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29156019",
+        "country": "Bélgica",
+        "records": 3
+      },
+      {
+        "kind": "general",
+        "code": "29161220",
+        "country": "Alemanha",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "29161220",
+        "country": "China",
+        "records": 20
+      },
+      {
+        "kind": "general",
+        "code": "29161220",
+        "country": "Coreia do Sul",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "29161230",
+        "country": "Alemanha",
+        "records": 3
+      },
+      {
+        "kind": "general",
+        "code": "29161230",
+        "country": "China",
+        "records": 13
+      },
+      {
+        "kind": "general",
+        "code": "29161230",
+        "country": "Chipre",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29161240",
+        "country": "China",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "29161240",
+        "country": "Estados Unidos",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "29161240",
+        "country": "Hong Kong",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29161310",
+        "country": "Alemanha",
+        "records": 3
+      },
+      {
+        "kind": "general",
+        "code": "29161310",
+        "country": "Bélgica",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29161310",
+        "country": "China",
+        "records": 15
+      },
+      {
+        "kind": "general",
+        "code": "29161410",
+        "country": "Alemanha",
+        "records": 10
+      },
+      {
+        "kind": "general",
+        "code": "29161410",
+        "country": "China",
+        "records": 17
+      },
+      {
+        "kind": "general",
+        "code": "29161410",
+        "country": "Coreia do Sul",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29161430",
+        "country": "Alemanha",
+        "records": 4
+      },
+      {
+        "kind": "general",
+        "code": "29161430",
+        "country": "China",
+        "records": 4
+      },
+      {
+        "kind": "general",
+        "code": "29161430",
+        "country": "Hong Kong",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29161490",
+        "country": "Alemanha",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "29161490",
+        "country": "Bélgica",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "29161490",
+        "country": "China",
+        "records": 19
+      },
+      {
+        "kind": "general",
+        "code": "29171990",
+        "country": "Alemanha",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "29171990",
+        "country": "Canadá",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "29171990",
+        "country": "China",
+        "records": 32
+      },
+      {
+        "kind": "general",
+        "code": "29221100",
+        "country": "Alemanha",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "29221100",
+        "country": "Arábia Saudita",
+        "records": 3
+      },
+      {
+        "kind": "general",
+        "code": "29221100",
+        "country": "Bélgica",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "32061110",
+        "country": "Alemanha",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "32061110",
+        "country": "Arábia Saudita",
+        "records": 6
+      },
+      {
+        "kind": "general",
+        "code": "32061110",
+        "country": "Austrália",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "34024200",
+        "country": "Alemanha",
+        "records": 30
+      },
+      {
+        "kind": "general",
+        "code": "34024200",
+        "country": "Argentina",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "34024200",
+        "country": "Bélgica",
+        "records": 10
+      },
+      {
+        "kind": "general",
+        "code": "38249941",
+        "country": "Alemanha",
+        "records": 29
+      },
+      {
+        "kind": "general",
+        "code": "38249941",
+        "country": "Bélgica",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "38249941",
+        "country": "Canadá",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "39022000",
+        "country": "Alemanha",
+        "records": 4
+      },
+      {
+        "kind": "general",
+        "code": "39022000",
+        "country": "Argentina",
+        "records": 9
+      },
+      {
+        "kind": "general",
+        "code": "39022000",
+        "country": "Bélgica",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "39073022",
+        "country": "Alemanha",
+        "records": 23
+      },
+      {
+        "kind": "general",
+        "code": "39073022",
+        "country": "Bélgica",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "39073022",
+        "country": "China",
+        "records": 26
+      },
+      {
+        "kind": "general",
+        "code": "39100011",
+        "country": "Alemanha",
+        "records": 12
+      },
+      {
+        "kind": "general",
+        "code": "39100011",
+        "country": "China",
+        "records": 8
+      },
+      {
+        "kind": "general",
+        "code": "39100011",
+        "country": "Estados Unidos",
+        "records": 5
+      },
+      {
+        "kind": "general",
+        "code": "39100012",
+        "country": "Alemanha",
+        "records": 15
+      },
+      {
+        "kind": "general",
+        "code": "39100012",
+        "country": "Argentina",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "39100012",
+        "country": "Bélgica",
+        "records": 2
+      },
+      {
+        "kind": "general",
+        "code": "39100019",
+        "country": "Alemanha",
+        "records": 32
+      },
+      {
+        "kind": "general",
+        "code": "39100019",
+        "country": "Argentina",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "39100019",
+        "country": "Brasil",
+        "records": 1
+      },
+      {
+        "kind": "general",
+        "code": "39111029",
+        "country": "Alemanha",
+        "records": 7
+      },
+      {
+        "kind": "general",
+        "code": "39111029",
+        "country": "China",
+        "records": 20
+      },
+      {
+        "kind": "general",
+        "code": "39111029",
+        "country": "Coreia do Sul",
+        "records": 8
+      },
+      {
+        "kind": "municipal",
+        "code": "all",
+        "country": "all",
+        "records": 16065
+      },
+      {
+        "kind": "municipal",
+        "code": "2710",
+        "country": "all",
+        "records": 1445
+      },
+      {
+        "kind": "municipal",
+        "code": "2811",
+        "country": "all",
+        "records": 537
+      },
+      {
+        "kind": "municipal",
+        "code": "2815",
+        "country": "all",
+        "records": 216
+      },
+      {
+        "kind": "municipal",
+        "code": "2825",
+        "country": "all",
+        "records": 134
+      },
+      {
+        "kind": "municipal",
+        "code": "2902",
+        "country": "all",
+        "records": 239
+      },
+      {
+        "kind": "municipal",
+        "code": "2905",
+        "country": "all",
+        "records": 891
+      },
+      {
+        "kind": "municipal",
+        "code": "2909",
+        "country": "all",
+        "records": 543
+      },
+      {
+        "kind": "municipal",
+        "code": "2914",
+        "country": "all",
+        "records": 493
+      },
+      {
+        "kind": "municipal",
+        "code": "2915",
+        "country": "all",
+        "records": 999
+      },
+      {
+        "kind": "municipal",
+        "code": "2916",
+        "country": "all",
+        "records": 679
+      },
+      {
+        "kind": "municipal",
+        "code": "2917",
+        "country": "all",
+        "records": 475
+      },
+      {
+        "kind": "municipal",
+        "code": "2922",
+        "country": "all",
+        "records": 782
+      },
+      {
+        "kind": "municipal",
+        "code": "3206",
+        "country": "all",
+        "records": 685
+      },
+      {
+        "kind": "municipal",
+        "code": "3402",
+        "country": "all",
+        "records": 1641
+      },
+      {
+        "kind": "municipal",
+        "code": "3824",
+        "country": "all",
+        "records": 2287
+      },
+      {
+        "kind": "municipal",
+        "code": "3902",
+        "country": "all",
+        "records": 1071
+      },
+      {
+        "kind": "municipal",
+        "code": "3907",
+        "country": "all",
+        "records": 1736
+      },
+      {
+        "kind": "municipal",
+        "code": "3910",
+        "country": "all",
+        "records": 810
+      },
+      {
+        "kind": "municipal",
+        "code": "3911",
+        "country": "all",
+        "records": 402
+      },
+      {
+        "kind": "municipal",
+        "code": "2710",
+        "country": "Alemanha",
+        "records": 173
+      },
+      {
+        "kind": "municipal",
+        "code": "2710",
+        "country": "Argentina",
+        "records": 83
+      },
+      {
+        "kind": "municipal",
+        "code": "2710",
+        "country": "Argélia",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2811",
+        "country": "Alemanha",
+        "records": 71
+      },
+      {
+        "kind": "municipal",
+        "code": "2811",
+        "country": "Argentina",
+        "records": 18
+      },
+      {
+        "kind": "municipal",
+        "code": "2811",
+        "country": "Argélia",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2815",
+        "country": "Alemanha",
+        "records": 14
+      },
+      {
+        "kind": "municipal",
+        "code": "2815",
+        "country": "Argentina",
+        "records": 8
+      },
+      {
+        "kind": "municipal",
+        "code": "2815",
+        "country": "Bélgica",
+        "records": 6
+      },
+      {
+        "kind": "municipal",
+        "code": "2825",
+        "country": "Alemanha",
+        "records": 13
+      },
+      {
+        "kind": "municipal",
+        "code": "2825",
+        "country": "Austrália",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2825",
+        "country": "Bolívia",
+        "records": 6
+      },
+      {
+        "kind": "municipal",
+        "code": "2902",
+        "country": "Alemanha",
+        "records": 16
+      },
+      {
+        "kind": "municipal",
+        "code": "2902",
+        "country": "Argentina",
+        "records": 15
+      },
+      {
+        "kind": "municipal",
+        "code": "2902",
+        "country": "Arábia Saudita",
+        "records": 2
+      },
+      {
+        "kind": "municipal",
+        "code": "2905",
+        "country": "Alemanha",
+        "records": 86
+      },
+      {
+        "kind": "municipal",
+        "code": "2905",
+        "country": "Argentina",
+        "records": 14
+      },
+      {
+        "kind": "municipal",
+        "code": "2905",
+        "country": "Arábia Saudita",
+        "records": 2
+      },
+      {
+        "kind": "municipal",
+        "code": "2909",
+        "country": "Alemanha",
+        "records": 47
+      },
+      {
+        "kind": "municipal",
+        "code": "2909",
+        "country": "Arábia Saudita",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2909",
+        "country": "Bélgica",
+        "records": 9
+      },
+      {
+        "kind": "municipal",
+        "code": "2914",
+        "country": "Alemanha",
+        "records": 44
+      },
+      {
+        "kind": "municipal",
+        "code": "2914",
+        "country": "Arábia Saudita",
+        "records": 13
+      },
+      {
+        "kind": "municipal",
+        "code": "2914",
+        "country": "Austrália",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2915",
+        "country": "Alemanha",
+        "records": 73
+      },
+      {
+        "kind": "municipal",
+        "code": "2915",
+        "country": "Argentina",
+        "records": 6
+      },
+      {
+        "kind": "municipal",
+        "code": "2915",
+        "country": "Armênia",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2916",
+        "country": "Alemanha",
+        "records": 52
+      },
+      {
+        "kind": "municipal",
+        "code": "2916",
+        "country": "Argentina",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2916",
+        "country": "Bélgica",
+        "records": 12
+      },
+      {
+        "kind": "municipal",
+        "code": "2917",
+        "country": "Alemanha",
+        "records": 26
+      },
+      {
+        "kind": "municipal",
+        "code": "2917",
+        "country": "Argentina",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2917",
+        "country": "Austrália",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "2922",
+        "country": "Alemanha",
+        "records": 71
+      },
+      {
+        "kind": "municipal",
+        "code": "2922",
+        "country": "Argentina",
+        "records": 12
+      },
+      {
+        "kind": "municipal",
+        "code": "2922",
+        "country": "Arábia Saudita",
+        "records": 4
+      },
+      {
+        "kind": "municipal",
+        "code": "3206",
+        "country": "Alemanha",
+        "records": 76
+      },
+      {
+        "kind": "municipal",
+        "code": "3206",
+        "country": "Argentina",
+        "records": 11
+      },
+      {
+        "kind": "municipal",
+        "code": "3206",
+        "country": "Arábia Saudita",
+        "records": 9
+      },
+      {
+        "kind": "municipal",
+        "code": "3402",
+        "country": "Alemanha",
+        "records": 192
+      },
+      {
+        "kind": "municipal",
+        "code": "3402",
+        "country": "Argentina",
+        "records": 51
+      },
+      {
+        "kind": "municipal",
+        "code": "3402",
+        "country": "Brasil",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "3824",
+        "country": "Alemanha",
+        "records": 237
+      },
+      {
+        "kind": "municipal",
+        "code": "3824",
+        "country": "Argentina",
+        "records": 43
+      },
+      {
+        "kind": "municipal",
+        "code": "3824",
+        "country": "Arábia Saudita",
+        "records": 4
+      },
+      {
+        "kind": "municipal",
+        "code": "3902",
+        "country": "Alemanha",
+        "records": 66
+      },
+      {
+        "kind": "municipal",
+        "code": "3902",
+        "country": "Argentina",
+        "records": 50
+      },
+      {
+        "kind": "municipal",
+        "code": "3902",
+        "country": "Arábia Saudita",
+        "records": 54
+      },
+      {
+        "kind": "municipal",
+        "code": "3907",
+        "country": "Alemanha",
+        "records": 173
+      },
+      {
+        "kind": "municipal",
+        "code": "3907",
+        "country": "Argentina",
+        "records": 32
+      },
+      {
+        "kind": "municipal",
+        "code": "3907",
+        "country": "Arábia Saudita",
+        "records": 2
+      },
+      {
+        "kind": "municipal",
+        "code": "3910",
+        "country": "Alemanha",
+        "records": 126
+      },
+      {
+        "kind": "municipal",
+        "code": "3910",
+        "country": "Argentina",
+        "records": 2
+      },
+      {
+        "kind": "municipal",
+        "code": "3910",
+        "country": "Brasil",
+        "records": 1
+      },
+      {
+        "kind": "municipal",
+        "code": "3911",
+        "country": "Alemanha",
+        "records": 69
+      },
+      {
+        "kind": "municipal",
+        "code": "3911",
+        "country": "Bélgica",
+        "records": 5
+      },
+      {
+        "kind": "municipal",
+        "code": "3911",
+        "country": "Canadá",
+        "records": 5
+      }
+    ]
+  },
+  "preservation": {
+    "status": "ok",
+    "unchanged_logic_files": 14,
+    "logo_assets": 3,
+    "files": [
+      {
+        "path": "src/liarte_core/comex.py",
+        "sha256": "9ee04c3e4063bf7a411e95ac7ddd129ce8ead1f859f3178f4a181e36eff1c47b",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_core/exports.py",
+        "sha256": "126bb63131c2a5272438cda8be40acd35ae1725f68f27863f3ef692e3d1f5bab",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_core/domain.py",
+        "sha256": "f4f193ef28afa8b30a43a7f9e74b0bea50dbf9a5dbd679960067b2b1021d9004",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_core/catalog.py",
+        "sha256": "7369665b2d7a1f9e7a00828871c99b6925656f9bba3bc5b4241b6b5cfd730917",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_core/catalog.json",
+        "sha256": "a5b77abbdfc95773074942aa4d2ab2b680a2d6f6bdc7fe2d83aa5a4fcd66d2c8",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_engine/comexstat_importacoes.py",
+        "sha256": "21120495bbb125263978910c4fba0eb43477ce799b09943431b024872d1d03c9",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_engine/liarte_dados.py",
+        "sha256": "2edb49072ce2dc74eb751301f1c07754247da374fd130902d7faf5108bac7fc9",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_engine/liarte_analise.py",
+        "sha256": "b62c00195ecb2373be0d61c0994b8fe7f4c8ad57cdfa2833fdd93e61f93c853e",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_engine/pdf_importacoes.py",
+        "sha256": "4db53f4e0da1db46b1e05f1b4fea4d84582e50ca626fbc3593c61cafabdde977",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_engine/powerbi_importacoes.py",
+        "sha256": "4ba507b7823042a6936fe9638f05dddb151b4d7b67e1e5a594c845abb09ad7d4",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_desktop/jobs.py",
+        "sha256": "632e48f072a9cdd8136378a90619ffb592084aa08da49c70e39a91f9785a1127",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_desktop/table_model.py",
+        "sha256": "34b706d758a51c34e8127fc15a509a6401b6a47c2b4aecb015cb45a15e1df317",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_desktop/branding.py",
+        "sha256": "7bab4c91e561e0e3f532a9852ea0f679db2fe3e04592fbf81ff9d1dcb7f0776a",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_desktop/qt_runtime.py",
+        "sha256": "21f8ab41eb16ce745d7ef7676d4d231a36c9a6eac3613dae9bfa54f484554c0e",
+        "same_after_release_version_only": true
+      },
+      {
+        "path": "src/liarte_desktop/assets/liarte.ico",
+        "sha256": "27d0ca7faf0b7cfde84ca318108272caddb50ec309f0c35edefb04fdbb91f878",
+        "byte_identical": true
+      },
+      {
+        "path": "src/liarte_desktop/assets/liarte-logo-transparente.png",
+        "sha256": "10f9183c6ee1c071b3d1d947446add323df96f57fe16fa96fceb6e55288190c1",
+        "byte_identical": true
+      },
+      {
+        "path": "src/liarte_desktop/assets/liarte-simbolo.png",
+        "sha256": "39d60caf61db3696dcbdff831ebd29d86be56d0cba5ca6ea3d206e50aa6987b7",
+        "byte_identical": true
+      }
+    ],
+    "excel": {
+      "sheets": [
+        "Resumo por NCM",
+        "Resumo municipal",
+        "Base geral",
+        "Base municipal",
+        "07. Julho",
+        "08. Agosto",
+        "09. Setembro",
+        "Produtos"
+      ],
+      "nonempty_cells_identical_and_centered": 253359,
+      "column_E_municipal": 64
+    },
+    "pdf": {
+      "pages": 1,
+      "creator": "LIARTE Comex Intelligence 5.0.0-rc.3"
+    },
+    "powerbi_crc": "ok",
+    "source": "Previously reconciled official July–September snapshot; examples regenerated through the Qt controller workers"
+  },
+  "documents": {
+    "status": "ok",
+    "synthetic": false,
+    "general_rows": 2723,
+    "municipal_rows": 16065,
+    "gui_ticks": 1633,
+    "documents": [
+      {
+        "kind": "excel",
+        "seconds": 15.959,
+        "bytes": 1885186,
+        "ui_ticks": 721,
+        "file": "IMPORTACAO_2026-07_2026-09.xlsx"
+      },
+      {
+        "kind": "powerbi",
+        "seconds": 16.669,
+        "bytes": 1949096,
+        "ui_ticks": 730,
+        "file": "POWERBI_LIARTE_IMPORTACOES_2026-07_2026-09.zip"
+      },
+      {
+        "kind": "pdf",
+        "seconds": 0.08,
+        "bytes": 4461,
+        "ui_ticks": 2,
+        "file": "IMPORTACOES_FILTRADAS_2026-07_2026-09.pdf"
+      }
+    ],
+    "qml_warnings": [],
+    "total_seconds": 36.262
+  },
+  "motion": {
+    "status": "ok",
+    "platform": "Linux Qt 6.10.3 offscreen/software",
+    "synthetic": true,
+    "method": "Same 12-point series and geometry; RC3 adds the rolling series in the same Canvas; count paint invocations during transition. No FPS claim.",
+    "results": [
+      {
+        "version": "rc2",
+        "transitions": 8,
+        "curve_paints_per_transition": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "transition_seconds_including_30ms_settle": [
+          0.307,
+          0.304,
+          0.306,
+          0.293,
+          0.306,
+          0.306,
+          0.294,
+          0.305
+        ],
+        "qml_warnings": []
+      },
+      {
+        "version": "rc3",
+        "transitions": 8,
+        "curve_paints_per_transition": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "transition_seconds_including_30ms_settle": [
+          0.306,
+          0.306,
+          0.293,
+          0.306,
+          0.306,
+          0.292,
+          0.292,
+          0.306
+        ],
+        "qml_warnings": []
+      }
+    ]
+  },
+  "live_attempt": {
+    "status": "blocked",
+    "http_status": 429,
+    "attempts": 3,
+    "new_independent_reconciliations": 0,
+    "fallback_to_synthetic": false,
+    "scope": "NCM29161220 and municipal SH42916, July–September2026",
+    "note": "Official API retry limits respected; no new successful extraction claimed."
+  },
+  "historical_api_validation": {
+    "report": "VERIFICACAO_COMEX_RC1.json",
+    "independent_reconciliations": 2,
+    "period": "2026-07..2026-09",
+    "not_a_new_download": true
+  },
+  "windows": {
+    "native_execution": false,
+    "taskbar_visual_validation": false,
+    "shell_api_tests": "simulated, signatures/ABI/identity/COM and marker migration verified",
+    "installer_appid": "LIARTE.Desktop",
+    "profile_identity_unchanged": true
+  },
+  "powerbi_desktop_opened": false,
+  "protheus_or_multiuser_backend_implemented": false,
+  "distribution": {
+    "contains_windows_exe_or_setup": false,
+    "contains_sources_tests_and_build_assistant": true
+  },
+  "frozen_linux": {
+    "status": "ok",
+    "version": "5.0.0-rc.3",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": true,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 54,
+      "synthetic": true,
+      "temporary": true
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  },
+  "assistant": {
+    "status": "ok",
+    "version": "5.0.0-rc.3",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": false,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 54,
+      "synthetic": true,
+      "temporary": true
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ],
+    "startup_handshake": "ready, normal real-source mode process alive",
+    "requirements_probe": true,
+    "qa_venv": "isolated subprocess with QA-only .pth for existing runtime/dependencies"
+  },
+  "frozen_inventory": {
+    "files": 555,
+    "bytes": 261419835,
+    "unwanted_qml_modules": [],
+    "platform": "Linux only"
+  },
+  "archive_validation": {
+    "status": "ok",
+    "method": "CRC, path and all-file SHA-256 verification; 212 tests executed from fresh ZIP extraction; repackage only test evidence and checksum metadata",
+    "native_test_count": 212,
+    "native_test_seconds": 35.702,
+    "python_paths": "QA-installed Qt/build tools only; all project imports resolve to fresh extracted project",
+    "platform": "linux",
+    "code_unchanged_after_archive_test": true
+  },
+  "synthetic_volume": {
+    "rows": 100000,
+    "first_query_seconds": 1.542,
+    "qt_timer_events": 89,
+    "synthetic": true
+  }
+}

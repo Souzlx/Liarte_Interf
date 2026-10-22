@@ -1,0 +1,88 @@
+{
+  "version": "5.0.0-rc.12",
+  "date_utc": "2026-10-20T18:55:31.225202+00:00",
+  "status": "validated_locally_pending_windows_acceptance",
+  "platform": "Linux; Qt 6.10.3 offscreen/software",
+  "python_suites": [
+    {
+      "python": "3.14.8",
+      "tests": 358,
+      "seconds": 69.391,
+      "status": "ok",
+      "volume_rows": 100000,
+      "first_query_seconds": 1.295,
+      "qt_events": 83,
+      "log": "VALIDACAO_PY314_RC12.log"
+    }
+  ],
+  "layouts": {
+    "status": "ok",
+    "cases": 20,
+    "evidence": "LAYOUTS_RC12.json",
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "bases": [
+      "general",
+      "municipal"
+    ],
+    "sizes": [
+      [
+        500,
+        400
+      ],
+      [
+        760,
+        600
+      ],
+      [
+        1120,
+        760
+      ],
+      [
+        1380,
+        900
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "qml_warnings": []
+  },
+  "manual_image_review": [
+    "INTERFACE_RC12_general_CLARA.png",
+    "INTERFACE_RC12_municipal_ESCURA.png"
+  ],
+  "native_source_smoke": {
+    "status": "ok",
+    "python": "3.14.8",
+    "platform": "linux",
+    "frozen": false,
+    "synthetic_data": true,
+    "evidence": "ABERTURA_NATIVA_RC12.json"
+  },
+  "static_analysis": {
+    "status": "ok",
+    "tool": "ruff 0.17.1",
+    "rules": [
+      "F",
+      "E9"
+    ],
+    "scope": "tools,src,tests,iniciar.py,verificar.py",
+    "log": "LINT_RC12.log"
+  },
+  "preservation": {
+    "status": "ok",
+    "evidence": "PRESERVACAO_RC12.json",
+    "all_other_application_source_byte_identical": true
+  },
+  "python_311_312_313_tests_repeated_this_revision": false,
+  "new_live_comex_reconciliation": false,
+  "remaining_acceptance": [
+    "Windows installation, shortcuts and DPI/GPU",
+    "Power BI Desktop refresh, DAX and rendering"
+  ],
+  "deliverable": "Source ZIP with Windows build/install assistants; not a compiled Windows installer"
+}

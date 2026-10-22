@@ -1,0 +1,70 @@
+{
+  "version": "5.2.0-rc.7",
+  "started_at": "2026-10-22T17:34:52.173556+00:00",
+  "python": "3.14.8",
+  "platform": "Linux",
+  "company_network": false,
+  "synthetic": false,
+  "period": {
+    "from": "2026-09",
+    "to": "2026-09"
+  },
+  "catalog_scope": "one NCM 29161220; associated municipal SH4 2916",
+  "policy": {
+    "min_interval_seconds": 65,
+    "max_attempts": 3,
+    "deadline_seconds": 540,
+    "central": false,
+    "csv": false,
+    "persistent_query_cache": false
+  },
+  "status": "passed",
+  "general_rows": 18,
+  "municipal_rows": 216,
+  "totals_verified": true,
+  "source_channels": [
+    "comex-api"
+  ],
+  "data_api_requests": 4,
+  "persistent_cache_hits": 0,
+  "shared_cache_hits": 0,
+  "seconds": 368.717,
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/general/dates/updated",
+      "started_after_seconds": 0.006,
+      "http_status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/cities/dates/updated",
+      "started_after_seconds": 73.889,
+      "http_status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/general",
+      "started_after_seconds": 145.807,
+      "http_status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/general",
+      "started_after_seconds": 217.652,
+      "http_status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/cities",
+      "started_after_seconds": 289.554,
+      "http_status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/cities",
+      "started_after_seconds": 361.534,
+      "http_status": 200
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-10-22T17:06:16.724630+00:00",
+  "python": "3.14.8",
+  "platform": "Linux",
+  "windows_native_test": false,
+  "transport": {
+    "policy": "system-openssl-v1"
+  },
+  "endpoint": "https://balanca.mdic.gov.br/balanca/bd/tabelas/PAIS.csv",
+  "attempts": 1,
+  "api_data_requests": 0,
+  "status": "failed",
+  "error_type": "OpenDataError",
+  "message": "Não foi possível obter o arquivo oficial PAIS.csv.",
+  "causes": [
+    {
+      "type": "OpenDataError",
+      "http_status": null,
+      "message": "Não foi possível obter o arquivo oficial PAIS.csv."
+    },
+    {
+      "type": "HTTPError",
+      "http_status": 503,
+      "message": "HTTP Error 503: Service Unavailable"
+    }
+  ],
+  "seconds": 11.187
+}

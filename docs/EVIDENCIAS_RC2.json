@@ -1,0 +1,531 @@
+{
+  "version": "5.0.0-rc.2",
+  "date": "2026-10-16",
+  "release_status": "functional release candidate; native Windows and Power BI Desktop acceptance pending",
+  "environment": {
+    "platform": "Linux",
+    "python": "3.12.14",
+    "qt": "6.10.3",
+    "qt_platform": "offscreen",
+    "renderer": "software"
+  },
+  "baseline": {
+    "version": "5.0.0-rc.1",
+    "archive_sha256": "4e239cd890047a11db6a7b5617174f1e5bb70681c618d034974e00ab56b0b8b8",
+    "preserved": true
+  },
+  "tests": {
+    "status": "ok",
+    "count": 178,
+    "seconds": 30.261,
+    "new_interface_cases": 16,
+    "log": "VALIDACAO_RC2.log",
+    "executed_from": "fresh ZIP extraction"
+  },
+  "layout_matrix": {
+    "count": 96,
+    "dialog_checks": 288,
+    "scales": [
+      "1",
+      "1.25",
+      "1.5",
+      "2"
+    ],
+    "sizes": [
+      [
+        500,
+        400
+      ],
+      [
+        620,
+        480
+      ],
+      [
+        760,
+        580
+      ],
+      [
+        900,
+        700
+      ],
+      [
+        1100,
+        800
+      ],
+      [
+        1380,
+        900
+      ]
+    ],
+    "datasets": [
+      "general",
+      "municipal"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "qml_warnings": []
+  },
+  "motion_benchmark": {
+    "status": "ok",
+    "platform": "Linux Qt 6.10.3 offscreen/software",
+    "synthetic": true,
+    "method": "Same twelve-point series and geometry; RC1 instrumented in QA copy only; count Canvas paint invocations during transition. No FPS claim.",
+    "results": [
+      {
+        "version": "rc1_instrumented",
+        "transitions": 8,
+        "curve_paints_per_transition": [
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16
+        ],
+        "transition_seconds_including_30ms_settle": [
+          0.261,
+          0.277,
+          0.273,
+          0.276,
+          0.273,
+          0.276,
+          0.276,
+          0.273
+        ],
+        "qml_warnings": []
+      },
+      {
+        "version": "rc2",
+        "transitions": 8,
+        "curve_paints_per_transition": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "transition_seconds_including_30ms_settle": [
+          0.293,
+          0.307,
+          0.292,
+          0.304,
+          0.305,
+          0.306,
+          0.308,
+          0.292
+        ],
+        "qml_warnings": []
+      }
+    ]
+  },
+  "logic_and_brand_preservation": {
+    "status": "ok",
+    "baseline": "5.0.0-rc.1",
+    "updated": "5.0.0-rc.2",
+    "method": "byte identity, allowing release-version literal replacement only in engine metadata",
+    "files": [
+      {
+        "file": "src/liarte_core/__init__.py",
+        "rc1_sha256": "9718864a44f3bf1e3a9dc6d63be24d6c1703d3ee68232183ea3248cd8a637177",
+        "rc2_sha256": "9718864a44f3bf1e3a9dc6d63be24d6c1703d3ee68232183ea3248cd8a637177",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_core/catalog.json",
+        "rc1_sha256": "a5b77abbdfc95773074942aa4d2ab2b680a2d6f6bdc7fe2d83aa5a4fcd66d2c8",
+        "rc2_sha256": "a5b77abbdfc95773074942aa4d2ab2b680a2d6f6bdc7fe2d83aa5a4fcd66d2c8",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_core/catalog.py",
+        "rc1_sha256": "7369665b2d7a1f9e7a00828871c99b6925656f9bba3bc5b4241b6b5cfd730917",
+        "rc2_sha256": "7369665b2d7a1f9e7a00828871c99b6925656f9bba3bc5b4241b6b5cfd730917",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_core/comex.py",
+        "rc1_sha256": "9ee04c3e4063bf7a411e95ac7ddd129ce8ead1f859f3178f4a181e36eff1c47b",
+        "rc2_sha256": "9ee04c3e4063bf7a411e95ac7ddd129ce8ead1f859f3178f4a181e36eff1c47b",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_core/demo.py",
+        "rc1_sha256": "b8294992fc4c76f0fc843456b9ddbe87ef839ca152f002676d77f8099516cac3",
+        "rc2_sha256": "b8294992fc4c76f0fc843456b9ddbe87ef839ca152f002676d77f8099516cac3",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_core/domain.py",
+        "rc1_sha256": "f4f193ef28afa8b30a43a7f9e74b0bea50dbf9a5dbd679960067b2b1021d9004",
+        "rc2_sha256": "f4f193ef28afa8b30a43a7f9e74b0bea50dbf9a5dbd679960067b2b1021d9004",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_core/exports.py",
+        "rc1_sha256": "126bb63131c2a5272438cda8be40acd35ae1725f68f27863f3ef692e3d1f5bab",
+        "rc2_sha256": "126bb63131c2a5272438cda8be40acd35ae1725f68f27863f3ef692e3d1f5bab",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_core/package_checks.py",
+        "rc1_sha256": "2cdd08e54cc3a3a08d1ce7ec90f3de59c770cf1b891a376885c2a4975302a0d4",
+        "rc2_sha256": "2cdd08e54cc3a3a08d1ce7ec90f3de59c770cf1b891a376885c2a4975302a0d4",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_core/query.py",
+        "rc1_sha256": "d61ae50b9809b3ca73725563319237ba7fe6286916fc6838555aef27bfd7956d",
+        "rc2_sha256": "d61ae50b9809b3ca73725563319237ba7fe6286916fc6838555aef27bfd7956d",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_engine/__init__.py",
+        "rc1_sha256": "23c8c4ae22f6f93d2013b037bd071278c09ef360ccdda337ff8ca8403e994e4a",
+        "rc2_sha256": "23c8c4ae22f6f93d2013b037bd071278c09ef360ccdda337ff8ca8403e994e4a",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_engine/comexstat_importacoes.py",
+        "rc1_sha256": "2cea061f096184584c2345986655283d7bd539cfabd43d4dbfa23674f6e47dd0",
+        "rc2_sha256": "d6863d64bf0038064728b5576cfa0f6f8259188e0e21b9ceeabdf2388e1944c0",
+        "same_logic": true,
+        "only_version_label_changed": true
+      },
+      {
+        "file": "src/liarte_engine/liarte_analise.py",
+        "rc1_sha256": "b62c00195ecb2373be0d61c0994b8fe7f4c8ad57cdfa2833fdd93e61f93c853e",
+        "rc2_sha256": "b62c00195ecb2373be0d61c0994b8fe7f4c8ad57cdfa2833fdd93e61f93c853e",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_engine/liarte_dados.py",
+        "rc1_sha256": "2edb49072ce2dc74eb751301f1c07754247da374fd130902d7faf5108bac7fc9",
+        "rc2_sha256": "2edb49072ce2dc74eb751301f1c07754247da374fd130902d7faf5108bac7fc9",
+        "same_logic": true,
+        "only_version_label_changed": false
+      },
+      {
+        "file": "src/liarte_engine/pdf_importacoes.py",
+        "rc1_sha256": "e00aefe6eaa567335bff74350ac53e2a1796eac4bc67105b7b71273cafef25c2",
+        "rc2_sha256": "2eafdc1389147eda70288a049e7c8692da86b5d0a524bdf29097447c521b4ff8",
+        "same_logic": true,
+        "only_version_label_changed": true
+      },
+      {
+        "file": "src/liarte_engine/powerbi_importacoes.py",
+        "rc1_sha256": "f2d3112c0a7b008a8fa52c1fc0fe00c5cd09b6513a8d975e7368b61a35fe31cd",
+        "rc2_sha256": "811125c6229beb964ce1930faecd664246f5acd2d2c90df2328ec66537c7cfa0",
+        "same_logic": true,
+        "only_version_label_changed": true
+      },
+      {
+        "file": "src/liarte_desktop/controller.py",
+        "sha256": "bc2d6fc5095bd95af4eb31fc152806f550382e8f2bb0e357ada8be8179ff6967",
+        "identical": true
+      },
+      {
+        "file": "src/liarte_desktop/jobs.py",
+        "sha256": "632e48f072a9cdd8136378a90619ffb592084aa08da49c70e39a91f9785a1127",
+        "identical": true
+      },
+      {
+        "file": "src/liarte_desktop/table_model.py",
+        "sha256": "34b706d758a51c34e8127fc15a509a6401b6a47c2b4aecb015cb45a15e1df317",
+        "identical": true
+      },
+      {
+        "file": "src/liarte_desktop/app.py",
+        "sha256": "022fa8020091ac8dcfb68ca93e2f2a1514600fce90e0a8bde5b3ab2d68e445f6",
+        "identical": true
+      },
+      {
+        "file": "src/liarte_desktop/windows_shell.py",
+        "sha256": "95fe077966decd1616f757e3f1b73d76b0ff925e8ea4bf581991cd00abc97bc1",
+        "identical": true
+      },
+      {
+        "file": "src/liarte_desktop/qt_runtime.py",
+        "sha256": "21f8ab41eb16ce745d7ef7676d4d231a36c9a6eac3613dae9bfa54f484554c0e",
+        "identical": true
+      },
+      {
+        "file": "src/liarte_desktop/branding.py",
+        "sha256": "7bab4c91e561e0e3f532a9852ea0f679db2fe3e04592fbf81ff9d1dcb7f0776a",
+        "identical": true
+      }
+    ],
+    "brand_assets_identical": [
+      {
+        "file": "src/liarte_desktop/assets/liarte-logo-transparente.png",
+        "sha256": "10f9183c6ee1c071b3d1d947446add323df96f57fe16fa96fceb6e55288190c1"
+      },
+      {
+        "file": "src/liarte_desktop/assets/liarte-simbolo.png",
+        "sha256": "39d60caf61db3696dcbdff831ebd29d86be56d0cba5ca6ea3d206e50aa6987b7"
+      },
+      {
+        "file": "src/liarte_desktop/assets/liarte.ico",
+        "sha256": "27d0ca7faf0b7cfde84ca318108272caddb50ec309f0c35edefb04fdbb91f878"
+      }
+    ]
+  },
+  "new_live_query_and_documents": {
+    "status": "ok",
+    "synthetic": false,
+    "live_network": true,
+    "period": {
+      "from": "2026-09",
+      "to": "2026-09"
+    },
+    "source_updated": "2026-10-06",
+    "general_rows": 920,
+    "municipal_rows": 5306,
+    "gui_ticks": 3395,
+    "documents": [
+      {
+        "kind": "excel",
+        "seconds": 5.566,
+        "bytes": 661133,
+        "ui_ticks": 236,
+        "file": "IMPORTACAO_2026-09_2026-09.xlsx"
+      },
+      {
+        "kind": "powerbi",
+        "seconds": 6.615,
+        "bytes": 725040,
+        "ui_ticks": 285,
+        "file": "POWERBI_LIARTE_IMPORTACOES_2026-09_2026-09.zip"
+      },
+      {
+        "kind": "pdf",
+        "seconds": 0.077,
+        "bytes": 3827,
+        "ui_ticks": 2,
+        "file": "IMPORTACOES_FILTRADAS_2026-09_2026-09.pdf"
+      }
+    ],
+    "qml_warnings": [],
+    "total_seconds": 58.542
+  },
+  "fresh_data_matches_prior_capture": {
+    "status": "ok",
+    "synthetic": false,
+    "method": "Compare all raw fields of the fresh RC2 September source responses against September in the official RC1 quarter capture; the prior quarter independently reconciled in two controls. Current raw data read from the new query cache, no extra HTTP.",
+    "comparisons": [
+      {
+        "dataset": "general",
+        "rows": 920,
+        "all_raw_fields_equal": true
+      },
+      {
+        "dataset": "municipal",
+        "rows": 5306,
+        "all_raw_fields_equal": true
+      }
+    ],
+    "prior_independent_control_report": "VERIFICACAO_COMEX_RC1.json",
+    "current_independent_controls": "HTTP 429 during control attempt; prior controls retained as historical evidence, not counted as new reconciliations"
+  },
+  "previous_independent_controls": {
+    "source_version": "5.0.0-rc.1",
+    "report": "VERIFICACAO_COMEX_RC1.json",
+    "period": "2026-07 to 2026-09",
+    "count": 2,
+    "status": "ok"
+  },
+  "current_additional_controls": {
+    "status": "source_rate_limited",
+    "http_status": 429,
+    "not_counted_as_successful": true,
+    "successful_data_query_followed_initial_rate_limit": true
+  },
+  "regenerated_quarter_documents": {
+    "status": "ok",
+    "synthetic": false,
+    "general_rows": 2723,
+    "municipal_rows": 16065,
+    "gui_ticks": 1678,
+    "documents": [
+      {
+        "kind": "excel",
+        "seconds": 16.004,
+        "bytes": 1885186,
+        "ui_ticks": 736,
+        "file": "IMPORTACAO_2026-07_2026-09.xlsx"
+      },
+      {
+        "kind": "powerbi",
+        "seconds": 17.26,
+        "bytes": 1949107,
+        "ui_ticks": 750,
+        "file": "POWERBI_LIARTE_IMPORTACOES_2026-07_2026-09.zip"
+      },
+      {
+        "kind": "pdf",
+        "seconds": 0.102,
+        "bytes": 4461,
+        "ui_ticks": 3,
+        "file": "IMPORTACOES_FILTRADAS_2026-07_2026-09.pdf"
+      }
+    ],
+    "qml_warnings": [],
+    "total_seconds": 37.227,
+    "live_network": false,
+    "source": "Official quarter capture/cache independently verified in RC1; real documents regenerated in RC2"
+  },
+  "source_assistant": {
+    "status": "ok",
+    "version": "5.0.0-rc.2",
+    "qt": "6.10.3",
+    "frozen": false,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 54,
+      "synthetic": true,
+      "temporary": true
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ],
+    "startup_handshake": "ready, normal real-source mode process alive",
+    "requirements_probe": true,
+    "qa_venv": "isolated subprocess with QA-only .pth for existing runtime/dependencies"
+  },
+  "frozen_linux_smoke": {
+    "status": "ok",
+    "version": "5.0.0-rc.2",
+    "qt": "6.10.3",
+    "frozen": true,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 54,
+      "synthetic": true,
+      "temporary": true
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  },
+  "notices": {
+    "status": "ok",
+    "files": 31,
+    "platform": "linux"
+  },
+  "static_analysis": {
+    "pyflakes": "passed",
+    "ruff_format": "passed",
+    "qml_format": "passed"
+  },
+  "archive_validation": {
+    "status": "ok",
+    "method": "CRC, path and all-file SHA-256 verification; 178 tests executed from fresh ZIP extraction; repackage only test evidence and checksum metadata",
+    "native_test_count": 178,
+    "native_test_seconds": 30.261,
+    "python_paths": "QA-installed Qt/build tools only; all project imports resolve to fresh extracted project",
+    "platform": "linux",
+    "code_unchanged_after_archive_test": true
+  },
+  "performance_note": "Local observations and Canvas paint counts, not promised FPS or production SLA.",
+  "pending": [
+    "native Windows EXE and Setup execution/update/uninstall",
+    "Windows GPU, real DPI/monitors, remote session, keyboard/Narrator",
+    "native Windows redirected Desktop shortcut acceptance",
+    "Power BI Desktop opening/refresh",
+    "code signing"
+  ],
+  "not_implemented": [
+    "Protheus/SQL Server/service/identity integrations",
+    "corporate concurrent multiuser modules"
+  ],
+  "examples": [
+    {
+      "file": "IMPORTACAO_2026-07_2026-09.xlsx",
+      "bytes": 1885186,
+      "sha256": "638ea18cfe17248b663616e66134ea81da44afd3b8189352890fbf74c85ee76d"
+    },
+    {
+      "file": "IMPORTACOES_FILTRADAS_2026-07_2026-09.pdf",
+      "bytes": 4461,
+      "sha256": "733235af43100d6361eb5bef8a68b919f28c160c4d7d0e511f373f997b5f1818"
+    },
+    {
+      "file": "POWERBI_LIARTE_IMPORTACOES_2026-07_2026-09.zip",
+      "bytes": 1949107,
+      "sha256": "8dbbe1b3d7c6d7d2298f631b2d95c0051430911bb5152cbc26e818c1f56cb93f"
+    }
+  ],
+  "frozen_linux_inventory": {
+    "platform": "linux",
+    "file_count": 554,
+    "bytes": 261375276,
+    "qml_modules": [
+      "Controls",
+      "Dialogs",
+      "Layouts",
+      "Templates",
+      "Window"
+    ],
+    "control_styles": [
+      "Basic",
+      "impl"
+    ],
+    "unwanted_module_leaks": []
+  },
+  "final_examples_validation": {
+    "status": "ok",
+    "general_rows": 2723,
+    "municipal_rows": 16065,
+    "sheets": 8,
+    "nonempty_cells_vertically_centered": 253359,
+    "municipal_E_width": 64,
+    "pdf_pages": 1,
+    "pdf_creator": "LIARTE Comex Intelligence 5.0.0-rc.2",
+    "powerbi_zip_crc": "ok"
+  },
+  "synthetic_volume": {
+    "rows": 100000,
+    "first_query_seconds": 1.428,
+    "qt_timer_events": 81,
+    "synthetic": true
+  }
+}

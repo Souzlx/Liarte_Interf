@@ -1,0 +1,76 @@
+{
+  "status": "validated_locally_pending_windows_acceptance",
+  "version": "5.1.0-rc.3",
+  "date_utc": "2026-10-21T12:17:57.248136+00:00",
+  "scope": "Removal of the separate blue action surface inside the Home module card; whole-card and sidebar navigation preserved",
+  "python_suites": [
+    {
+      "python": "3.14.8",
+      "qt": "6.10.3",
+      "tests": 45,
+      "seconds": 5.459,
+      "status": "ok",
+      "modules": [
+        "tests.test_platform",
+        "tests.test_identity",
+        "tests.test_refinement.InstallationTests"
+      ],
+      "log": "TESTES_UI_RC3.log"
+    }
+  ],
+  "new_tests_added": 0,
+  "full_suite_repeated": false,
+  "historical_full_suite": "EVIDENCIAS_UI_RC2.json",
+  "layouts": {
+    "status": "ok",
+    "cases": 30,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "sizes": [
+      [
+        500,
+        400
+      ],
+      [
+        760,
+        600
+      ],
+      [
+        1120,
+        760
+      ],
+      [
+        1380,
+        900
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "pages": [
+      "home",
+      "imports/general",
+      "imports/municipal"
+    ],
+    "qml_warnings": [],
+    "extra_network_calls": 0,
+    "evidence": "LAYOUTS_RC3.json"
+  },
+  "manual_image_review": [
+    "INICIO_RC3_CLARA.png",
+    "INICIO_RC3_COMPACTO.png"
+  ],
+  "preservation": {
+    "evidence": "PRESERVACAO_UI_RC3.json",
+    "all_python_sources_except_version_byte_identical": true,
+    "main_qml_byte_identical": true
+  },
+  "new_live_comex_reconciliation": false,
+  "windows_binary_produced": false,
+  "installation_test_uses_mocks": true,
+  "platform": "linux/offscreen/software",
+  "deliverable": "Sources and existing Windows preparation/build assistants"
+}

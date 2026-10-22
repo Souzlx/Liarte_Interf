@@ -1,0 +1,83 @@
+{
+  "status": "validated_locally_pending_windows_acceptance",
+  "version": "5.1.0-rc.2",
+  "date_utc": "2026-10-21T12:06:25.479768+00:00",
+  "scope": "Small presentation changes in HomePage.qml and menu font weights; behavior and imports sources preserved",
+  "python_suites": [
+    {
+      "python": "3.14.8",
+      "tests": 377,
+      "seconds": 97.584,
+      "status": "ok",
+      "volume_test_repeated": false,
+      "log": "VALIDACAO_UI_RC2_PY314.log"
+    }
+  ],
+  "new_tests_added": 0,
+  "layouts": {
+    "status": "ok",
+    "cases": 30,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "pages": [
+      "home",
+      "imports/general",
+      "imports/municipal"
+    ],
+    "sizes": [
+      [
+        500,
+        400
+      ],
+      [
+        760,
+        600
+      ],
+      [
+        1120,
+        760
+      ],
+      [
+        1380,
+        900
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "evidence": "LAYOUTS_RC2.json",
+    "qml_warnings": [],
+    "extra_network_calls": 0
+  },
+  "manual_image_review": [
+    "INICIO_RC2_CLARA.png",
+    "INICIO_RC2_ESCURA.png",
+    "INICIO_RC2_COMPACTO.png"
+  ],
+  "static_analysis": {
+    "status": "ok",
+    "tool": "ruff 0.17.1",
+    "rules": [
+      "F",
+      "E9"
+    ],
+    "log": "LINT_UI_RC2.log"
+  },
+  "preservation": {
+    "status": "ok",
+    "evidence": "PRESERVACAO_UI_RC2.json",
+    "all_python_sources_except_version_byte_identical": true,
+    "imports_workspace_byte_identical": true
+  },
+  "new_live_comex_reconciliation": false,
+  "windows_binary_produced": false,
+  "python_312_311_313_suites_repeated_this_revision": false,
+  "remaining_acceptance": [
+    "Windows native rendering, Setup and DPI/GPU on actual devices",
+    "Power BI Desktop refresh and rendering"
+  ],
+  "deliverable": "Sources and existing Windows preparation/build assistants"
+}

@@ -1,0 +1,52 @@
+{
+  "version": "5.2.0-rc.4",
+  "baseline": "5.2.0-rc.3",
+  "status": "ok",
+  "engine_changed_methods": [
+    "ComexStatClient.__init__",
+    "ComexStatClient._retry_seconds",
+    "ComexStatClient.request_json"
+  ],
+  "engine_removed_methods": [],
+  "unchanged_engine_methods": 66,
+  "provider_load_and_conversion": "identical AST",
+  "critical_files_identical": [
+    {
+      "path": "src/liarte_core/catalog.json",
+      "sha256": "a5b77abbdfc95773074942aa4d2ab2b680a2d6f6bdc7fe2d83aa5a4fcd66d2c8"
+    },
+    {
+      "path": "src/liarte_core/data/estoque.liarte",
+      "sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8"
+    },
+    {
+      "path": "src/liarte_engine/numeric.py",
+      "sha256": "3f214cb585caf186e20e8ccccf2aea02f71226f607bdec00aecf41b075c18118"
+    },
+    {
+      "path": "src/liarte_engine/pdf_importacoes.py",
+      "sha256": "c96d42b6654be22135829d5468306d8b28caf507bf1b61155a2bcc37b0c647f6"
+    },
+    {
+      "path": "src/liarte_engine/powerbi_importacoes.py",
+      "sha256": "3f623cf82880592ea000c249e1d23dc6499348c89ce48a2e3061ff7ca8967940"
+    },
+    {
+      "path": "src/liarte_core/domain.py",
+      "sha256": "f4f193ef28afa8b30a43a7f9e74b0bea50dbf9a5dbd679960067b2b1021d9004"
+    },
+    {
+      "path": "src/liarte_core/exports.py",
+      "sha256": "37e34861ada05f25d029dbe6fcc65ab0de75d5f5b1410382424f7904abcc6d48"
+    },
+    {
+      "path": "src/liarte_core/inventory.py",
+      "sha256": "2b0ed83d23874d7c2a9fabbff6d4a656d53328ae6c36660c1386d399733afe98"
+    },
+    {
+      "path": "src/liarte_core/inventory_io.py",
+      "sha256": "332be91009b431db1e2c1c1cb47381dd319cca32ecfc45b7210cd548c5ef2b4b"
+    }
+  ],
+  "all_embedded_data_files": "identical bytes"
+}

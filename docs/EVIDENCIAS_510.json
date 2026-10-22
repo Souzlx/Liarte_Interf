@@ -1,0 +1,119 @@
+{
+  "version": "5.1.0-rc.1",
+  "date_utc": "2026-10-21T11:49:35.712170+00:00",
+  "status": "validated_locally_pending_windows_acceptance",
+  "platform": "Linux; Qt 6.10.3 offscreen/software",
+  "python_suites": [
+    {
+      "python": "3.12.14",
+      "tests": 378,
+      "seconds": 108.992,
+      "status": "ok",
+      "volume_rows": 100000,
+      "first_query_seconds": 2.195,
+      "qt_events": 120,
+      "log": "VALIDACAO_PY312_510_FINAL.log"
+    },
+    {
+      "python": "3.14.8",
+      "tests": 378,
+      "seconds": 109.799,
+      "status": "ok",
+      "volume_rows": 100000,
+      "first_query_seconds": 1.651,
+      "qt_events": 100,
+      "log": "VALIDACAO_PY314_510_FINAL.log"
+    }
+  ],
+  "new_platform_regressions": 20,
+  "layouts": {
+    "status": "ok",
+    "cases": 30,
+    "evidence": "LAYOUTS_510.json",
+    "pages": [
+      "home",
+      "imports/general",
+      "imports/municipal"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "sizes": [
+      [
+        500,
+        400
+      ],
+      [
+        760,
+        600
+      ],
+      [
+        1120,
+        760
+      ],
+      [
+        1380,
+        900
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "extra_network_calls": 0,
+    "qml_warnings": []
+  },
+  "static_analysis": {
+    "status": "ok",
+    "tool": "ruff 0.17.1",
+    "rules": [
+      "F",
+      "E9"
+    ],
+    "scope": "src,tools,tests,iniciar.py,verificar.py",
+    "additional_changed_python_rules": [
+      "F",
+      "E9",
+      "B (excluding B008 for immutable Qt defaults)"
+    ],
+    "log": "LINT_510.log"
+  },
+  "preservation": {
+    "status": "ok",
+    "evidence": "PRESERVACAO_510.json",
+    "core_and_engine_and_exports_byte_identical": true,
+    "all_other_existing_controller_methods_ast_unchanged": true
+  },
+  "manual_image_review": [
+    "INICIO_510_CLARA.png",
+    "INICIO_510_ESCURA.png",
+    "INICIO_510_COMPACTO.png",
+    "IMPORTACOES_510_general_CLARA.png",
+    "REGISTROS_510_MUNICIPAL.png"
+  ],
+  "scope": "Native client central shell and Importações; inventory and credit planned, no corporate server/authentication/ERP connector in this phase",
+  "new_live_comex_reconciliation": false,
+  "new_runtime_dependencies": false,
+  "frozen_windows_binary_produced": false,
+  "remaining_acceptance": [
+    "Windows Setup, shortcuts, DPI/GPU and accessibility on real devices",
+    "Power BI Desktop refresh and rendering"
+  ],
+  "deliverable": "Source ZIP with tests, examples and build/install assistants",
+  "clean_zip_source_smoke": {
+    "status": "ok",
+    "evidence": "ABERTURA_ZIP_510.json",
+    "python": "3.14.8",
+    "platform": "linux",
+    "frozen": false,
+    "source_files_verified": 88,
+    "qml_warnings": [],
+    "documents": [
+      "Excel",
+      "PDF with logo",
+      "Power BI project"
+    ],
+    "repack_after_smoke": "Evidence and checksum manifest only; application sources unchanged"
+  }
+}

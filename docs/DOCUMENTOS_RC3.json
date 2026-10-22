@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "synthetic": false,
+  "general_rows": 2723,
+  "municipal_rows": 16065,
+  "gui_ticks": 1633,
+  "documents": [
+    {
+      "kind": "excel",
+      "seconds": 15.959,
+      "bytes": 1885186,
+      "ui_ticks": 721,
+      "file": "IMPORTACAO_2026-07_2026-09.xlsx"
+    },
+    {
+      "kind": "powerbi",
+      "seconds": 16.669,
+      "bytes": 1949096,
+      "ui_ticks": 730,
+      "file": "POWERBI_LIARTE_IMPORTACOES_2026-07_2026-09.zip"
+    },
+    {
+      "kind": "pdf",
+      "seconds": 0.08,
+      "bytes": 4461,
+      "ui_ticks": 2,
+      "file": "IMPORTACOES_FILTRADAS_2026-07_2026-09.pdf"
+    }
+  ],
+  "qml_warnings": [],
+  "total_seconds": 36.262
+}

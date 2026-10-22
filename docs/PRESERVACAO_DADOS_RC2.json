@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "synthetic": false,
+  "method": "Compare all raw fields of the fresh RC2 September source responses against September in the official RC1 quarter capture; the prior quarter independently reconciled in two controls. Current raw data read from the new query cache, no extra HTTP.",
+  "comparisons": [
+    {
+      "dataset": "general",
+      "rows": 920,
+      "all_raw_fields_equal": true
+    },
+    {
+      "dataset": "municipal",
+      "rows": 5306,
+      "all_raw_fields_equal": true
+    }
+  ],
+  "prior_independent_control_report": "VERIFICACAO_COMEX_RC1.json",
+  "current_independent_controls": "HTTP 429 during control attempt; prior controls retained as historical evidence, not counted as new reconciliations"
+}

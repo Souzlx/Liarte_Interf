@@ -1,0 +1,96 @@
+{
+  "status": "ok",
+  "parser": "@microsoft/powerquery-parser 4.0.0",
+  "sources": 22,
+  "m_refresh": false,
+  "results": [
+    {
+      "name": "CaminhoArquivoExcel",
+      "syntax_ok": true
+    },
+    {
+      "name": "PeriodoInicial",
+      "syntax_ok": true
+    },
+    {
+      "name": "PeriodoFinal",
+      "syntax_ok": true
+    },
+    {
+      "name": "FonteExcel",
+      "syntax_ok": true
+    },
+    {
+      "name": "fxDataMes",
+      "syntax_ok": true
+    },
+    {
+      "name": "fxNumero",
+      "syntax_ok": true
+    },
+    {
+      "name": "fxCodigo",
+      "syntax_ok": true
+    },
+    {
+      "name": "CadastroProdutos",
+      "syntax_ok": true
+    },
+    {
+      "name": "BaseGeral",
+      "syntax_ok": true
+    },
+    {
+      "name": "BaseMunicipal",
+      "syntax_ok": true
+    },
+    {
+      "name": "NomesComerciais",
+      "syntax_ok": true
+    },
+    {
+      "name": "Importacoes",
+      "syntax_ok": true
+    },
+    {
+      "name": "Municipios",
+      "syntax_ok": true
+    },
+    {
+      "name": "Calendario",
+      "syntax_ok": true
+    },
+    {
+      "name": "ProdutoNCM",
+      "syntax_ok": true
+    },
+    {
+      "name": "Produtos",
+      "syntax_ok": true
+    },
+    {
+      "name": "NCM",
+      "syntax_ok": true
+    },
+    {
+      "name": "Paises",
+      "syntax_ok": true
+    },
+    {
+      "name": "UFs",
+      "syntax_ok": true
+    },
+    {
+      "name": "URFs",
+      "syntax_ok": true
+    },
+    {
+      "name": "MunicipiosFiscais",
+      "syntax_ok": true
+    },
+    {
+      "name": "SH4",
+      "syntax_ok": true
+    }
+  ]
+}

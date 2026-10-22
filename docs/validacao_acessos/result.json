@@ -1,0 +1,38 @@
+{
+  "cases": [
+    {
+      "width": 500,
+      "height": 400,
+      "dark": false,
+      "dialog_bounds": "ok",
+      "secret_masked": true,
+      "screenshot": "500_400_light.png"
+    },
+    {
+      "width": 1100,
+      "height": 800,
+      "dark": false,
+      "dialog_bounds": "ok",
+      "secret_masked": true,
+      "screenshot": "1100_800_light.png"
+    },
+    {
+      "width": 500,
+      "height": 400,
+      "dark": true,
+      "dialog_bounds": "ok",
+      "secret_masked": true,
+      "screenshot": "500_400_dark.png"
+    },
+    {
+      "width": 1100,
+      "height": 800,
+      "dark": true,
+      "dialog_bounds": "ok",
+      "secret_masked": true,
+      "screenshot": "1100_800_dark.png"
+    }
+  ],
+  "qml_warnings": [],
+  "execution": "Qt offscreen/software; Linux"
+}

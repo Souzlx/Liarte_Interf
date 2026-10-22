@@ -1,0 +1,171 @@
+{
+  "version": "5.2.0-rc.1",
+  "date": "2026-10-21",
+  "tests": [
+    {
+      "python": "3.14.8",
+      "qt": "6.10.3",
+      "tests": 422,
+      "seconds": 92.789,
+      "status": "ok",
+      "command": "verificar.py --headless --volume",
+      "log": "docs/TESTES_ESTOQUE_520_PY314.log",
+      "sha256": "472e9e31158f38a95ca500503c39ffc7c8efeab8b2168595654fbaf2215ffe57"
+    },
+    {
+      "python": "3.12.14",
+      "qt": "6.10.3",
+      "tests": 421,
+      "seconds": 90.767,
+      "status": "ok",
+      "command": "verificar.py --headless",
+      "log": "docs/TESTES_ESTOQUE_520_PY312.log",
+      "sha256": "dea9a2be239d32a109fc363895b775d623ba8b7b8c1647c95a1e6148b01a272d"
+    }
+  ],
+  "stock_specific_tests": 44,
+  "layouts": {
+    "count": 20,
+    "qml_warnings": 0,
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "sizes": [
+      [
+        500,
+        400
+      ],
+      [
+        760,
+        600
+      ],
+      [
+        1120,
+        760
+      ],
+      [
+        1380,
+        900
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "views": [
+      "overview",
+      "products"
+    ]
+  },
+  "reconciliation": {
+    "status": "ok",
+    "source_sha256": "8fd77b51c1bf60971a4f98e2a72cb380238c9108dbf33c5c91bc49f660d3f760",
+    "snapshot_sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+    "as_of": "2026-10-21",
+    "products": 2262,
+    "current_positions": 1784,
+    "closing_positions": 100119,
+    "sales_rows_original": 51484,
+    "sales_daily_groups": 38621,
+    "cost_current_cents": 1408861767,
+    "quantities_by_unit_micro": {
+      "KG": 1653226500000,
+      "UN": 0,
+      "L": 741000000,
+      "M3": 19560000
+    },
+    "current_positions_equal_source": true,
+    "closing_positions_and_ratios_equal_source": true,
+    "sales_daily_totals_and_positive_flags_equal_source": true,
+    "snapshot_roundtrip_equal": true,
+    "original_source_unchanged": true,
+    "model_modified": false,
+    "live_erp_tested": false,
+    "source_notes": [
+      "4 códigos históricos sem cadastro de produto; valores preservados.",
+      "O BI contém indicadores de giro/dias negativos ou extremos; os valores originais foram preservados."
+    ],
+    "load_seconds": 2.346,
+    "analysis_seconds": 0.17,
+    "source_fields_retained": {
+      "products": [
+        "code",
+        "name",
+        "group",
+        "kind",
+        "unit"
+      ],
+      "balances": [
+        "product",
+        "branch",
+        "warehouse",
+        "unit",
+        "quantity",
+        "cost"
+      ],
+      "closings": [
+        "product",
+        "branch",
+        "warehouse",
+        "unit",
+        "period",
+        "quantity",
+        "cost",
+        "turnover",
+        "days"
+      ],
+      "sales": [
+        "product",
+        "branch",
+        "unit",
+        "day",
+        "quantity",
+        "cost",
+        "had_positive"
+      ]
+    }
+  },
+  "preserved_import_files": 28,
+  "windows_wheels": {
+    "target": "CPython 3.14 win_amd64",
+    "requirements_download": "ok",
+    "files": [
+      "apsw-3.54.1.0-cp314-cp314-win_amd64.whl",
+      "charset_normalizer-3.5.2-cp314-cp314-win_amd64.whl",
+      "et_xmlfile-2.0.0-py3-none-any.whl",
+      "kaitaistruct-0.11-py2.py3-none-any.whl",
+      "numpy-2.3.5-cp314-cp314-win_amd64.whl",
+      "openpyxl-3.1.5-py2.py3-none-any.whl",
+      "pandas-2.3.3-cp314-cp314-win_amd64.whl",
+      "pbixray-0.15.5-py3-none-any.whl",
+      "pillow-12.3.0-cp314-cp314-win_amd64.whl",
+      "pypdf-6.10.0-py3-none-any.whl",
+      "pyside6_essentials-6.10.3-cp39-abi3-win_amd64.whl",
+      "python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+      "pytz-2026.2-py2.py3-none-any.whl",
+      "reportlab-4.4.9-py3-none-any.whl",
+      "shiboken6-6.10.3-cp39-abi3-win_amd64.whl",
+      "six-1.17.0-py2.py3-none-any.whl",
+      "tzdata-2026.2-py2.py3-none-any.whl",
+      "xmhuffman-0.3.2-cp314-cp314-win_amd64.whl",
+      "xpress8-0.1.1-cp314-cp314-win_amd64.whl",
+      "xpress9-0.3.9-cp314-cp314-win_amd64.whl"
+    ]
+  },
+  "limits": {
+    "windows_setup_built": false,
+    "windows_shell_gpu_dpi_tested": false,
+    "live_protheus_connected": false,
+    "power_bi_service_connected": false,
+    "original_pbix_modified": false
+  },
+  "integrity": {
+    "src/liarte_core/inventory.py": "ffed54f32abab1890b1421f5f79f47b1150ad3eefca63a4bc5e587dc4615b553",
+    "src/liarte_core/inventory_io.py": "332be91009b431db1e2c1c1cb47381dd319cca32ecfc45b7210cd548c5ef2b4b",
+    "src/liarte_core/inventory_export.py": "1a031f367a047b875f3c202115bb2197fe8b6a0ac39d81c2c9fe32a8808b08ad",
+    "src/liarte_desktop/inventory.py": "69b14204df80e9579c9f525386b3c9958b3429c79f89c55b5bb5a4c75e6bbe39",
+    "src/liarte_desktop/qml/InventoryWorkspace.qml": "50d5cc8d48cfa0c1794be18e6aa9d9b19c0ba1b819ca3d11799db0110acd70e4",
+    "requirements.txt": "cde442dcd90fdf9674f6205a65a7ef3c9527e030e2c33aa46b0a64849ae753ac"
+  }
+}

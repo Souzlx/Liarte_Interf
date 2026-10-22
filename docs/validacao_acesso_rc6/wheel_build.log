@@ -1,0 +1,12 @@
+Processing ./.
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: liarte-desktop
+  Building wheel for liarte-desktop (pyproject.toml): started
+  Building wheel for liarte-desktop (pyproject.toml): finished with status 'done'
+  Created wheel for liarte-desktop: filename=liarte_desktop-5.2.0rc6-py3-none-any.whl size=2277365 sha256=884a2302e1804a2c2277f39ca61c653e9806717b836cc584ce2323728a5f772f
+  Stored in directory: /tmp/pip-ephem-wheel-cache-tp2jhz6r/wheels/20/ea/6c/d4dce28c03b5a7a59c42a84f0caef94e373faf01b176e66347
+Successfully built liarte-desktop
+
+[notice] A new release of pip is available: 26.2.1 -> 26.2.2
+[notice] To update, run: /workspace/scratch/d4c2b58ee5ea/central_qa314/bin/python -m pip install --upgrade pip

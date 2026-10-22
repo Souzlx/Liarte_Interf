@@ -1,0 +1,60 @@
+test_available_module_without_a_mounted_page_cannot_open_the_wrong_workspace (tests.test_platform.PlatformTests.test_available_module_without_a_mounted_page_cannot_open_the_wrong_workspace) ... ok
+test_disabled_or_corrupt_saved_page_falls_back_to_home (tests.test_platform.PlatformTests.test_disabled_or_corrupt_saved_page_falls_back_to_home) ... ok
+test_existing_preferences_and_unrelated_keys_are_preserved (tests.test_platform.PlatformTests.test_existing_preferences_and_unrelated_keys_are_preserved) ... ok
+test_failed_preferences_write_keeps_navigation_and_session_operable (tests.test_platform.PlatformTests.test_failed_preferences_write_keeps_navigation_and_session_operable) ... ok
+test_only_available_registered_modules_can_open (tests.test_platform.PlatformTests.test_only_available_registered_modules_can_open) ... ok
+test_opening_current_page_is_idempotent_and_does_not_emit_again (tests.test_platform.PlatformTests.test_opening_current_page_is_idempotent_and_does_not_emit_again) ... ok
+test_preferences_are_shared_without_query_or_analysis_updates (tests.test_platform.PlatformTests.test_preferences_are_shared_without_query_or_analysis_updates) ... ok
+test_registry_definition_cannot_be_mutated_by_a_consumer (tests.test_platform.PlatformTests.test_registry_definition_cannot_be_mutated_by_a_consumer) ... ok
+test_registry_rejects_duplicates_reserved_keys_and_incomplete_names (tests.test_platform.PlatformTests.test_registry_rejects_duplicates_reserved_keys_and_incomplete_names) ... ok
+test_startup_choices_only_include_usable_routes_and_track_current_page (tests.test_platform.PlatformTests.test_startup_choices_only_include_usable_routes_and_track_current_page) ... ok
+test_closing_from_home_still_protects_a_running_import_task (tests.test_platform.PlatformUiTests.test_closing_from_home_still_protects_a_running_import_task) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_home_opens_without_data_query_and_shows_only_real_module_actions (tests.test_platform.PlatformUiTests.test_home_opens_without_data_query_and_shows_only_real_module_actions) ... ok
+test_modal_prevents_page_shortcuts_until_closed (tests.test_platform.PlatformUiTests.test_modal_prevents_page_shortcuts_until_closed) ... ok
+test_module_roundtrip_preserves_models_totals_filters_and_viewport_for_both_bases (tests.test_platform.PlatformUiTests.test_module_roundtrip_preserves_models_totals_filters_and_viewport_for_both_bases) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_pending_query_completes_while_home_is_visible_without_restart (tests.test_platform.PlatformUiTests.test_pending_query_completes_while_home_is_visible_without_restart) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_query_shortcut_is_inactive_on_home_and_routes_work_from_keyboard (tests.test_platform.PlatformUiTests.test_query_shortcut_is_inactive_on_home_and_routes_work_from_keyboard) ... ok
+test_reduced_motion_finishes_page_transition_and_rapid_routes_settle (tests.test_platform.PlatformUiTests.test_reduced_motion_finishes_page_transition_and_rapid_routes_settle) ... ok
+test_shared_preferences_apply_on_home_and_remain_in_imports (tests.test_platform.PlatformUiTests.test_shared_preferences_apply_on_home_and_remain_in_imports) ... ok
+test_short_window_keeps_help_accessible_and_navigation_scrolls_to_keyboard_focus (tests.test_platform.PlatformUiTests.test_short_window_keeps_help_accessible_and_navigation_scrolls_to_keyboard_focus) ... Consultando lote 1/1 (1 NCMs; 2026-09 a 2026-09)...
+Consultando municípios 1/1 (1 posições SH4; 2026-09 a 2026-09)...
+ok
+test_startup_page_can_be_selected_in_the_shared_preferences (tests.test_platform.PlatformUiTests.test_startup_page_can_be_selected_in_the_shared_preferences) ... ok
+test_window_has_original_multisize_icon_and_short_title_before_use (tests.test_identity.IdentityQtTests.test_window_has_original_multisize_icon_and_short_title_before_use) ... ok
+test_installer_uses_the_same_appid_on_both_links (tests.test_identity.IdentityTests.test_installer_uses_the_same_appid_on_both_links) ... ok
+test_other_platforms_do_not_load_windows_libraries (tests.test_identity.IdentityTests.test_other_platforms_do_not_load_windows_libraries) ... ok
+test_process_identity_failure_does_not_prevent_startup (tests.test_identity.IdentityTests.test_process_identity_failure_does_not_prevent_startup) ... ok
+test_process_uses_stable_id_with_typed_windows_api (tests.test_identity.IdentityTests.test_process_uses_stable_id_with_typed_windows_api) ... ok
+test_propvariant_abi_and_shell_key_match_windows_sdk (tests.test_identity.IdentityTests.test_propvariant_abi_and_shell_key_match_windows_sdk) ... ok
+test_shortcut_com_apartment_lifetime_and_store_access (tests.test_identity.IdentityTests.test_shortcut_com_apartment_lifetime_and_store_access) ... ok
+test_shortcut_failure_uninitializes_its_apartment (tests.test_identity.IdentityTests.test_shortcut_failure_uninitializes_its_apartment) ... ok
+test_compiler_failure_preserves_previous_installer (tests.test_refinement.InstallationTests.test_compiler_failure_preserves_previous_installer) ... ok
+test_dos_signature_alone_is_not_a_valid_installer (tests.test_refinement.InstallationTests.test_dos_signature_alone_is_not_a_valid_installer) ... ok
+test_failed_ready_handshake_invalidates_verification (tests.test_refinement.InstallationTests.test_failed_ready_handshake_invalidates_verification) ... ok
+test_fingerprint_changes_with_code_resources_runtime_and_requirements (tests.test_refinement.InstallationTests.test_fingerprint_changes_with_code_resources_runtime_and_requirements) ... ok
+test_guard_failure_is_logged_without_preventing_app_start (tests.test_refinement.InstallationTests.test_guard_failure_is_logged_without_preventing_app_start) ... ok
+test_installer_is_published_for_current_version_from_fresh_staging (tests.test_refinement.InstallationTests.test_installer_is_published_for_current_version_from_fresh_staging) ... ok
+test_invalid_configured_compiler_does_not_fall_back_to_another_tool (tests.test_refinement.InstallationTests.test_invalid_configured_compiler_does_not_fall_back_to_another_tool) ... ok
+test_missing_inno_is_reported_before_creating_or_installing_environment (tests.test_refinement.InstallationTests.test_missing_inno_is_reported_before_creating_or_installing_environment) ... ok
+test_old_success_file_cannot_mask_a_compiler_that_produced_nothing (tests.test_refinement.InstallationTests.test_old_success_file_cannot_mask_a_compiler_that_produced_nothing) ... ok
+test_other_version_smoke_does_not_authorize_publication (tests.test_refinement.InstallationTests.test_other_version_smoke_does_not_authorize_publication) ... ok
+test_release_metadata_agrees_in_project_pe_and_installer (tests.test_refinement.InstallationTests.test_release_metadata_agrees_in_project_pe_and_installer) ... ok
+test_repair_and_build_always_repeat_the_full_probe (tests.test_refinement.InstallationTests.test_repair_and_build_always_repeat_the_full_probe) ... ok
+test_repeated_opening_reuses_probe_but_still_checks_pins_and_ready_signal (tests.test_refinement.InstallationTests.test_repeated_opening_reuses_probe_but_still_checks_pins_and_ready_signal) ... ok
+test_setup_preserves_identity_and_uses_short_explicit_wizard (tests.test_refinement.InstallationTests.test_setup_preserves_identity_and_uses_short_explicit_wizard) ... ok
+test_verification_stamp_is_bounded_and_rejects_invalid_data (tests.test_refinement.InstallationTests.test_verification_stamp_is_bounded_and_rejects_invalid_data) ... ok
+test_version_comes_from_application_literal_without_running_it (tests.test_refinement.InstallationTests.test_version_comes_from_application_literal_without_running_it) ... ok
+test_windows_guard_uses_pointer_width_and_keeps_reference (tests.test_refinement.InstallationTests.test_windows_guard_uses_pointer_width_and_keeps_reference) ... ok
+
+----------------------------------------------------------------------
+Ran 45 tests in 5.459s
+
+OK
+Instalador pronto: /tmp/tmpztis9seg/instalador/LIARTE_Desktop_5.1.0-rc.3_Setup.exe
+SHA256: 890b867af65a94aec3005eea6975c72b95c92b23dd64a7338fde7472f6fc96b4

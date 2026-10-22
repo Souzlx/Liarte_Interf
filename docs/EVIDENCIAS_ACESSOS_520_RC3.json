@@ -1,0 +1,63 @@
+{
+  "version": "5.2.0-rc.3",
+  "date": "2026-10-21",
+  "status": "ok",
+  "python_tests": {
+    "314": {
+      "tests": 453,
+      "seconds": 179.782,
+      "status": "ok"
+    },
+    "312": {
+      "tests": 452,
+      "seconds": 167.566,
+      "status": "ok"
+    }
+  },
+  "access_specific_tests": 22,
+  "ten_concurrent_clients": {
+    "origin_calls": 1,
+    "shared_clients": 9,
+    "network": "real HTTP on loopback, simulated Comex transport"
+  },
+  "coverage": [
+    "persistent pause across clients/processes and restarts",
+    "Retry-After seconds and HTTP date without 120-second cap",
+    "final failed attempt persists pause",
+    "serialized access with spacing",
+    "expired lease recovery",
+    "authentication and fixed origin routes",
+    "distinct revision and control keys",
+    "forced refresh and immutable tickets",
+    "corrupt response eviction",
+    "unavailable central without direct fallback",
+    "exact general and municipal totals for two providers",
+    "connection import and saving with cache preserved",
+    "unreadable configuration fails closed",
+    "native dialog and server lifecycle",
+    "keepalive shutdown",
+    "metadata only upon first Imports navigation"
+  ],
+  "qml_warnings": 0,
+  "new_connection_layout_cases": 4,
+  "central_gui_smoke": "ok, zero public origin calls",
+  "volume": {
+    "rows": 100000,
+    "first_query_seconds": 1.62,
+    "qt_events": 95
+  },
+  "lint": {
+    "rules": "E4,E7,E9,F with E402 ignored for source bootstrap imports",
+    "status": "ok"
+  },
+  "format": "9 changed/new Python files checked; QML output identical to qmlformat",
+  "wheel": "WHEEL_ACESSOS_520_RC3.json",
+  "preservation": "PRESERVACAO_ACESSOS_520_RC3.json",
+  "embedded_stock_sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+  "setup_windows_compiled": false,
+  "native_windows_tested": false,
+  "corporate_network_tested": false,
+  "live_comex_tested": false,
+  "live_protheus_tested": false,
+  "deployment": "All clients require the same connection; one central manager remains open on a LAN computer. Not installed on the company server by this task."
+}

@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "library": "Microsoft.AnalysisServices 19.118.3",
+  "runtime": "Microsoft.NETCore.App 8.0.32",
+  "tables": 11,
+  "relationships": 12,
+  "expressions": 11,
+  "measures": 57,
+  "fixed_decimal_raw_columns": 5,
+  "roundtrip": "ok",
+  "dax_execution": false,
+  "m_refresh": false
+}
