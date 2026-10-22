@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "version": "5.2.0-rc.9",
+  "qt": "6.10.3",
+  "window_title": "Liarte Importações",
+  "window_icon_checked": true,
+  "frozen": false,
+  "platform": "win32",
+  "synthetic": true,
+  "document_resources": {
+    "excel": "ok",
+    "pdf": "ok",
+    "pdf_logo": true,
+    "powerbi": "ok",
+    "powerbi_pages": 6,
+    "powerbi_visuals": 85,
+    "synthetic": true,
+    "temporary": true
+  },
+  "https_transport": {
+    "policy": "windows-cryptoapi-v1"
+  },
+  "save_dialog_checked": true,
+  "api_network_test": false,
+  "rows_in_page": 50,
+  "qml_warnings": [],
+  "error": "",
+  "themes_checked": [
+    "light",
+    "dark"
+  ]
+}

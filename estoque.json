@@ -1,0 +1,8 @@
+{
+  "format": "liarte.inventory/1",
+  "as_of": "2026-10-21",
+  "sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+  "source_sha256": "8fd77b51c1bf60971a4f98e2a72cb380238c9108dbf33c5c91bc49f660d3f760",
+  "source": "LiarteBI_v1 (1).pbix",
+  "connection": "offline"
+}
