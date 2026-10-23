@@ -1,5 +1,5 @@
 ﻿#ifndef AppVersion
-  #define AppVersion "5.2.0-rc.10"
+  #define AppVersion "5.2.0"
 #endif
 #if VER < EncodeVer(6,3,0)
   #error Utilize Inno Setup 6.3 ou superior para compilar o instalador LIARTE.
@@ -36,7 +36,7 @@ RestartApplications=no
 AppMutex=Local\LIARTE.Desktop.Running
 SetupMutex=Local\LIARTE.Desktop.Setup
 SetupLogging=yes
-VersionInfoVersion=5.2.0.100
+VersionInfoVersion=5.2.0.101
 Uninstallable=yes
 
 [Languages]

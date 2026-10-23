@@ -31,6 +31,7 @@ def main():
     from tests.test_core import CoreTests
     from tests.test_qt import QtTests, VolumeTests
     from tests.test_build import DistributionTests
+    from tests.test_release import ReleaseTests
     from tests.test_bootstrap import BootstrapTests
     from tests.test_review import ReviewCoreTests, ReviewQtTests
     from tests.test_preparation import PreparationTests
@@ -93,6 +94,7 @@ def main():
         ReviewQtTests,
         PreparationTests,
         DistributionTests,
+        ReleaseTests,
         ComexTests,
         ExportTests,
         RealQtTests,

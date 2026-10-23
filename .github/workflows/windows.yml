@@ -1,6 +1,14 @@
 name: Validar e compilar LIARTE no Windows
 on:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: Publicar versão estável depois de validar os quatro builds
+        type: boolean
+        default: false
+        required: false
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: windows-2025
@@ -24,3 +32,41 @@ jobs:
         with:
           name: LIARTE_Desktop_Python_${{ matrix.python-version }}_Windows
           path: dist/LIARTE_Desktop
+          include-hidden-files: true
+  release:
+    if: ${{ inputs.publish_release && github.ref == 'refs/heads/main' }}
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: LIARTE_Desktop_Python_3.12_Windows
+          path: release_bundle
+      - name: Conferir pacote e preparar ZIP estável
+        id: prepare
+        run: python3 tools/prepare_release.py --bundle release_bundle --output release_assets
+      - name: Publicar versão validada
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.prepare.outputs.tag }}
+          TITLE: ${{ steps.prepare.outputs.title }}
+          ARCHIVE: ${{ steps.prepare.outputs.archive }}
+          CHECKSUM: ${{ steps.prepare.outputs.checksum }}
+        run: |
+          set -euo pipefail
+          existing_tag="$(git ls-remote origin "refs/tags/$TAG")"
+          if [ -n "$existing_tag" ]; then
+            echo "::error::A tag $TAG já existe; a publicação não será substituída."
+            exit 1
+          fi
+          gh release create "$TAG" "$ARCHIVE" "$CHECKSUM" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "$TITLE" --notes-file "docs/RELEASE_${TAG#v}.md" --draft
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest

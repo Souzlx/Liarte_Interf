@@ -1,4 +1,4 @@
-LIARTE — 5.2.0-rc.10
+LIARTE — 5.2.0
 Importações e Estoque na mesma plataforma nativa
 
 COMECE AQUI
@@ -88,7 +88,7 @@ Feche a versão anterior, extraia todo o ZIP em uma pasta nova e abra o
 LIARTE_Desktop.exe dessa pasta. Nos fontes, use INICIAR_DESKTOP.cmd e aguarde
 o assistente. Depois, selecione o período e consulte normalmente.
 Um atalho de um executável antigo não é atualizado apenas por extrair este ZIP.
-Confira a versão 5.2.0-rc.10 em Ajuda. O pacote portátil não é um instalador Setup.
+Confira a versão 5.2.0 em Ajuda. O pacote portátil não é um instalador Setup.
 
 VALIDAÇÃO
 Os testes verificam uso exclusivo da API pelo modo direto, consultas novas no
