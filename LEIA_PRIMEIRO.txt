@@ -1,4 +1,4 @@
-LIARTE — 5.2.0
+LIARTE — 5.3.0-rc.1
 Importações e Estoque na mesma plataforma nativa
 
 COMECE AQUI
@@ -88,7 +88,16 @@ Feche a versão anterior, extraia todo o ZIP em uma pasta nova e abra o
 LIARTE_Desktop.exe dessa pasta. Nos fontes, use INICIAR_DESKTOP.cmd e aguarde
 o assistente. Depois, selecione o período e consulte normalmente.
 Um atalho de um executável antigo não é atualizado apenas por extrair este ZIP.
-Confira a versão 5.2.0 em Ajuda. O pacote portátil não é um instalador Setup.
+Confira a versão 5.3.0-rc.1 em Ajuda. O pacote portátil não é um instalador Setup.
+
+INTERFACE E GRÁFICOS — PRÉVIA 5.3
+- Início reúne indicadores dos módulos já carregados, com período, base e moeda.
+- Painéis, rótulos e legendas se reorganizam conforme a largura da janela.
+- Ampliar abre o gráfico em uma janela maior com os mesmos pontos e unidades.
+- Teclado e cursor permitem consultar valores; as informações longas quebram linha.
+- As origens mostram participação e valor; o ranking do estoque reorganiza nomes e valores.
+- O resumo e os controles dos gráficos aproveitam os resultados carregados.
+Veja docs/INTERFACE_530_RC1.md para o escopo e as capturas com dados sintéticos.
 
 VALIDAÇÃO
 Os testes verificam uso exclusivo da API pelo modo direto, consultas novas no

@@ -1,4 +1,5 @@
 module Liarte.Components
+ChartDialog 1.0 ChartDialog.qml
 StockFilter 1.0 StockFilter.qml
 StockBars 1.0 StockBars.qml
 singleton Theme 1.0 Theme.qml

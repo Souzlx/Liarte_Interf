@@ -129,7 +129,8 @@ FocusScope {
             hasRolling: false,
             rollingLabel: ""
         })
-    readonly property bool modalOpen: globalModalOpen || detailDialog.visible || exportDialog.visible || productFilter.popup.visible || countryFilter.popup.visible || stateFilter.popup.visible || portFilter.popup.visible || cityFilter.popup.visible || startPeriod.popup.visible || endPeriod.popup.visible || trendMetric.popup.visible || originMinWeight.popup.visible || originOrder.popup.visible || quickExportMenu.visible || trendValuesDialog.visible || tableProfile.popup.visible
+    readonly property var lastTrendPoint: trendData.points.length ? trendData.points[trendData.points.length - 1] : ({label: "", display: "—"})
+    readonly property bool modalOpen: globalModalOpen || detailDialog.visible || exportDialog.visible || productFilter.popup.visible || countryFilter.popup.visible || stateFilter.popup.visible || portFilter.popup.visible || cityFilter.popup.visible || startPeriod.popup.visible || endPeriod.popup.visible || trendMetric.popup.visible || originMinWeight.popup.visible || originOrder.popup.visible || quickExportMenu.visible || trendValuesDialog.visible || importChartDialog.visible || tableProfile.popup.visible
     readonly property bool draftPeriod: viewState.loaded && (startPeriod.currentValue !== viewState.appliedStart || endPeriod.currentValue !== viewState.appliedEnd)
     readonly property bool collapsed: hostWindow.width < 1120
     readonly property var headers: viewState.headers
@@ -779,40 +780,49 @@ FocusScope {
                 }
             }
             GridLayout {
+                id: importChartsGrid
                 visible: window.viewState.loaded
                 Layout.fillWidth: true
-                columns: body.width > 930 ? 2 : 1
+                columns: width >= 1080 ? 2 : 1
                 columnSpacing: 16
                 rowSpacing: 16
                 Rectangle {
+                    id: trendPanel
                     objectName: "trendPanel"
                     Layout.fillWidth: true
+                    Layout.fillHeight: true
                     Layout.preferredWidth: 660
-                    Layout.preferredHeight: 398
+                    Layout.minimumWidth: 0
+                    Layout.preferredHeight: trendContent.implicitHeight + 36
                     color: Ui.Theme.surface
                     radius: Ui.Theme.radius
                     border.color: Ui.Theme.softLine
                     ColumnLayout {
+                        id: trendContent
                         anchors.fill: parent
                         anchors.margins: 18
                         spacing: 8
-                        RowLayout {
+                        GridLayout {
+                            id: trendHeading
                             Layout.fillWidth: true
+                            columns: width >= trendTitle.implicitWidth + trendMetric.implicitWidth + openTrendChart.implicitWidth + 2 * columnSpacing ? 3 : 2
+                            rowSpacing: 8
                             Text {
+                                id: trendTitle
+                                Layout.fillWidth: true
+                                Layout.columnSpan: trendHeading.columns === 2 ? 2 : 1
                                 textFormat: Text.PlainText
                                 text: "Evolução mensal"
                                 color: Ui.Theme.text
                                 font.pixelSize: 14
                                 font.weight: Font.DemiBold
                             }
-                            Item {
-                                Layout.fillWidth: true
-                            }
                             Ui.AppCombo {
                                 id: trendMetric
                                 objectName: "trendMetric"
                                 property string selectedMetricKey: "value"
-                                Layout.preferredWidth: 140
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 160
                                 implicitHeight: 34
                                 font.pixelSize: 12
                                 Accessible.name: "Indicador do gráfico mensal"
@@ -867,33 +877,61 @@ FocusScope {
                                 onActiveFocusChanged: if (activeFocus)
                                     window.reveal(trendMetric)
                             }
+                            Ui.ActionButton {
+                                id: openTrendChart
+                                objectName: "openTrendChart"
+                                text: "Ampliar"
+                                iconName: "chart"
+                                implicitHeight: 30
+                                implicitWidth: Math.max(112, naturalWidth)
+                                Layout.minimumWidth: implicitWidth
+                                font.pixelSize: 11
+                                subtle: true
+                                onClicked: importChartDialog.open()
+                            }
                         }
-                        RowLayout {
+                        GridLayout {
                             Layout.fillWidth: true
+                            columns: width >= 500 ? 2 : 1
+                            columnSpacing: 18
+                            rowSpacing: 4
                             Text {
-                                text: window.trendData.unit
-                                color: Ui.Theme.muted
-                                font.pixelSize: 10
-                                textFormat: Text.PlainText
-                            }
-                            Item {
                                 Layout.fillWidth: true
-                            }
-                            Text {
-                                text: window.trendData.change
+                                Layout.minimumWidth: 0
+                                text: window.lastTrendPoint.display || "—"
                                 color: Ui.Theme.text
-                                font.pixelSize: 12
+                                font.pixelSize: 27
+                                minimumPixelSize: 18
+                                fontSizeMode: Text.HorizontalFit
                                 font.weight: Font.DemiBold
                                 textFormat: Text.PlainText
                             }
-                            Text {
-                                text: window.trendData.comparison
-                                color: Ui.Theme.muted
-                                font.pixelSize: 10
-                                textFormat: Text.PlainText
-                                elide: Text.ElideRight
-                                Layout.maximumWidth: 160
+                            ColumnLayout {
+                                spacing: 2
+                                Text {
+                                    text: window.trendData.change
+                                    color: Ui.Theme.text
+                                    font.pixelSize: 13
+                                    font.weight: Font.DemiBold
+                                    textFormat: Text.PlainText
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: window.trendData.comparison
+                                    color: Ui.Theme.muted
+                                    font.pixelSize: 11
+                                    textFormat: Text.PlainText
+                                    wrapMode: Text.WordWrap
+                                }
                             }
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: [window.lastTrendPoint.label, window.trendData.coverage || ""].filter(Boolean).join(" · ")
+                            color: Ui.Theme.muted
+                            font.pixelSize: 11
+                            textFormat: Text.PlainText
+                            wrapMode: Text.WordWrap
                         }
                         GridLayout {
                             id: trendActions
@@ -934,6 +972,8 @@ FocusScope {
                             objectName: "monthlyChart"
                             Layout.fillWidth: true
                             Layout.fillHeight: true
+                            Layout.minimumHeight: 220
+                            Layout.preferredHeight: Math.min(310, Math.max(220, trendPanel.width * 0.42))
                             points: window.trendData.points
                             unit: window.trendData.unit
                             precision: window.trendData.precision
@@ -979,25 +1019,37 @@ FocusScope {
                                 color: Ui.Theme.muted
                                 font.pixelSize: 10
                                 Layout.fillWidth: true
-                                elide: Text.ElideRight
-                            }
-                            Text {
-                                visible: monthlyChart.width > 440 && window.trendData.periodChange !== "—"
-                                text: "Período: " + (window.trendData.periodChange || "—")
-                                color: Ui.Theme.muted
-                                font.pixelSize: 10
-                                textFormat: Text.PlainText
+                                wrapMode: Text.WordWrap
                             }
                         }
                         Text {
-                            objectName: "trendReadout"
+                            visible: Boolean(window.trendData.periodChange) && window.trendData.periodChange !== "—"
                             Layout.fillWidth: true
-                            text: monthlyChart.readout.replace("\n", " · ")
-                            textFormat: Text.PlainText
-                            color: Ui.Theme.text
+                            text: "Primeiro → último mês: " + (window.trendData.periodChange || "—")
+                            color: Ui.Theme.muted
                             font.pixelSize: 11
-                            elide: Text.ElideRight
-                            Accessible.name: monthlyChart.readout
+                            wrapMode: Text.WordWrap
+                            textFormat: Text.PlainText
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: trendReadout.implicitHeight + 20
+                            radius: 7
+                            color: Ui.Theme.subtle
+                            Text {
+                                id: trendReadout
+                                objectName: "trendReadout"
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.top: parent.top
+                                anchors.margins: 10
+                                text: monthlyChart.readout.replace(/\n/g, " · ") || "Passe o cursor ou use as setas para consultar os meses."
+                                textFormat: Text.PlainText
+                                color: Ui.Theme.text
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                                Accessible.name: monthlyChart.readout
+                            }
                         }
                         Text {
                             objectName: "axisScaleNotice"
@@ -1007,18 +1059,22 @@ FocusScope {
                             color: Ui.Theme.muted
                             font.pixelSize: 10
                             textFormat: Text.PlainText
+                            wrapMode: Text.WordWrap
                         }
                     }
                 }
                 Rectangle {
                     objectName: "originsPanel"
                     Layout.fillWidth: true
+                    Layout.fillHeight: true
                     Layout.preferredWidth: 420
-                    Layout.preferredHeight: 398
+                    Layout.minimumWidth: 0
+                    Layout.preferredHeight: originsContent.implicitHeight + 36
                     color: Ui.Theme.surface
                     radius: Ui.Theme.radius
                     border.color: Ui.Theme.softLine
                     ColumnLayout {
+                        id: originsContent
                         anchors.fill: parent
                         anchors.margins: 18
                         spacing: 14
@@ -1044,8 +1100,16 @@ FocusScope {
                         Ui.OriginChart {
                             objectName: "originChart"
                             Layout.fillWidth: true
-                            Layout.fillHeight: true
                             rows: window.analysis.countries
+                        }
+                        Item { Layout.fillHeight: true }
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Participação no valor " + window.valueBasis + " do recorte · até 6 origens"
+                            color: Ui.Theme.muted
+                            font.pixelSize: 11
+                            wrapMode: Text.WordWrap
+                            textFormat: Text.PlainText
                         }
                     }
                 }
@@ -1863,6 +1927,18 @@ FocusScope {
             enabled: window.viewState.appliedKind === "general" && window.viewState.tableCount !== "0"
             onTriggered: window.saveDocument("pdf")
         }
+    }
+    Ui.ChartDialog {
+        id: importChartDialog
+        objectName: "importChartDialog"
+        title: "Evolução mensal · " + (window.trendData.label || window.valueBasis)
+        contextLabel: window.viewState.periodLabel + " · " + window.valueBasis + " · " + window.trendData.unit
+        legendLabel: "Mensal" + (window.trendData.hasRolling ? " · " + window.trendData.rollingLabel + " (tracejada)" : "")
+        points: window.trendData.points
+        unit: window.trendData.unit
+        precision: window.trendData.precision
+        zoomed: monthlyChart.zoomed
+        allowNegative: monthlyChart.allowNegative
     }
     Ui.TrendDialog {
         id: trendValuesDialog

@@ -354,8 +354,9 @@ class QtTests(unittest.TestCase):
         chart = self.item("monthlyChart")
         ticks = {item.objectName(): item for item in chart.childItems()}
         first, last = ticks["monthTick0"], ticks["monthTick20"]
-        self.assertAlmostEqual(first.x() + first.width() / 2, 46, delta=0.1)
-        self.assertAlmostEqual(last.x() + last.width() / 2, chart.width() - 14, delta=0.1)
+        left = chart.property("plotLeft")
+        self.assertAlmostEqual(first.x() + first.width() / 2, left, delta=0.1)
+        self.assertAlmostEqual(last.x() + last.width() / 2, left + chart.property("plotWidth"), delta=0.1)
         self.assertEqual(self.bundle.messages, [])
 
     def test_burst_progress_is_coalesced_without_losing_completion(self):

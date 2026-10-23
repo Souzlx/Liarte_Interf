@@ -32,6 +32,10 @@ def main():
     from tests.test_qt import QtTests, VolumeTests
     from tests.test_build import DistributionTests
     from tests.test_release import ReleaseTests
+    from tests.test_chart_imports import ChartImportsTests
+    from tests.test_chart_inventory import StockChartResponsiveTests
+    from tests.test_home_indicators import HomeIndicatorsTests
+    from tests.test_chart_workspace import ChartWorkspaceTests
     from tests.test_bootstrap import BootstrapTests
     from tests.test_review import ReviewCoreTests, ReviewQtTests
     from tests.test_preparation import PreparationTests
@@ -95,6 +99,10 @@ def main():
         PreparationTests,
         DistributionTests,
         ReleaseTests,
+        ChartImportsTests,
+        StockChartResponsiveTests,
+        HomeIndicatorsTests,
+        ChartWorkspaceTests,
         ComexTests,
         ExportTests,
         RealQtTests,

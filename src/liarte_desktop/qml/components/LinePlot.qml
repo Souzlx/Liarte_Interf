@@ -35,10 +35,36 @@ Item {
     property int curvePaintCount: 0
     readonly property bool animating: revealAnimation.running
     readonly property real maximum: allowNegative ? (extent.high > 0 ? extent.high + paddingRange * 0.12 : extent.low < 0 ? 0 : 1) : extent.high > 0 ? (zoomed ? extent.high + paddingRange * 0.15 : extent.high * 1.12) : 1
-    readonly property var ticks: points.map((p, i) => ({
-                period: p.period,
-                pointIndex: i
-            })).filter((p, i) => points.length <= 9 || i % Math.ceil(points.length / 7) === 0 || i === points.length - 1)
+    readonly property real plotLeft: plot.x
+    readonly property real plotWidth: plot.width
+    readonly property real categoryLabelWidth: Math.ceil(monthMetrics.advanceWidth) + 14
+    readonly property real axisStep: {
+        const rough = span / (plot.height < 160 ? 3 : 4);
+        const power = Math.pow(10, Math.floor(Math.log10(rough)));
+        const fraction = rough / power;
+        return (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 2.5 ? 2.5 : fraction <= 5 ? 5 : 10) * power;
+    }
+    readonly property var axisTicks: {
+        const result = [];
+        const first = Math.ceil(minimum / axisStep) * axisStep;
+        for (let value = first; value <= maximum + axisStep * 0.000001 && result.length < 20; value += axisStep)
+            result.push(Math.abs(value) < axisStep / 1000 ? 0 : value);
+        return result;
+    }
+    readonly property real axisLabelWidth: Math.max(0, ...axisTicks.map(value => axisMetrics.advanceWidth(axisLabel(value))))
+    readonly property var ticks: {
+        if (!points.length)
+            return [];
+        const interval = Math.max(1, Math.ceil((points.length - 1) * categoryLabelWidth / plot.width));
+        const result = points.map((p, i) => ({period: p.period, pointIndex: i})).filter((p, i) => i % interval === 0);
+        const last = points.length - 1;
+        if (result[result.length - 1].pointIndex !== last) {
+            if (result.length > 1 && (last - result[result.length - 1].pointIndex) * plot.width / Math.max(1, last) < categoryLabelWidth)
+                result.pop();
+            result.push({period: points[last].period, pointIndex: last});
+        }
+        return result;
+    }
     readonly property string hoverText: {
         if (activeIndex < 0 || activeIndex >= points.length)
             return "";
@@ -58,6 +84,23 @@ Item {
     }
     function formatted(value) {
         return valid(value) ? value.toLocaleString(Qt.locale("pt_BR"), "f", precision) + " " + unit : "Sem valor disponível";
+    }
+    function categoryLabel(period) {
+        if (!/^[0-9]{4}-[0-9]{2}$/.test(period))
+            return period;
+        return ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"][Number(period.slice(5)) - 1] + "/" + period.slice(2, 4);
+    }
+    function axisLabel(value) {
+        if (value === 0)
+            return "0";
+        if (Math.abs(value) < 0.001 || Math.abs(value) >= 1000000000)
+            return value.toExponential(1).replace(".", ",");
+        let digits = 0, scaled = axisStep;
+        while (digits < 6 && Math.abs(scaled - Math.round(scaled)) > 0.0000001) {
+            digits++;
+            scaled *= 10;
+        }
+        return value.toLocaleString(Qt.locale("pt_BR"), "f", digits);
     }
     function yValue(value, size) {
         return size - (value - minimum) / span * size;
@@ -95,6 +138,7 @@ Item {
         grid.requestPaint();
         curve.requestPaint();
     }
+    onAxisTicksChanged: grid.requestPaint()
     Rectangle {
         anchors.fill: parent
         visible: chart.activeFocus
@@ -143,12 +187,32 @@ Item {
             }
         }
     }
+    TextMetrics {
+        id: monthMetrics
+        font.pixelSize: 10
+        text: "set/26"
+    }
+    FontMetrics {
+        id: axisMetrics
+        font.pixelSize: 10
+    }
+    Text {
+        objectName: "monthlyAxisUnit"
+        x: 0
+        y: 0
+        width: parent.width
+        text: chart.unit
+        textFormat: Text.PlainText
+        color: Theme.muted
+        font.pixelSize: 10
+        elide: Text.ElideRight
+    }
     Item {
         id: plot
-        x: 46
-        y: 10
-        width: Math.max(1, chart.width - 60)
-        height: Math.max(1, chart.height - 38)
+        x: Math.max(36, Math.ceil(chart.axisLabelWidth) + 14)
+        y: 24
+        width: Math.max(1, chart.width - x - 18)
+        height: Math.max(1, chart.height - 56)
         Canvas {
             id: grid
             anchors.fill: parent
@@ -157,11 +221,10 @@ Item {
             onPaint: {
                 const c = getContext("2d");
                 c.reset();
-                c.strokeStyle = Theme.line;
                 c.lineWidth = 1;
-                c.globalAlpha = 0.7;
-                for (let n = 0; n < 4; n++) {
-                    const y = Math.round(height * n / 3) + 0.5;
+                for (const tick of chart.axisTicks) {
+                    c.strokeStyle = tick === 0 ? Theme.line : Theme.softLine;
+                    const y = Math.round(chart.yValue(tick, height)) + 0.5;
                     c.beginPath();
                     c.moveTo(0, y);
                     c.lineTo(width, y);
@@ -250,6 +313,15 @@ Item {
                 }
             }
         }
+        Rectangle {
+            visible: chart.activeIndex >= 0 && chart.activeIndex < chart.points.length && chart.valid(chart.points[chart.activeIndex].value)
+            x: 0
+            y: visible ? chart.yValue(chart.points[chart.activeIndex].value, plot.height) : 0
+            width: plot.width
+            height: 1
+            color: Theme.accent
+            opacity: 0.18
+        }
         Item {
             visible: chart.activeIndex >= 0 && chart.activeIndex < chart.points.length
             x: chart.points.length < 2 ? plot.width / 2 : chart.activeIndex * plot.width / (chart.points.length - 1)
@@ -288,15 +360,17 @@ Item {
         }
     }
     Repeater {
-        model: 4
+        model: chart.axisTicks
         Text {
+            required property real modelData
             required property int index
+            objectName: "monthlyAxisTick" + index
             textFormat: Text.PlainText
             x: 0
-            y: 4 + (chart.height - 38) * index / 3
-            width: 40
+            y: plot.y + chart.yValue(modelData, plot.height) - implicitHeight / 2
+            width: plot.x - 10
             horizontalAlignment: Text.AlignRight
-            text: chart.maximum < 0.001 ? (chart.minimum + chart.span * (1 - index / 3)).toExponential(1).replace(".", ",") : (chart.minimum + chart.span * (1 - index / 3)).toLocaleString(Qt.locale("pt_BR"), "f", chart.maximum < 0.05 ? 3 : chart.maximum < 5 ? 2 : 0)
+            text: chart.axisLabel(modelData)
             color: Theme.muted
             font.pixelSize: 10
         }
@@ -307,10 +381,10 @@ Item {
             required property var modelData
             textFormat: Text.PlainText
             objectName: "monthTick" + modelData.pointIndex
-            x: 46 + (chart.points.length === 1 ? plot.width / 2 : modelData.pointIndex * plot.width / (chart.points.length - 1)) - width / 2
-            y: chart.height - 17
-            width: 44
-            text: modelData.period.slice(5) + "/" + modelData.period.slice(2, 4)
+            x: Math.max(0, Math.min(chart.width - width, plot.x + (chart.points.length === 1 ? plot.width / 2 : modelData.pointIndex * plot.width / (chart.points.length - 1)) - width / 2))
+            y: plot.y + plot.height + 10
+            width: chart.categoryLabelWidth - 8
+            text: chart.categoryLabel(modelData.period)
             color: Theme.muted
             font.pixelSize: 10
             horizontalAlignment: Text.AlignHCenter

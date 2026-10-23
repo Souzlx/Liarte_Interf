@@ -12,7 +12,7 @@ FocusScope {
     readonly property var view: inventory.analysis
     readonly property var detail: inventory.detail
     property bool advanced: false
-    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible
+    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
     readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 ? "products" : "overview"
     function navigate(section) {
@@ -364,30 +364,38 @@ FocusScope {
             GridLayout {
                 visible: page.state.loaded
                 Layout.fillWidth: true
-                columns: page.width >= 1050 ? 2 : 1
+                columns: width >= 1080 ? 2 : 1
                 columnSpacing: 16
                 rowSpacing: 16
                 Rectangle {
+                    id: stockHistoryCard
                     objectName: "stockHistoryCard"
                     Layout.fillWidth: true
+                    Layout.fillHeight: true
                     Layout.minimumWidth: 0
-                    Layout.preferredHeight: 440
+                    Layout.preferredHeight: stockHistoryContent.implicitHeight + 36
                     color: Ui.Theme.surface
                     radius: Ui.Theme.radius
                     border.color: Ui.Theme.softLine
                     ColumnLayout {
+                        id: stockHistoryContent
                         anchors.fill: parent
                         anchors.margins: 18
                         spacing: 7
-                        RowLayout {
+                        GridLayout {
+                            id: stockChartHeading
                             Layout.fillWidth: true
+                            columns: width >= stockChartTitle.implicitWidth + stockChartMode.implicitWidth + openStockChart.implicitWidth + 24 ? 3 : 2
+                            rowSpacing: 8
                             Text {
+                                id: stockChartTitle
                                 Layout.fillWidth: true
+                                Layout.columnSpan: stockChartHeading.columns === 2 ? 2 : 1
                                 text: "Evolução do estoque"
                                 color: Ui.Theme.text
                                 font.pixelSize: 15
                                 font.weight: Font.DemiBold
-                                elide: Text.ElideRight
+                                wrapMode: Text.WordWrap
                             }
                             Ui.AppCombo {
                                 id: stockChartMode
@@ -405,13 +413,30 @@ FocusScope {
                                 ]
                                 Accessible.name: "Tipo de gráfico de estoque"
                             }
+                            Ui.ActionButton {
+                                id: openStockChart
+                                objectName: "openStockChart"
+                                text: "Ampliar"
+                                iconName: "chart"
+                                implicitWidth: Math.max(112, naturalWidth)
+                                Layout.minimumWidth: implicitWidth
+                                font.pixelSize: 11
+                                subtle: true
+                                onClicked: stockChartDialog.open()
+                            }
                         }
-                        RowLayout {
+                        GridLayout {
                             Layout.fillWidth: true
+                            columns: width >= 460 ? 2 : 1
+                            rowSpacing: 4
                             Text {
+                                Layout.fillWidth: true
+                                Layout.minimumWidth: 0
                                 text: page.view.historySummary.value || "—"
                                 color: Ui.Theme.text
                                 font.pixelSize: 24
+                                minimumPixelSize: 18
+                                fontSizeMode: Text.HorizontalFit
                                 font.weight: Font.DemiBold
                                 textFormat: Text.PlainText
                                 ToolTip.visible: summaryHover.hovered
@@ -425,7 +450,7 @@ FocusScope {
                                 text: page.view.historySummary.change || ""
                                 color: Ui.Theme.muted
                                 font.pixelSize: 11
-                                elide: Text.ElideRight
+                                wrapMode: Text.WordWrap
                                 textFormat: Text.PlainText
                             }
                         }
@@ -435,30 +460,39 @@ FocusScope {
                             textFormat: Text.PlainText
                             font.pixelSize: 11
                             color: Ui.Theme.muted
-                            elide: Text.ElideRight
+                            wrapMode: Text.WordWrap
                         }
                         Ui.StockPlot {
                             id: stockTrend
                             objectName: "stockTrend"
                             Layout.fillWidth: true
                             Layout.fillHeight: true
+                            Layout.minimumHeight: 220
+                            Layout.preferredHeight: Math.min(330, Math.max(220, stockHistoryCard.width * 0.45))
                             points: page.view.plotTrend || []
                             mode: stockChartMode.currentValue || "line"
                             showValues: stockValues.checked
                             movingAverage: stockAverage.checked
                         }
-                        RowLayout {
+                        GridLayout {
+                            id: stockChartLegend
                             Layout.fillWidth: true
-                            Rectangle {
-                                width: 16
-                                height: 3
-                                radius: 1
-                                color: Ui.Theme.accent
-                            }
-                            Text {
-                                text: "Custo"
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
+                            columns: width >= 360 ? 3 : 2
+                            columnSpacing: 8
+                            rowSpacing: 4
+                            RowLayout {
+                                Layout.columnSpan: stockChartLegend.columns === 2 ? 2 : 1
+                                Rectangle {
+                                    width: 16
+                                    height: 3
+                                    radius: 1
+                                    color: Ui.Theme.accent
+                                }
+                                Text {
+                                    text: "Custo"
+                                    color: Ui.Theme.muted
+                                    font.pixelSize: 11
+                                }
                             }
                             Ui.StockToggle {
                                 id: stockAverage
@@ -468,9 +502,6 @@ FocusScope {
                                 font.pixelSize: 11
                                 Accessible.name: "Exibir média móvel de três meses"
                             }
-                            Item {
-                                Layout.fillWidth: true
-                            }
                             Ui.StockToggle {
                                 id: stockValues
                                 objectName: "stockValues"
@@ -478,25 +509,38 @@ FocusScope {
                                 font.pixelSize: 11
                             }
                         }
-                        Text {
+                        Rectangle {
                             Layout.fillWidth: true
-                            text: stockTrend.readout || "Meses sem fechamento permanecem em branco."
-                            textFormat: Text.PlainText
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
+                            implicitHeight: stockTrendReadout.implicitHeight + 20
+                            radius: 7
+                            color: Ui.Theme.subtle
+                            Text {
+                                id: stockTrendReadout
+                                objectName: "stockTrendReadout"
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.top: parent.top
+                                anchors.margins: 10
+                                text: stockTrend.readout || "Passe o cursor ou use as setas. Meses sem fechamento permanecem em branco."
+                                textFormat: Text.PlainText
+                                color: Ui.Theme.muted
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                            }
                         }
                     }
                 }
                 Rectangle {
                     objectName: "stockCapitalCard"
                     Layout.fillWidth: true
+                    Layout.fillHeight: true
                     Layout.minimumWidth: 0
-                    Layout.preferredHeight: 440
+                    Layout.preferredHeight: stockCapitalContent.implicitHeight + 36
                     radius: Ui.Theme.radius
                     color: Ui.Theme.surface
                     border.color: Ui.Theme.softLine
                     ColumnLayout {
+                        id: stockCapitalContent
                         anchors.fill: parent
                         anchors.margins: 18
                         spacing: 7
@@ -797,6 +841,19 @@ FocusScope {
         selectedFile: "Estoque_" + page.state.asOf.split("/").reverse().join("-") + ".xlsx"
         nameFilters: ["Excel (*.xlsx)"]
         onAccepted: inventory.exportExcel(selectedFile)
+    }
+    Ui.ChartDialog {
+        id: stockChartDialog
+        objectName: "stockChartDialog"
+        title: "Evolução do estoque a custo"
+        stock: true
+        unit: "R$"
+        contextLabel: (page.view.historySummary.period || "") + " · " + page.view.historicalScope
+        legendLabel: "Custo mensal" + (stockTrend.hasAverage ? " · média de 3 meses (tracejada)" : "")
+        points: page.view.plotTrend || []
+        mode: stockTrend.mode
+        movingAverage: stockTrend.movingAverage
+        showValues: stockTrend.showValues
     }
     Ui.AppDialog {
         id: stockDetail

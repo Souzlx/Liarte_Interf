@@ -9,7 +9,37 @@ FocusScope {
     required property var platform
     required property var importState
     required property var inventoryState
+    property var importAnalysis: ({ metrics: [] })
+    property var inventoryAnalysis: ({ metrics: [] })
     readonly property real pageMargin: width < 600 ? 18 : 28
+    readonly property var summaryCards: {
+        const cards = [];
+        const imports = importAnalysis.metrics || [];
+        const stock = inventoryAnalysis.metrics || [];
+        if (importState.loaded && imports.length >= 2)
+            cards.push({
+                key: "imports",
+                title: "Importações",
+                icon: "chart",
+                period: importState.periodLabel,
+                basis: importState.appliedKind === "municipal" ? "Municipal · SH4 / FOB · US$" : "Geral · NCM / CIF · US$",
+                scope: importState.filterSummary,
+                status: importState.busy ? "Atualizando · último resultado concluído" : "Última consulta concluída",
+                metrics: [imports[0], imports[1]]
+            });
+        if (inventoryState.loaded && stock.length)
+            cards.push({
+                key: "inventory",
+                title: "Estoque",
+                icon: "box",
+                period: "Base em " + inventoryState.asOf,
+                basis: "Saldo a custo · R$",
+                scope: "Valores do recorte aplicado no módulo",
+                status: inventoryState.busy || !inventoryState.current ? "Atualizando · último resultado concluído" : "Último recorte aplicado",
+                metrics: stock.length > 4 ? [stock[0], stock[4]] : stock.slice(0, 2)
+            });
+        return cards;
+    }
     signal moduleRequested(string key)
 
     function focusFirst() {
@@ -39,7 +69,7 @@ FocusScope {
                 Layout.fillWidth: true
                 spacing: 8
                 Text {
-                    text: "Módulos"
+                    text: "Visão geral"
                     textFormat: Text.PlainText
                     color: Ui.Theme.text
                     font.pixelSize: page.width < 600 ? 25 : 30
@@ -48,12 +78,130 @@ FocusScope {
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: "Acesse as ferramentas da LIARTE."
+                    text: page.summaryCards.length ? "Os últimos resultados de cada módulo, com seus períodos e recortes." : "Abra um módulo para consultar os dados e acompanhar seus indicadores aqui."
                     textFormat: Text.PlainText
                     color: Ui.Theme.muted
                     font.pixelSize: 14
                     wrapMode: Text.WordWrap
                 }
+            }
+            GridLayout {
+                objectName: "homeSummary"
+                visible: page.summaryCards.length > 0
+                Layout.fillWidth: true
+                columns: width >= 840 && page.summaryCards.length > 1 ? 2 : 1
+                columnSpacing: 16
+                rowSpacing: 16
+                Repeater {
+                    model: page.summaryCards
+                    Rectangle {
+                        id: summaryCard
+                        required property var modelData
+                        objectName: "homeSummaryCard_" + modelData.key
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        Layout.alignment: Qt.AlignTop
+                        implicitHeight: summaryContent.implicitHeight + 36
+                        radius: Ui.Theme.radius
+                        color: Ui.Theme.surface
+                        border.color: Ui.Theme.softLine
+                        ColumnLayout {
+                            id: summaryContent
+                            x: 18
+                            y: 18
+                            width: parent.width - 36
+                            spacing: 12
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 10
+                                Ui.Icon {
+                                    name: summaryCard.modelData.icon
+                                    color: Ui.Theme.accent
+                                    Layout.preferredWidth: 20
+                                    Layout.preferredHeight: 20
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    Layout.minimumWidth: 0
+                                    text: summaryCard.modelData.title
+                                    textFormat: Text.PlainText
+                                    color: Ui.Theme.text
+                                    font.pixelSize: 18
+                                    font.weight: Font.DemiBold
+                                }
+                            }
+                            Text {
+                                objectName: "homeSummaryPeriod_" + summaryCard.modelData.key
+                                Layout.fillWidth: true
+                                text: summaryCard.modelData.period
+                                textFormat: Text.PlainText
+                                color: Ui.Theme.text
+                                font.pixelSize: 12
+                                wrapMode: Text.WordWrap
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: summaryCard.modelData.basis
+                                textFormat: Text.PlainText
+                                color: Ui.Theme.muted
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                            }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: width >= 350 ? 2 : 1
+                                columnSpacing: 10
+                                rowSpacing: 10
+                                Repeater {
+                                    model: summaryCard.modelData.metrics
+                                    Ui.MetricCard {
+                                        required property var modelData
+                                        required property int index
+                                        objectName: "homeMetric_" + summaryCard.modelData.key + "_" + index
+                                        Layout.fillWidth: true
+                                        Layout.minimumWidth: 0
+                                        metric: modelData
+                                        emphasized: index === 0
+                                        iconName: index === 0 ? summaryCard.modelData.icon : summaryCard.modelData.key === "imports" ? "weight" : "chart"
+                                    }
+                                }
+                            }
+                            Text {
+                                objectName: "homeSummaryScope_" + summaryCard.modelData.key
+                                Layout.fillWidth: true
+                                text: summaryCard.modelData.scope
+                                textFormat: Text.PlainText
+                                color: Ui.Theme.muted
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                            }
+                            Text {
+                                objectName: "homeSummaryStatus_" + summaryCard.modelData.key
+                                Layout.fillWidth: true
+                                text: summaryCard.modelData.status
+                                textFormat: Text.PlainText
+                                color: Ui.Theme.muted
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                            }
+                            Ui.ActionButton {
+                                objectName: "homeSummaryOpen_" + summaryCard.modelData.key
+                                Layout.fillWidth: true
+                                text: "Abrir " + summaryCard.modelData.title
+                                Accessible.name: "Abrir o recorte de " + summaryCard.modelData.title
+                                onClicked: page.moduleRequested(summaryCard.modelData.key)
+                            }
+                        }
+                    }
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                text: "Módulos"
+                textFormat: Text.PlainText
+                color: Ui.Theme.text
+                font.pixelSize: 16
+                font.weight: Font.DemiBold
             }
             Repeater {
                 id: moduleCards

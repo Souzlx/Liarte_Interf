@@ -454,6 +454,8 @@ ApplicationWindow {
                     platform: window.platformController
                     importState: window.viewState
                     inventoryState: inventory.state
+                    importAnalysis: controller.analysis
+                    inventoryAnalysis: inventory.analysis
                     onModuleRequested: key => platform.openModule(key)
                 }
                 ImportsWorkspace {

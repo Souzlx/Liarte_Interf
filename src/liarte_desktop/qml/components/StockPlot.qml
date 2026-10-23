@@ -39,6 +39,8 @@ Item {
         };
     }
     readonly property real span: axis.high - axis.low || 1
+    readonly property bool compact: width < 440
+    readonly property real categoryLabelWidth: 60
     readonly property real divisor: unit === "R$" ? Math.max(Math.abs(axis.high), Math.abs(axis.low)) >= 1000000 ? 1000000 : Math.max(Math.abs(axis.high), Math.abs(axis.low)) >= 10000 ? 1000 : 1 : 1
     readonly property string axisUnit: unit + (divisor === 1000000 ? " mi" : divisor === 1000 ? " mil" : "")
     readonly property int tickDigits: {
@@ -56,18 +58,27 @@ Item {
         return result;
     }
     readonly property var categoryTicks: {
-        const interval = Math.max(1, Math.ceil(points.length / Math.max(2, Math.floor(plot.width / 65))));
-        const result = points.map((p, i) => ({
-                    point: p,
-                    index: i
-                })).filter((p, i) => i % interval === 0);
-        if (result.length && result[result.length - 1].index !== points.length - 1) {
-            if ((points.length - 1 - result[result.length - 1].index) * plot.width / points.length < 55)
-                result.pop();
-            result.push({
-                point: points[points.length - 1],
-                index: points.length - 1
-            });
+        const result = [];
+        const last = points.length - 1;
+        const gap = categoryLabelWidth + 8;
+        for (let i = 0; i <= last; i++) {
+            const left = categoryX(i);
+            if (result.length && left - categoryX(result[result.length - 1].index) < gap)
+                continue;
+            if (i !== last && categoryX(last) - left < gap)
+                continue;
+            result.push({point: points[i], index: i});
+        }
+        if (last >= 0 && (!result.length || result[result.length - 1].index !== last))
+            result.push({point: points[last], index: last});
+        return result;
+    }
+    readonly property var valueTicks: {
+        const result = [];
+        const gap = Math.max(52, valueMetrics.advanceWidth + 14);
+        for (let i = 0; i < points.length; i++) {
+            if (valid(points[i].value) && (!result.length || px(i) - px(result[result.length - 1].index) >= gap))
+                result.push({point: points[i], index: i});
         }
         return result;
     }
@@ -91,6 +102,23 @@ Item {
     }
     function px(index) {
         return plot.width * (index + 0.5) / Math.max(1, points.length);
+    }
+    function categoryX(index) {
+        return Math.max(0, Math.min(plot.width - categoryLabelWidth, px(index) - categoryLabelWidth / 2));
+    }
+    function periodLabel(period) {
+        const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+        const month = months[Number(period.slice(5, 7)) - 1];
+        return month ? month + (compact ? "\n" + period.slice(0, 4) : "/" + period.slice(2, 4)) : period;
+    }
+    function valueLabel(value) {
+        return (value / divisor).toLocaleString(Qt.locale("pt_BR"), "f", precision);
+    }
+    function latestValueIndex() {
+        for (let i = points.length - 1; i >= 0; i--)
+            if (valid(points[i].value))
+                return i;
+        return -1;
     }
     function py(value) {
         return plot.height * (1 - (value - axis.low) / span);
@@ -122,7 +150,7 @@ Item {
     }
     onPointsChanged: {
         hoverIndex = -1;
-        selectedIndex = -1;
+        selectedIndex = latestValueIndex();
         revealMotion.stop();
         if (Theme.motionEnabled && visible && points.length > 1)
             revealMotion.restart();
@@ -169,19 +197,31 @@ Item {
         y: 0
         text: chart.axisUnit
         color: Theme.muted
-        font.pixelSize: 10
+        font.pixelSize: 11
+        font.weight: Font.Medium
         textFormat: Text.PlainText
     }
     Item {
         id: plot
-        x: Math.min(90, Math.max(52, yMetrics.advanceWidth + 10))
+        objectName: chart.objectName + "PlotArea"
+        x: Math.max(46, Math.max(yMinimumMetrics.advanceWidth, yMaximumMetrics.advanceWidth) + 13)
         y: 26
-        width: Math.max(1, chart.width - x - 12)
-        height: Math.max(1, chart.height - 58)
+        width: Math.max(1, chart.width - x - 14)
+        height: Math.max(1, chart.height - (chart.compact ? 76 : 62))
         TextMetrics {
-            id: yMetrics
-            font.pixelSize: 10
-            text: (Math.max(Math.abs(chart.axis.low), Math.abs(chart.axis.high)) / chart.divisor).toLocaleString(Qt.locale("pt_BR"), "f", chart.tickDigits)
+            id: yMinimumMetrics
+            font.pixelSize: 11
+            text: (chart.axis.low / chart.divisor).toLocaleString(Qt.locale("pt_BR"), "f", chart.tickDigits)
+        }
+        TextMetrics {
+            id: yMaximumMetrics
+            font.pixelSize: 11
+            text: (chart.axis.high / chart.divisor).toLocaleString(Qt.locale("pt_BR"), "f", chart.tickDigits)
+        }
+        TextMetrics {
+            id: valueMetrics
+            font.pixelSize: 11
+            text: chart.valueLabel(Math.max(Math.abs(chart.axis.low), Math.abs(chart.axis.high)))
         }
         Canvas {
             id: grid
@@ -194,6 +234,7 @@ Item {
                 c.lineWidth = 1;
                 for (const tick of chart.ticks) {
                     c.strokeStyle = tick === 0 ? Theme.line : Theme.softLine;
+                    c.globalAlpha = tick === 0 ? 1 : 0.8;
                     const y = Math.round(chart.py(tick)) + 0.5;
                     c.beginPath();
                     c.moveTo(0, y);
@@ -217,7 +258,7 @@ Item {
                     const c = getContext("2d");
                     c.reset();
                     const count = chart.points.length;
-                    const barWidth = Math.min(36, plot.width / Math.max(1, count) * 0.65);
+                    const barWidth = Math.min(40, plot.width / Math.max(1, count) * 0.6);
                     function series(field, dashed) {
                         c.strokeStyle = dashed ? Theme.muted : Theme.accent;
                         c.fillStyle = dashed ? Theme.muted : Theme.accent;
@@ -269,28 +310,39 @@ Item {
             }
         }
         Repeater {
-            model: chart.showValues ? chart.points.map((p, i) => ({
-                        point: p,
-                        index: i
-                    })).filter((p, i) => i % Math.max(1, Math.ceil(chart.points.length / Math.max(1, Math.floor(plot.width / 48)))) === 0) : []
+            model: chart.showValues ? chart.valueTicks : []
             Text {
                 required property var modelData
                 visible: chart.valid(modelData.point.value)
                 x: Math.max(0, Math.min(plot.width - width, chart.px(modelData.index) - width / 2))
-                y: chart.py(modelData.point.value || 0) + (modelData.point.value < 0 ? 5 : -18)
-                text: chart.valid(modelData.point.value) ? (modelData.point.value / chart.divisor).toLocaleString(Qt.locale("pt_BR"), "f", chart.divisor === 1 ? 0 : 2) : ""
+                y: Math.max(0, Math.min(plot.height - height, chart.py(modelData.point.value || 0) + (modelData.point.value < 0 ? 7 : -20)))
+                text: chart.valid(modelData.point.value) ? chart.valueLabel(modelData.point.value) : ""
                 color: Theme.text
-                font.pixelSize: 10
+                font.pixelSize: 11
+                font.weight: Font.Medium
+                style: Text.Outline
+                styleColor: Theme.surface
                 textFormat: Text.PlainText
             }
         }
         Rectangle {
-            visible: chart.activeIndex >= 0
+            visible: chart.activeIndex >= 0 && chart.activeIndex < chart.points.length
             x: chart.px(chart.activeIndex)
             width: 1
             height: parent.height
-            color: Theme.muted
-            opacity: 0.45
+            color: Theme.accent
+            opacity: 0.3
+        }
+        Rectangle {
+            visible: chart.activeIndex >= 0 && chart.activeIndex < chart.points.length && chart.valid(chart.points[chart.activeIndex].value)
+            x: chart.px(chart.activeIndex) - 5
+            y: visible ? chart.py(chart.points[chart.activeIndex].value) - 5 : 0
+            width: 10
+            height: 10
+            radius: 5
+            color: Theme.surface
+            border.width: 2
+            border.color: Theme.accent
         }
         MouseArea {
             anchors.fill: parent
@@ -311,11 +363,13 @@ Item {
         model: chart.ticks
         Text {
             required property real modelData
+            required property int index
+            objectName: chart.objectName + "ValueTick" + index
             x: 0
             y: plot.y + chart.py(modelData) - height / 2
             width: plot.x - 9
             text: (modelData / chart.divisor).toLocaleString(Qt.locale("pt_BR"), "f", chart.tickDigits)
-            font.pixelSize: 10
+            font.pixelSize: 11
             color: Theme.muted
             horizontalAlignment: Text.AlignRight
             textFormat: Text.PlainText
@@ -325,12 +379,14 @@ Item {
         model: chart.categoryTicks
         Text {
             required property var modelData
-            x: Math.max(plot.x - 5, Math.min(chart.width - width, plot.x + chart.px(modelData.index) - width / 2))
-            y: plot.y + plot.height + 9
-            width: 55
-            text: modelData.point.period.slice(5) + "/" + modelData.point.period.slice(2, 4)
+            objectName: chart.objectName + "CategoryTick" + modelData.index
+            x: plot.x + chart.categoryX(modelData.index)
+            y: plot.y + plot.height + 11
+            width: chart.categoryLabelWidth
+            text: chart.periodLabel(modelData.point.period)
             color: Theme.muted
-            font.pixelSize: 10
+            font.pixelSize: 11
+            lineHeight: 1.15
             horizontalAlignment: Text.AlignHCenter
             textFormat: Text.PlainText
         }

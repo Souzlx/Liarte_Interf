@@ -6,7 +6,16 @@ ColumnLayout {
     id: chart
     property var rows: []
     readonly property real total: rows.reduce((sum, row) => sum + row.value, 0)
-    spacing: 13
+    spacing: width < 300 ? 12 : 14
+    function displayValue(value) {
+        if (value >= 1000)
+            return "US$ " + (value / 1000).toLocaleString(Qt.locale("pt_BR"), "f", 2) + " bi";
+        if (value >= 1)
+            return "US$ " + value.toLocaleString(Qt.locale("pt_BR"), "f", 2) + " mi";
+        if (value >= 0.01)
+            return "US$ " + value.toLocaleString(Qt.locale("pt_BR"), "f", 3) + " mi";
+        return "US$ " + (value * 1000000).toLocaleString(Qt.locale("pt_BR"), "f", 2);
+    }
     Repeater {
         model: chart.rows.slice(0, 6)
         ColumnLayout {
@@ -15,15 +24,17 @@ ColumnLayout {
             required property int index
             objectName: "originRow" + index
             readonly property real ratio: chart.total > 0 ? modelData.value / chart.total : 0
+            readonly property string amount: chart.displayValue(modelData.value)
             property bool ready: false
             Layout.fillWidth: true
             spacing: 6
             Component.onCompleted: Qt.callLater(() => ready = true)
             Accessible.role: Accessible.StaticText
-            Accessible.name: modelData.label + ": " + modelData.share
+            Accessible.name: modelData.label + ": " + modelData.share + ", " + amount
             RowLayout {
                 Layout.fillWidth: true
                 Text {
+                    objectName: "originLabel" + origin.index
                     textFormat: Text.PlainText
                     Layout.fillWidth: true
                     text: origin.modelData.label
@@ -32,43 +43,58 @@ ColumnLayout {
                     elide: Text.ElideRight
                 }
                 Text {
+                    objectName: "originShare" + origin.index
                     textFormat: Text.PlainText
                     text: origin.modelData.share
-                    font.pixelSize: 11
-                    color: Theme.muted
+                    font.pixelSize: 12
+                    font.weight: Font.DemiBold
+                    color: Theme.text
                 }
             }
-            Rectangle {
+            RowLayout {
                 Layout.fillWidth: true
-                implicitHeight: 6
-                radius: 3
-                color: Theme.subtle
+                spacing: 12
                 Rectangle {
-                    height: parent.height
-                    width: parent.width * origin.ratio
-                    radius: 3
-                    color: Theme.accent
-                    transform: Scale {
-                        id: growth
-                        origin.x: 0
-                        origin.y: 0
-                        xScale: origin.ready ? 1 : 0
-                        Behavior on xScale {
-                            enabled: Theme.motionEnabled && chart.visible
-                            NumberAnimation {
-                                id: growthAnimation
-                                duration: 220
-                                easing.type: Easing.OutCubic
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 20
+                    implicitHeight: 7
+                    radius: 4
+                    color: Theme.subtle
+                    Rectangle {
+                        height: parent.height
+                        width: parent.width * origin.ratio
+                        radius: 4
+                        color: Theme.accent
+                        transform: Scale {
+                            id: growth
+                            origin.x: 0
+                            origin.y: 0
+                            xScale: origin.ready ? 1 : 0
+                            Behavior on xScale {
+                                enabled: Theme.motionEnabled && chart.visible
+                                NumberAnimation {
+                                    id: growthAnimation
+                                    duration: 220
+                                    easing.type: Easing.OutCubic
+                                }
                             }
                         }
                     }
+                }
+                Text {
+                    objectName: "originAmount" + origin.index
+                    textFormat: Text.PlainText
+                    text: origin.amount
+                    font.pixelSize: 10
+                    color: Theme.muted
+                    horizontalAlignment: Text.AlignRight
                 }
             }
             HoverHandler {
                 id: hover
             }
             ToolTip.visible: hover.hovered
-            ToolTip.text: origin.modelData.label + " · US$ " + origin.modelData.value.toLocaleString(Qt.locale("pt_BR"), "f", 3) + " mi · " + origin.modelData.share
+            ToolTip.text: origin.modelData.label + " · US$ " + (origin.modelData.value * 1000000).toLocaleString(Qt.locale("pt_BR"), "f", 2) + " · " + origin.modelData.share
             ToolTip.delay: 300
             Connections {
                 target: Theme
