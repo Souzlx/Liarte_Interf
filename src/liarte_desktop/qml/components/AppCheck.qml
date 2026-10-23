@@ -3,7 +3,8 @@ import QtQuick.Controls
 
 CheckBox {
     id: box
-    implicitHeight: 28
+    property bool wrapLabel: false
+    implicitHeight: wrapLabel ? Math.max(28, contentItem.implicitHeight + topPadding + bottomPadding) : 28
     font.pixelSize: 12
     spacing: 8
     indicator: Rectangle {
@@ -31,6 +32,7 @@ CheckBox {
         color: box.enabled ? Theme.text : Theme.muted
         leftPadding: 26
         verticalAlignment: Text.AlignVCenter
-        elide: Text.ElideRight
+        wrapMode: box.wrapLabel ? Text.WordWrap : Text.NoWrap
+        elide: box.wrapLabel ? Text.ElideNone : Text.ElideRight
     }
 }

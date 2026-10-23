@@ -351,8 +351,9 @@ class ReviewQtTests(unittest.TestCase):
                     self.assertLessEqual(labels[0].property("contentWidth"), labels[0].width() + 0.1)
 
     def test_action_widths_follow_larger_rendered_font_metrics(self):
+        import math
         from PySide6.QtCore import QPointF
-        from PySide6.QtGui import QFont
+        from PySide6.QtGui import QFont, QFontDatabase, QFontMetricsF
 
         self.load()
         self.item("trendMetric").setProperty("currentIndex", 1)
@@ -372,9 +373,15 @@ class ReviewQtTests(unittest.TestCase):
         ]
         self.assertEqual({child.objectName() for child in presets}, preset_names)
         controls.extend(presets)
+        fixed_family = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont).family()
         for control in controls:
             font = QFont(control.property("font"))
-            font.setPixelSize(font.pixelSize() * 2)
+            # Exercise wide glyphs on every platform, including proportional-font hosts.
+            target_advance = font.pixelSize() * 2
+            font.setFamily(fixed_family)
+            font.setPixelSize(target_advance)
+            advance = QFontMetricsF(font).horizontalAdvance("M")
+            font.setPixelSize(math.ceil(target_advance * font.pixelSize() / advance))
             control.setProperty("font", font)
         for width in (500, 1380):
             self.window.resize(width, 900)
@@ -395,6 +402,8 @@ class ReviewQtTests(unittest.TestCase):
                         labels.append(child)
                 self.assertEqual(len(labels), 1, caption)
                 self.assertFalse(labels[0].property("truncated"), (width, caption))
+                if control.objectName() == "priceScale":
+                    self.assertLessEqual(labels[0].property("contentHeight"), labels[0].height() + 0.1)
                 left = control.mapToScene(QPointF()).x()
                 self.assertGreaterEqual(left, 0, caption)
                 self.assertLessEqual(left + control.width(), width, caption)

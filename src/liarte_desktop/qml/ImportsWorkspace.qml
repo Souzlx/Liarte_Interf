@@ -590,11 +590,11 @@ FocusScope {
                         id: filterActions
                         Layout.fillWidth: true
                         Layout.maximumWidth: Infinity
-                        columns: parent.width >= toggleFilters.implicitWidth + filterExpansion.implicitWidth + clearFilters.implicitWidth + 3 * columnSpacing ? 4 : 2
+                        columns: parent.width >= toggleFilters.implicitWidth + filterExpansion.implicitWidth + clearFilters.implicitWidth + 3 * columnSpacing ? 4 : parent.width >= filterExpansion.implicitWidth + clearFilters.implicitWidth + columnSpacing ? 2 : 1
                         Ui.ActionButton {
                             id: toggleFilters
                             objectName: "toggleFilters"
-                            Layout.columnSpan: filterActions.columns === 2 ? 2 : 1
+                            Layout.columnSpan: filterActions.columns === 4 ? 1 : filterActions.columns
                             Layout.minimumWidth: naturalWidth
                             iconName: "filter"
                             text: "Filtros" + (window.viewState.filterCount ? " · " + window.viewState.filterCount : "")
@@ -900,6 +900,9 @@ FocusScope {
                             Ui.AppCheck {
                                 id: priceScale
                                 objectName: "priceScale"
+                                Layout.minimumWidth: 0
+                                Layout.maximumWidth: trendActions.parent.width
+                                wrapLabel: true
                                 text: "Ampliar variação"
                                 visible: ["price", "fob", "freight"].includes(window.trendKey)
                                 font.pixelSize: 11

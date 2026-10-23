@@ -8,6 +8,7 @@ com CPython 3.11, 3.12, 3.13 e 3.14.
 | [39877201447](https://github.com/Souzlx/Liarte_Interf/actions/runs/39877201447) | `ec78df0` | Quatro jobs falharam na etapa de testes/compilação, após instalar as dependências. |
 | [39878269032](https://github.com/Souzlx/Liarte_Interf/actions/runs/39878269032) | `35a9f23` | Quatro jobs falharam novamente na etapa de testes/compilação. Nenhum pacote foi publicado. |
 | [39880901606](https://github.com/Souzlx/Liarte_Interf/actions/runs/39880901606) | `9ac1bed` | Python 3.11–3.13 concluíram 587 testes e revelaram cortes de legendas; 3.11–3.12 também falharam no teste de expiração. Python 3.14 atingiu 300 s próximo ao fim da suíte. |
+| [39882702056](https://github.com/Souzlx/Liarte_Interf/actions/runs/39882702056) | `301a459` | As quatro versões concluíram 588 testes. Somente a nova regressão com fontes ampliadas falhou: Limpar ultrapassou a borda de 500 px; um teste POSIX foi ignorado em cada job. |
 
 ## Correção comprovada durante o diagnóstico
 
@@ -63,6 +64,13 @@ também respeitam o tamanho do conteúdo, preservando o modo somente ícone.
 Uma regressão amplia as fontes e exige legendas completas e controles
 dentro da janela. Ela falha no QML anterior e passa com a correção.
 
+A execução `39882702056` confirmou os ajustes no tamanho normal das fontes,
+mas a nova regressão encontrou um limite adicional: as duas ações dos
+filtros ainda não cabiam lado a lado com letras largas. O grupo agora também
+admite uma coluna. A opção Ampliar variação pode quebrar sua legenda em
+linhas, com altura suficiente para exibi-las. A regressão usa fonte fixa e
+medidas de letras para reproduzir esse caso também no Linux.
+
 O teste de modo offline assumia que o instante monotônico `0` sempre
 representava uma entrada expirada. Em um runner Windows iniciado há menos
 de cinco minutos, a entrada ainda era válida. O teste agora usa
@@ -75,12 +83,16 @@ concluíram a suíte em 203,333 s, 220,176 s e 236,156 s, respectivamente,
 com um teste POSIX ignorado em cada job. Os limites individuais dos testes
 e o prazo total de 35 minutos do workflow foram preservados.
 
-Com os ajustes finais de layout, `python verificar.py --headless --volume`
-executou **588 testes em 131,362 s, todos aprovados, sem testes ignorados**,
-no Linux. O ensaio de 100 mil registros concluiu a primeira consulta em
+No commit `301a459`, `python verificar.py --headless --volume` executou
+**588 testes em 131,362 s, todos aprovados, sem testes ignorados**, no Linux.
+O ensaio de 100 mil registros concluiu a primeira consulta em
 1,630 s, processando 92 eventos Qt. Cinco testes direcionados de legendas,
 fontes ampliadas e clique do gráfico também passaram. A inspeção das
 capturas em 500 e 1380 pixels confirmou o layout, sem avisos QML.
+Após o ajuste adicional para uma coluna e quebra da legenda, os **50 testes
+das três classes de interface afetadas passaram em 22,241 s**, sem testes
+ignorados. A revisão independente também conferiu 760 pixels e as métricas
+largas equivalentes às observadas no runner Windows.
 A matriz Windows será repetida com as correções.
 Até uma execução bem-sucedida, o pacote Windows continua sem validação
 concluída.
