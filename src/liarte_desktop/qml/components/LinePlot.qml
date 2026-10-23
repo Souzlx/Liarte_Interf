@@ -38,6 +38,7 @@ Item {
     readonly property real plotLeft: plot.x
     readonly property real plotWidth: plot.width
     readonly property real categoryLabelWidth: Math.ceil(monthMetrics.advanceWidth) + 14
+    readonly property real categoryHalfWidth: (categoryLabelWidth - 8) / 2
     readonly property real axisStep: {
         const rough = span / (plot.height < 160 ? 3 : 4);
         const power = Math.pow(10, Math.floor(Math.log10(rough)));
@@ -189,6 +190,7 @@ Item {
     }
     TextMetrics {
         id: monthMetrics
+        objectName: "monthlyCategoryMetrics"
         font.pixelSize: 10
         text: "set/26"
     }
@@ -209,9 +211,9 @@ Item {
     }
     Item {
         id: plot
-        x: Math.max(36, Math.ceil(chart.axisLabelWidth) + 14)
+        x: Math.max(36, Math.ceil(chart.axisLabelWidth) + 14, chart.categoryHalfWidth + 4)
         y: 24
-        width: Math.max(1, chart.width - x - 18)
+        width: Math.max(1, chart.width - x - Math.max(18, chart.categoryHalfWidth + 4))
         height: Math.max(1, chart.height - 56)
         Canvas {
             id: grid
@@ -381,7 +383,7 @@ Item {
             required property var modelData
             textFormat: Text.PlainText
             objectName: "monthTick" + modelData.pointIndex
-            x: Math.max(0, Math.min(chart.width - width, plot.x + (chart.points.length === 1 ? plot.width / 2 : modelData.pointIndex * plot.width / (chart.points.length - 1)) - width / 2))
+            x: plot.x + (chart.points.length === 1 ? plot.width / 2 : modelData.pointIndex * plot.width / (chart.points.length - 1)) - width / 2
             y: plot.y + plot.height + 10
             width: chart.categoryLabelWidth - 8
             text: chart.categoryLabel(modelData.period)

@@ -4,6 +4,7 @@ from pathlib import Path
 import unittest
 
 from PySide6.QtCore import QObject, Qt, QUrl
+from PySide6.QtGui import QFont
 from PySide6.QtQml import QQmlComponent, QQmlEngine
 from PySide6.QtTest import QSignalSpy, QTest
 
@@ -145,6 +146,7 @@ Window {{
                 self.assertGreater(name.width(), 40)
                 self.assertTrue(amount.isVisible())
                 self.assertFalse(amount.property("truncated"))
+                self.assertLessEqual(amount.property("contentWidth"), amount.width() + 1)
                 self.assertEqual(amount.property("text"), rows[index]["display"])
         row = self.descendants("subjectRow0")[0]
         row.forceActiveFocus()
@@ -152,4 +154,26 @@ Window {{
         self.assertEqual(spy.count(), 1)
         self.assertEqual(spy.at(0), ["0001"])
         self.assertEqual(variant(self.chart.property("rows")), rows)
+        self.assertEqual(self.messages, [])
+
+    def test_compact_ranking_keeps_the_complete_amount_with_wide_figures(self):
+        self.create("StockBars")
+        self.window.resize(280, 280)
+        self.chart.setProperty("rows", [
+            {"code": "0001", "name": "Produto", "display": "R$ 1.234.567,89", "value": 123456789, "share": "100,0%"},
+        ])
+        pump(lambda: False, 0.06)
+        amount = self.descendants("subjectRow0CompactAmount")[0]
+        share = self.descendants("subjectRow0CompactShare")[0]
+        wide_font = QFont("monospace")
+        wide_font.setStyleHint(QFont.StyleHint.Monospace)
+        wide_font.setPixelSize(26)
+        wide_font.setWeight(QFont.Weight.Bold)
+        amount.setProperty("font", wide_font)
+        pump(lambda: False, 0.06)
+        self.assertFalse(amount.property("truncated"))
+        self.assertEqual(amount.property("text"), "R$ 1.234.567,89")
+        self.assertLessEqual(amount.property("contentWidth"), amount.width() + 1)
+        self.assertGreaterEqual(share.y(), amount.y() + amount.height())
+        self.assertEqual(share.property("text"), "100,0%")
         self.assertEqual(self.messages, [])

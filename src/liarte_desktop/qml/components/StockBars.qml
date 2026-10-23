@@ -73,7 +73,8 @@ ColumnLayout {
                         visible: !chart.compact
                         objectName: bar.objectName + "Amount"
                         textFormat: Text.PlainText
-                        Layout.preferredWidth: chart.valueColumnWidth
+                        Layout.preferredWidth: Math.max(chart.valueColumnWidth, implicitWidth + 2)
+                        Layout.minimumWidth: implicitWidth + 2
                         horizontalAlignment: Text.AlignRight
                         text: bar.modelData.display
                         color: Theme.text
@@ -84,17 +85,28 @@ ColumnLayout {
                         visible: !chart.compact && !!bar.modelData.share
                         textFormat: Text.PlainText
                         text: bar.modelData.share || ""
-                        Layout.preferredWidth: 45
+                        Layout.preferredWidth: Math.max(45, implicitWidth + 2)
+                        Layout.minimumWidth: implicitWidth + 2
                         horizontalAlignment: Text.AlignRight
                         color: Theme.muted
                         font.pixelSize: 11
                     }
                 }
-                RowLayout {
+                GridLayout {
+                    id: compactNumbers
                     visible: chart.compact
                     Layout.fillWidth: true
                     Layout.leftMargin: 29
+                    columns: width >= compactAmountMetrics.advanceWidth + compactShare.implicitWidth + columnSpacing + 2 ? 2 : 1
+                    columnSpacing: 8
+                    rowSpacing: 3
+                    TextMetrics {
+                        id: compactAmountMetrics
+                        font: compactAmount.font
+                        text: bar.modelData.display
+                    }
                     Text {
+                        id: compactAmount
                         objectName: bar.objectName + "CompactAmount"
                         textFormat: Text.PlainText
                         Layout.fillWidth: true
@@ -103,10 +115,14 @@ ColumnLayout {
                         color: Theme.text
                         font.pixelSize: 12
                         font.weight: Font.DemiBold
-                        elide: Text.ElideRight
+                        wrapMode: Text.WrapAnywhere
                     }
                     Text {
+                        id: compactShare
+                        objectName: bar.objectName + "CompactShare"
                         textFormat: Text.PlainText
+                        Layout.fillWidth: compactNumbers.columns === 1
+                        horizontalAlignment: Text.AlignRight
                         text: bar.modelData.share || ""
                         color: Theme.muted
                         font.pixelSize: 11
