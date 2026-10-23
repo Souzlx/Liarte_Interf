@@ -274,6 +274,11 @@ ApplicationWindow {
                                     icon: "chart"
                                 },
                                 {
+                                    key: "monthly",
+                                    label: "Análise mensal",
+                                    icon: "chart"
+                                },
+                                {
                                     key: "products",
                                     label: "Produtos",
                                     icon: "grid"

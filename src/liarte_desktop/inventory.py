@@ -27,12 +27,14 @@ from liarte_core.inventory import (
     SCALE,
     StockSelection,
     analyze_inventory,
+    compact_money,
     money,
     month_range,
     month_end,
     number,
 )
 from liarte_core.inventory_export import export_inventory
+from liarte_core.inventory_monthly import analyze_monthly_inventory
 from liarte_core.inventory_assets import verify_bundled_inventory
 from liarte_core.inventory_search import ProductSearch
 from liarte_core.inventory_io import load_inventory, write_snapshot
@@ -150,6 +152,7 @@ class InventoryController(QObject):
     optionsChanged = Signal()
     analysisChanged = Signal()
     detailChanged = Signal()
+    monthlyChanged = Signal()
 
     def __init__(self, settings=None, parent=None, *, cache_path=None, bundled_path=None):
         super().__init__(parent)
@@ -183,6 +186,10 @@ class InventoryController(QObject):
         self._bundled = Path(bundled_path) if bundled_path is not None else None
         self._search = None
         self._sales_begin = None
+        self._monthly_data = ()
+        self._monthly_period = ""
+        self._monthly_unit = ""
+        self._monthly_view = {}
         self._debounce = QTimer(self)
         self._debounce.setSingleShot(True)
         self._debounce.setInterval(140)
@@ -257,6 +264,220 @@ class InventoryController(QObject):
     def detail(self):
         return self._detail
 
+    @Property("QVariantMap", notify=monthlyChanged)
+    def monthly(self):
+        return self._monthly_view
+
+    def _refresh_monthly(self):
+        """Prepare only the focused month for QML; changing focus never reloads data."""
+        months = self._monthly_data
+        if not months:
+            self._monthly_view = {}
+            self.monthlyChanged.emit()
+            return
+        periods = {m["period"] for m in months}
+        if self._monthly_period not in periods:
+            self._monthly_period = next(
+                (m["period"] for m in reversed(months) if m["stockCost"] is not None),
+                months[-1]["period"],
+            )
+        focused = next(m for m in months if m["period"] == self._monthly_period)
+        units = sorted(
+            {u for m in months for k in ("stockQuantity", "salesQuantity") for u in m[k]}
+        )
+        if self._monthly_unit not in units:
+            self._monthly_unit = units[0] if units else ""
+        unit = self._monthly_unit
+        index = months.index(focused)
+        previous = months[index - 1] if index else None
+
+        def quantity(value):
+            return number(value / SCALE, 3) + " " + unit if value is not None else "—"
+
+        def variation(current, before, *, currency=False):
+            if current is None or before is None:
+                return "Sem comparação mensal disponível"
+            delta = current - before
+            signed = ("+" if delta > 0 else "") + (money(delta) if currency else quantity(delta))
+            percentage = (
+                " · " + ("+" if delta > 0 else "") + number(delta / before * 100, 1) + "%"
+                if before > 0
+                else ""
+            )
+            return signed + percentage + " vs. " + focused["previousLabel"]
+
+        stock = focused["stockQuantity"].get(unit)
+        sales = focused["salesQuantity"].get(unit)
+        giro = focused["turnover"]
+        before_stock = previous["stockQuantity"].get(unit) if previous else None
+        before_sales = previous["salesQuantity"].get(unit) if previous else None
+        stock_detail = (
+            variation(focused["stockCost"], previous["stockCost"], currency=True)
+            if focused["stockChange"] is not None and previous
+            else "Sem fechamento no mês e recorte"
+            if focused["stockCost"] is None
+            else focused["label"] + " · " + str(focused["productCount"]) + " produtos com saldo"
+        )
+        metrics = [
+            {
+                "label": "Estoque no fechamento",
+                "value": compact_money(focused["stockCost"])
+                if focused["stockCost"] is not None
+                else "—",
+                "detail": stock_detail,
+                "full": (
+                    money(focused["stockCost"]) + ". " if focused["stockCost"] is not None else ""
+                )
+                + focused["comparison"],
+            },
+            {
+                "label": "Quantidade em estoque",
+                "value": quantity(stock),
+                "detail": "Fechamento · " + (unit or "sem unidade disponível"),
+                "full": (
+                    variation(stock, before_stock)
+                    if focused["stockChange"] is not None
+                    else "Sem comparação entre fechamentos completos consecutivos"
+                )
+                + ". Registros observados; confira mudanças de cobertura.",
+            },
+            {
+                "label": "Vendas do mês" + (" · parcial" if focused["partial"] else ""),
+                "value": quantity(sales),
+                "detail": variation(sales, before_sales)
+                if focused["salesChange"].get(unit) is not None
+                else "Mês parcial · sem comparação"
+                if focused["partial"]
+                else "Quantidade líquida · filial · " + (unit or "—"),
+                "full": focused["salesComparison"],
+            },
+            {
+                "label": "Giro da fonte · mediana",
+                "value": number(giro, 2) + " x" if giro is not None else "—",
+                "detail": str(focused["turnoverCount"]) + " posições válidas · " + focused["label"],
+                "full": "Mediana dos giros não negativos da fonte em posições com saldo positivo no mês. Não é giro consolidado. "
+                + str(focused["turnoverInvalidCount"])
+                + " valores negativos ou inválidos fora da mediana. Valores ausentes não entram no cálculo.",
+            },
+        ]
+
+        def series(key, title, symbol, note):
+            points = []
+            for month in months:
+                if key == "cost":
+                    raw = month["stockCost"]
+                    value, display = (
+                        (raw / 100, money(raw)) if raw is not None else (None, "Sem fechamento")
+                    )
+                elif key == "turnover":
+                    value = month["turnover"]
+                    display = (
+                        number(value, 2) + " x/mês" if value is not None else "Sem giro elegível"
+                    )
+                else:
+                    raw = month["salesQuantity" if key == "sales" else "stockQuantity"].get(unit)
+                    value, display = (
+                        (raw / SCALE, quantity(raw)) if raw is not None else (None, "Sem dados")
+                    )
+                points.append(
+                    {
+                        "period": month["period"],
+                        "label": month["label"]
+                        + (" (parcial)" if key == "sales" and month["partial"] else ""),
+                        "value": value,
+                        "display": display,
+                    }
+                )
+            return {"title": title, "unit": symbol, "points": points, "note": note}
+
+        self._monthly_view = {
+            "months": [{"value": m["period"], "label": m["label"]} for m in months],
+            "period": focused["period"],
+            "label": focused["label"],
+            "product": self._applied_selection.product,
+            "productLabel": self._search.names.get(self._applied_selection.product, "")
+            if self._search
+            else "",
+            "previousLabel": focused["previousLabel"],
+            "units": [{"value": u, "label": u} for u in units],
+            "unit": unit,
+            "scope": focused["scope"],
+            "salesScope": focused["salesScope"],
+            "notice": focused["notice"],
+            "metrics": metrics,
+            "comparison": focused["comparison"],
+            "salesComparison": focused["salesComparison"],
+            "sellers": focused["sellersByUnit"].get(unit, [])[:12],
+            "slow": sorted(
+                (r for r in focused["slow"] if r["daysSinceSale"] is not None),
+                key=lambda r: (-r["daysSinceSale"], -r["cost"], r["code"], r["branch"], r["unit"]),
+            )[:12],
+            "neverSold": [r for r in focused["slow"] if r["daysSinceSale"] is None][:12],
+            "lowTurnover": focused["lowTurnover"][:12],
+            "changes": focused["changes"][:12],
+            "salesChanges": focused["salesChangesByUnit"].get(unit, [])[:12],
+            "empty": "Nenhum registro neste mês e recorte."
+            if focused["stockCost"] is None and sales is None
+            else "",
+            "seriesKinds": [
+                {"value": "cost", "label": "Estoque a custo"},
+                {"value": "quantity", "label": "Quantidade em estoque"},
+                {"value": "sales", "label": "Vendas"},
+                {"value": "turnover", "label": "Giro da fonte"},
+            ],
+            "series": {
+                "cost": series(
+                    "cost",
+                    "Estoque a custo",
+                    "R$",
+                    "Fechamentos observados; lacunas não representam saldo zero.",
+                ),
+                "quantity": series(
+                    "quantity",
+                    "Quantidade em estoque",
+                    unit,
+                    "Quantidade no fechamento, somente na unidade selecionada.",
+                ),
+                "sales": series(
+                    "sales",
+                    "Vendas mensais da filial",
+                    unit,
+                    "Vendas líquidas; meses parciais identificados. Sem alocação por armazém.",
+                ),
+                "turnover": series(
+                    "turnover",
+                    "Giro da fonte · mediana",
+                    "x/mês",
+                    "Mediana por mês das posições elegíveis; não é giro consolidado.",
+                ),
+            },
+        }
+        self.monthlyChanged.emit()
+
+    @Slot(str)
+    def setMonthlyPeriod(self, period):
+        if (
+            not self.state["current"]
+            or self._thread
+            or period not in {m["period"] for m in self._monthly_data}
+        ):
+            return
+        if period != self._monthly_period:
+            self._monthly_period = period
+            self._refresh_monthly()
+
+    @Slot(str)
+    def setMonthlyUnit(self, unit):
+        if (
+            not self.state["current"]
+            or self._thread
+            or unit not in {v["value"] for v in self._monthly_view.get("units", [])}
+        ):
+            return
+        if unit != self._monthly_unit:
+            self._monthly_unit = unit
+            self._refresh_monthly()
+
     def _build_options(self):
         if self._data is None:
             return []
@@ -284,7 +505,7 @@ class InventoryController(QObject):
                 "values": [{"value": "", "label": "Todas as filiais"}]
                 + [
                     {"value": k, "label": k + " · " + branches.get(k, k)}
-                    for k in sorted({b.branch for b in d.balances})
+                    for k in sorted({b.branch for b in (*d.balances, *d.closings, *d.sales)})
                 ],
             },
             {
@@ -293,11 +514,15 @@ class InventoryController(QObject):
                 "values": [{"value": "", "label": "Todos os armazéns"}]
                 + [
                     {"value": k, "label": k + " · " + warehouses.get(k, k)}
-                    for k in sorted({b.warehouse for b in d.balances})
+                    for k in sorted({b.warehouse for b in (*d.balances, *d.closings)})
                 ],
             },
             {"key": "group", "label": "Grupo", "values": choices(p.group for p in d.products)},
-            {"key": "unit", "label": "Unidade", "values": choices(b.unit for b in d.balances)},
+            {
+                "key": "unit",
+                "label": "Unidade",
+                "values": choices(b.unit for b in (*d.balances, *d.closings, *d.sales)),
+            },
             {"key": "kind", "label": "Tipo", "values": choices(p.kind for p in d.products)},
             {
                 "key": "product",
@@ -402,10 +627,11 @@ class InventoryController(QObject):
                 )
             selected = self._default_selection(data)
             analysis = analyze_inventory(data, selected)
+            monthly = analyze_monthly_inventory(data, selected, analysis=analysis)
             checkpoint(cancel)
             if staged:
                 write_snapshot(data, staged, cancel)
-            return ("load", data, selected, analysis)
+            return ("load", data, selected, analysis, monthly)
 
         self._start(action, "load")
 
@@ -464,9 +690,14 @@ class InventoryController(QObject):
             return
         self._pending = False
         data, selected = self._data, self._selection
-        self._start(
-            lambda cancel, progress: ("analysis", analyze_inventory(data, selected)), "analysis"
-        )
+
+        def action(cancel, progress):
+            analysis = analyze_inventory(data, selected)
+            checkpoint(cancel)
+            monthly = analyze_monthly_inventory(data, selected, analysis=analysis)
+            return ("analysis", analysis, monthly)
+
+        self._start(action, "analysis")
 
     def _start(self, action, task):
         self._cancel = Event()
@@ -517,7 +748,8 @@ class InventoryController(QObject):
                     )
                     return
                 self._staged_cache = None
-            _, self._data, self._selection, self._analysis = result
+            _, self._data, self._selection, self._analysis, self._monthly_data = result
+            self._monthly_period = self._monthly_unit = ""
             self._search = ProductSearch(self._data)
             self._sales_begin = min((s.day for s in self._data.sales), default=self._data.as_of)
             self._page = 1
@@ -526,11 +758,13 @@ class InventoryController(QObject):
             self.optionsChanged.emit()
         elif result[0] == "analysis":
             self._analysis = result[1]
+            self._monthly_data = result[2]
         elif result[0] == "export":
             self.changed.emit()
             return
         self._applied_selection = self._selection
         self._publish_rows()
+        self._refresh_monthly()
         self.analysisChanged.emit()
         self.changed.emit()
 
@@ -616,18 +850,29 @@ class InventoryController(QObject):
         b = row.balance
         self._selected_index = index
         periods = month_range(self._selection.start, self._selection.end)
-        monthly_sales = {p: 0 if month_end(p) >= self._sales_begin else None for p in periods}
+        monthly_sales = {
+            p: 0
+            if month_end(p) >= self._sales_begin
+            and date.fromisoformat(p + "-01") <= self._data.as_of
+            else None
+            for p in periods
+        }
         for sale in self._data.sales:
-            if (sale.product, sale.branch, sale.unit) == (b.product, b.branch, b.unit):
+            if (sale.product, sale.branch, sale.unit) == (
+                b.product,
+                b.branch,
+                b.unit,
+            ) and sale.day <= self._data.as_of:
                 period = sale.day.strftime("%Y-%m")
                 if period in monthly_sales and monthly_sales[period] is not None:
                     monthly_sales[period] += sale.quantity
-        monthly_giro = {
-            c.period: c.turnover
+        monthly_closings = {
+            c.period: c
             for c in self._data.closings
             if (c.product, c.branch, c.warehouse, c.unit)
             == (b.product, b.branch, b.warehouse, b.unit)
         }
+        monthly_giro = {period: closing.turnover for period, closing in monthly_closings.items()}
         self._detail = {
             "code": b.product,
             "unit": b.unit,
@@ -684,6 +929,30 @@ class InventoryController(QObject):
                 }
                 for p in periods
             ],
+            "stockQuantityTrend": [
+                {
+                    "period": p,
+                    "label": p[5:] + "/" + p[:4],
+                    "value": monthly_closings[p].quantity / SCALE
+                    if p in monthly_closings
+                    else None,
+                    "display": number(monthly_closings[p].quantity / SCALE, 3) + " " + b.unit
+                    if p in monthly_closings
+                    else "Sem fechamento",
+                }
+                for p in periods
+            ],
+            "stockCostTrend": [
+                {
+                    "period": p,
+                    "label": p[5:] + "/" + p[:4],
+                    "value": monthly_closings[p].cost / 100 if p in monthly_closings else None,
+                    "display": money(monthly_closings[p].cost)
+                    if p in monthly_closings
+                    else "Sem fechamento",
+                }
+                for p in periods
+            ],
         }
         self.detailChanged.emit()
         self.changed.emit()
@@ -703,9 +972,10 @@ class InventoryController(QObject):
         if path.suffix.lower() != ".xlsx":
             path = path.with_suffix(".xlsx")
         data, analysis, selected = self._data, self._analysis, self._selection
+        monthly = self._monthly_data
 
         def action(cancel, progress):
-            export_inventory(data, analysis, selected, path, cancel)
+            export_inventory(data, analysis, selected, path, cancel, monthly=monthly)
             return ("export",)
 
         self._start(action, "export")

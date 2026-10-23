@@ -1,0 +1,165 @@
+{
+  "version": "5.3.0-rc.2",
+  "source": "Monthly stock and sales analysis; local processing without ERP/API calls",
+  "linux": {
+    "suite": {
+      "command": "python verificar.py --headless --volume",
+      "tests": 657,
+      "passed": 657,
+      "skipped": 0,
+      "seconds": 139.091,
+      "log_sha256": "ad3a9fa5e72516db6cb2719f430deda8a64c5239a8a83a7a28b4defc423c6599"
+    },
+    "final_targeted": {
+      "tests": 31,
+      "passed": 31,
+      "seconds": 2.832,
+      "scope": "Monthly core, export and Qt integration after final display and product-reset adjustments",
+      "log_sha256": "e3d88a404f38c02081bd86d7384838f270765fe137f64a05b7419af072524906"
+    },
+    "volume": {
+      "records": 100000,
+      "first_query_seconds": 1.631,
+      "qt_events": 93
+    }
+  },
+  "source_limits": [
+    "Historical close scope may differ from sales and current balances.",
+    "No lot receipt ages or complete movement documents. Recency is last observed positive sale in the branch.",
+    "Source monetary sale column is cost, not revenue.",
+    "No sales allocation by warehouse. Different quantity units are kept separate.",
+    "Cost contribution comparisons pair exact positions and separately identify new/missing records."
+  ],
+  "visual_review": {
+    "synthetic": true,
+    "company_data_used": false,
+    "network_used": false,
+    "source": "DEMONSTRAÇÃO — base inteiramente sintética.pbix",
+    "as_of": "2026-09-30",
+    "selection": {
+      "start": "2025-10",
+      "end": "2026-09",
+      "product": "",
+      "group": "",
+      "branch": "01",
+      "warehouse": "",
+      "unit": "KG",
+      "kind": "",
+      "abc": "",
+      "activity": "",
+      "balance": "",
+      "search": ""
+    },
+    "monthly": {
+      "period": "2026-09",
+      "unit": "KG",
+      "months": 12,
+      "scope": "Filial 01 · arm. 01",
+      "salesScope": "Vendas das filiais 01 · sem alocação por armazém",
+      "notice": "Fechamentos e vendas podem cobrir locais diferentes. Tempo sem venda não é idade do lote.",
+      "comparison": "Variação total observada +R$ 240.300,00 vs. 08/2026; posições comparáveis +R$ 177.100,00 (6 posições). 1 registro(s) novo(s) (R$ 220.000,00) e 1 ausente(s) (R$ 156.800,00) no fechamento. O ranking usa apenas posições comparáveis; registros novos/ausentes não comprovam entradas ou saídas físicas.",
+      "salesComparison": "Comparação com 08/2026: dois meses completos observados. Vendas líquidas podem incluir devoluções; quantidades separadas por unidade.",
+      "ranking_counts": {
+        "sellers": 5,
+        "slow": 6,
+        "neverSold": 1,
+        "lowTurnover": 7,
+        "changes": 6,
+        "salesChanges": 6
+      },
+      "metrics": [
+        {
+          "label": "Estoque no fechamento",
+          "value": "R$ 3,75 mi",
+          "detail": "+R$ 240.300,00 · +6,8% vs. 08/2026",
+          "full": "R$ 3.748.700,00. Variação total observada +R$ 240.300,00 vs. 08/2026; posições comparáveis +R$ 177.100,00 (6 posições). 1 registro(s) novo(s) (R$ 220.000,00) e 1 ausente(s) (R$ 156.800,00) no fechamento. O ranking usa apenas posições comparáveis; registros novos/ausentes não comprovam entradas ou saídas físicas."
+        },
+        {
+          "label": "Quantidade em estoque",
+          "value": "458.000,000 KG",
+          "detail": "Fechamento · KG",
+          "full": "+12.100,000 KG · +2,7% vs. 08/2026"
+        },
+        {
+          "label": "Vendas do mês",
+          "value": "121.750,000 KG",
+          "detail": "+33.950,000 KG · +38,7% vs. 08/2026",
+          "full": "Comparação com 08/2026: dois meses completos observados. Vendas líquidas podem incluir devoluções; quantidades separadas por unidade."
+        },
+        {
+          "label": "Giro da fonte · mediana",
+          "value": "1,81 x",
+          "detail": "7 posições válidas · 09/2026",
+          "full": "Mediana dos giros não negativos da fonte em posições com saldo positivo no mês. Não é giro consolidado. 0 valores negativos ou inválidos fora da mediana. Valores ausentes não entram no cálculo."
+        }
+      ]
+    },
+    "captures": [
+      {
+        "path": "docs/preview_530_rc2/estoque_mensal.png",
+        "width": 1380,
+        "height": 900,
+        "dark": false,
+        "ranking": "sellers",
+        "metric": "cost",
+        "period": "2026-09",
+        "unit": "KG",
+        "sha256": "7430adf735fdcbaffa8f992e8037ab8cc63b5952c0f01e43434901c7c36d0941",
+        "bytes": 104651
+      },
+      {
+        "path": "docs/preview_530_rc2/estoque_variacoes.png",
+        "width": 1380,
+        "height": 900,
+        "dark": false,
+        "ranking": "changes",
+        "metric": "cost",
+        "period": "2026-09",
+        "unit": "KG",
+        "sha256": "b2644ff04dccff50ca936a039e7e75e49340a97e605a4dcad0686eeaaea841f6",
+        "bytes": 139065
+      },
+      {
+        "path": "docs/preview_530_rc2/estoque_mensal_compacto.png",
+        "width": 500,
+        "height": 800,
+        "dark": false,
+        "ranking": "sellers",
+        "metric": "cost",
+        "period": "2026-09",
+        "unit": "KG",
+        "sha256": "000ecbb6cacab44a31cc72d62865cba34415e4f77ea71cc1c2b4578bd71cab52",
+        "bytes": 62472
+      },
+      {
+        "path": "docs/preview_530_rc2/estoque_mensal_escuro.png",
+        "width": 1380,
+        "height": 900,
+        "dark": true,
+        "ranking": "lowTurnover",
+        "metric": "sales",
+        "period": "2026-09",
+        "unit": "KG",
+        "sha256": "a07cb25939ff653e60578481d8436f21a7c8dfcaea10ff6c376e36c4bbed08e7",
+        "bytes": 99037
+      },
+      {
+        "path": "docs/preview_530_rc2/estoque_sem_venda_recente.png",
+        "width": 1380,
+        "height": 900,
+        "dark": false,
+        "ranking": "slow",
+        "metric": "sales",
+        "period": "2026-09",
+        "unit": "KG",
+        "sha256": "691f341ad5cbaf56e0aab09c42dd5aa3f4d1a2981df857ef435835fe93cf6cf5",
+        "bytes": 144125
+      }
+    ],
+    "qml_warnings": [],
+    "banner": "Temporary in-app label created by capture helper only; all numbers and names are synthetic."
+  },
+  "windows": {
+    "status": "pending"
+  }
+}

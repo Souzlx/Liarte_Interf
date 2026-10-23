@@ -12,12 +12,12 @@ FocusScope {
     readonly property var view: inventory.analysis
     readonly property var detail: inventory.detail
     property bool advanced: false
-    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible
+    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible || monthlySection.modalOpen
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
-    readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 ? "products" : "overview"
+    readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 ? "products" : scroll.contentY >= monthlySection.y - 80 ? "monthly" : "overview"
     function navigate(section) {
         const maximum = Math.max(0, scroll.contentHeight - scroll.height);
-        const destination = section === "products" ? Math.min(maximum, positionsSection.y - 18) : 0;
+        const destination = section === "products" ? Math.min(maximum, positionsSection.y - 18) : section === "monthly" ? Math.min(maximum, monthlySection.y - 18) : 0;
         stockScrollMotion.stop();
         if (Ui.Theme.motionEnabled) {
             stockScrollMotion.to = destination;
@@ -89,11 +89,11 @@ FocusScope {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: page.state.loaded ? "Saldos, vendas e capital" : "Preparando a base de estoque da LIARTE."
+                        text: page.state.loaded ? "Panorama atual e investigação mensal de estoque e vendas" : "Preparando a base de estoque da LIARTE."
                         textFormat: Text.PlainText
                         color: Ui.Theme.muted
                         font.pixelSize: 12
-                        elide: Text.ElideMiddle
+                        wrapMode: Text.WordWrap
                     }
                 }
                 RowLayout {
@@ -640,6 +640,16 @@ FocusScope {
                     }
                 }
             }
+            Ui.StockMonthly {
+                id: monthlySection
+                visible: page.state.loaded
+                Layout.fillWidth: true
+                monthly: inventory.monthly
+                controlsEnabled: page.controlsEnabled && page.state.current && !page.state.busy
+                onMonthSelected: period => inventory.setMonthlyPeriod(period)
+                onUnitSelected: unit => inventory.setMonthlyUnit(unit)
+                onProductSelected: code => inventory.setFilter("product", code)
+            }
             ColumnLayout {
                 id: positionsSection
                 visible: page.state.loaded
@@ -857,7 +867,10 @@ FocusScope {
     }
     Ui.AppDialog {
         id: stockDetail
-        property bool showGiro: false
+        readonly property string measure: detailMeasure.currentValue || "sales"
+        readonly property var series: measure === "giro" ? page.detail.giroTrend : measure === "quantity" ? page.detail.stockQuantityTrend : measure === "cost" ? page.detail.stockCostTrend : page.detail.salesTrend
+        readonly property string seriesTitle: measure === "giro" ? "Giro da fonte · posição" : measure === "quantity" ? "Quantidade no fechamento · posição" : measure === "cost" ? "Custo no fechamento · posição" : "Vendas da filial"
+        readonly property string seriesUnit: measure === "giro" ? "x/mês" : measure === "cost" ? "R$" : page.detail.unit || ""
         objectName: "stockDetail"
         parent: Overlay.overlay
         anchors.centerIn: parent
@@ -896,21 +909,33 @@ FocusScope {
                         stockDetail.close();
                     }
                 }
-                RowLayout {
-                    Ui.ActionButton {
-                        text: "Vendas"
-                        primary: !stockDetail.showGiro
-                        onClicked: stockDetail.showGiro = false
-                    }
-                    Ui.ActionButton {
-                        text: "Giro da fonte"
-                        primary: stockDetail.showGiro
-                        onClicked: stockDetail.showGiro = true
-                    }
+                Ui.AppCombo {
+                    id: detailMeasure
+                    objectName: "stockDetailMeasure"
+                    Layout.fillWidth: true
+                    model: [
+                        {
+                            value: "sales",
+                            label: "Vendas da filial"
+                        },
+                        {
+                            value: "giro",
+                            label: "Giro da fonte"
+                        },
+                        {
+                            value: "quantity",
+                            label: "Quantidade no fechamento"
+                        },
+                        {
+                            value: "cost",
+                            label: "Custo no fechamento"
+                        }
+                    ]
+                    Accessible.name: "Indicador mensal do produto"
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: stockDetail.showGiro ? "Giro da posição · x/mês" : "Vendas da filial · " + (page.detail.unit || "")
+                    text: stockDetail.seriesTitle + " · " + stockDetail.seriesUnit
                     textFormat: Text.PlainText
                     color: Ui.Theme.muted
                     font.pixelSize: 11
@@ -919,16 +944,16 @@ FocusScope {
                     id: detailTrend
                     Layout.fillWidth: true
                     Layout.preferredHeight: 200
-                    points: (stockDetail.showGiro ? page.detail.giroTrend : page.detail.salesTrend) || []
-                    unit: stockDetail.showGiro ? "x/mês" : page.detail.unit || ""
+                    points: stockDetail.series || []
+                    unit: stockDetail.seriesUnit
                     precision: 2
-                    mode: stockDetail.showGiro ? "line" : "column"
+                    mode: stockDetail.measure === "sales" ? "column" : "line"
                     movingAverage: false
-                    seriesName: stockDetail.showGiro ? "Giro da fonte" : "Vendas mensais da filial"
+                    seriesName: stockDetail.seriesTitle
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: detailTrend.readout || (stockDetail.showGiro ? "Giro original da posição selecionada" : "Vendas da filial · meses parciais identificados na consulta dos valores")
+                    text: detailTrend.readout || "Selecione um mês com o cursor ou as setas. Vendas pertencem à filial; fechamentos e giro pertencem à posição."
                     textFormat: Text.PlainText
                     color: Ui.Theme.muted
                     font.pixelSize: 11

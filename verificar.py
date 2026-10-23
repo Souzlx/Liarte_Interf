@@ -62,6 +62,9 @@ def main():
     )
 
     from tests.test_inventory import InventoryMathTests, InventoryFileTests, InventoryUiTests
+    from tests.test_inventory_monthly import InventoryMonthlyTests
+    from tests.test_inventory_monthly_export import InventoryMonthlyExportTests
+    from tests.test_inventory_monthly_ui import InventoryMonthlyUiTests
     from tests.test_ui_regressions import InventorySearchRegressionTests
     from tests.test_comex_access import ComexAccessTests, ComexCentralTests, ComexConnectionUiTests
     from tests.test_comex_automatic import AutomaticAccessTests, AutomaticAccessUiTests
@@ -89,6 +92,9 @@ def main():
         InventoryMathTests,
         InventoryFileTests,
         InventoryUiTests,
+        InventoryMonthlyTests,
+        InventoryMonthlyExportTests,
+        InventoryMonthlyUiTests,
         InventorySearchRegressionTests,
         PowerBiTests,
         CoreTests,
