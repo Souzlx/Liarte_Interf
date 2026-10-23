@@ -88,7 +88,7 @@ class AccuracyTests(ComexFixtureCase):
             return response
 
         return patch(
-            "liarte_engine.comexstat_importacoes.urllib.request.urlopen",
+            "liarte_engine.secure_http.urlopen",
             side_effect=receive,
         )
 

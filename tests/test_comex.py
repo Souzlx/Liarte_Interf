@@ -128,7 +128,7 @@ class ComexFixtureCase(unittest.TestCase):
         self.directory = Path(self.temp.name)
         self.transport = Transport()
         self.patch = patch(
-            "liarte_engine.comexstat_importacoes.urllib.request.urlopen",
+            "liarte_engine.secure_http.urlopen",
             side_effect=self.transport,
         )
         self.patch.start()
@@ -153,6 +153,21 @@ class ComexFixtureCase(unittest.TestCase):
 
 
 class ComexTests(ComexFixtureCase):
+    def test_fixture_queries_never_reach_either_platform_network_transport(self):
+        with (
+            patch(
+                "urllib.request.urlopen",
+                side_effect=AssertionError("Unexpected standard network request"),
+            ),
+            patch(
+                "liarte_engine.secure_http._origin_opener",
+                side_effect=AssertionError("Unexpected Windows network request"),
+            ),
+        ):
+            result = self.query()
+        self.assertEqual(len(result.rows), len(FIXTURE["general"]))
+        self.assertTrue(self.transport.calls)
+
     def test_exact_general_totals_from_official_fixture(self):
         result = self.query()
         self.assertEqual(
@@ -357,7 +372,7 @@ class ComexTests(ComexFixtureCase):
         waits = []
         with (
             patch(
-                "liarte_engine.comexstat_importacoes.urllib.request.urlopen",
+                "liarte_engine.secure_http.urlopen",
                 side_effect=errors,
             ) as request,
             patch.object(client, "_wait", side_effect=waits.append),
@@ -527,7 +542,7 @@ class RealQtTests(unittest.TestCase):
         self.directory = Path(self.temp.name)
         self.transport = Transport()
         self.patch = patch(
-            "liarte_engine.comexstat_importacoes.urllib.request.urlopen",
+            "liarte_engine.secure_http.urlopen",
             side_effect=self.transport,
         )
         self.patch.start()

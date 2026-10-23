@@ -115,7 +115,7 @@ class BootstrapTests(unittest.TestCase):
         context, _, load = self.windows()
         with context, patch.object(qt_runtime.sys, "_MEIPASS", str(frozen), create=True):
             qt_runtime.configure_windows_qt()
-            self.assertEqual(Path(load.call_args_list[0].args[0]).parent, frozen)
+            self.assertEqual(Path(load.call_args_list[0].args[0]).parent, frozen.resolve())
 
     def test_dependency_repair_uses_only_its_own_interpreter(self):
         log = self.root / "bootstrap.log"

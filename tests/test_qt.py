@@ -303,13 +303,17 @@ class QtTests(unittest.TestCase):
 
     def test_keyboard_keeps_selected_row_visible(self):
         self.load()
+        scroll = self.item("contentScroll")
+        scroll.setProperty("contentY", scroll.property("contentHeight") - scroll.height())
         table = self.item("recordsTable")
+        self.assertTrue(pump(lambda: table.property("contentHeight") > table.height()))
         table.forceActiveFocus()
         for _ in range(20):
             QTest.keyClick(self.window, Qt.Key.Key_Down)
-        APP.processEvents()
         self.assertEqual(self.controller.state["selection"], 19)
-        self.assertGreater(table.property("contentY"), 0)
+        self.assertTrue(pump(lambda: table.property("contentY") > 0))
+        self.assertLessEqual(table.property("topRow"), 19)
+        self.assertGreaterEqual(table.property("bottomRow"), 19)
         self.assertEqual(self.bundle.messages, [])
 
     def test_compact_mode_relayouts_without_qml_warnings(self):

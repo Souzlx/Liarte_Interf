@@ -157,7 +157,7 @@ class PlatformUiTests(unittest.TestCase):
         self.directory = Path(self.temp.name)
         self.transport = test_comex.Transport()
         self.patch = patch(
-            "liarte_engine.comexstat_importacoes.urllib.request.urlopen", side_effect=self.transport
+            "liarte_engine.secure_http.urlopen", side_effect=self.transport
         )
         self.patch.start()
         self.provider = ComexProvider(

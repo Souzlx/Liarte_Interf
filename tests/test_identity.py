@@ -106,7 +106,7 @@ class IdentityTests(unittest.TestCase):
 
                 def get_store(path, binding, flags, iid, output):
                     self.assertEqual(flags, 2)
-                    self.assertEqual(path, "Área de Trabalho/Liarte.lnk")
+                    self.assertEqual(path, str(Path("Área de Trabalho/Liarte.lnk")))
                     ctypes.cast(output, ctypes.POINTER(ctypes.c_void_p)).contents.value = 123
                     return 0
 

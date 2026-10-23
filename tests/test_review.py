@@ -329,19 +329,23 @@ class ReviewQtTests(unittest.TestCase):
         self.assertFalse(self.item("firstPage").property("enabled"))
 
     def test_header_actions_keep_their_complete_labels(self):
-        from PySide6.QtGui import QFontMetricsF
-
         for width, height in ((500, 400), (1380, 900)):
             self.window.resize(width, height)
             APP.processEvents()
             for name in ("themeButton", "settingsButton"):
                 control = self.item(name)
-                needed = QFontMetricsF(control.property("font")).horizontalAdvance(
-                    control.property("text")
-                )
-                available = (
-                    control.width()
-                    - control.property("leftPadding")
-                    - control.property("rightPadding")
-                )
-                self.assertGreaterEqual(available + 0.1, needed, name)
+                caption = control.property("text")
+                pending = list(control.childItems())
+                labels = []
+                while pending:
+                    child = pending.pop()
+                    pending.extend(child.childItems())
+                    if (
+                        child.property("text") == caption
+                        and child.property("truncated") is not None
+                    ):
+                        labels.append(child)
+                self.assertEqual(len(labels), 1, name)
+                if caption:
+                    self.assertFalse(labels[0].property("truncated"), (width, name, caption))
+                    self.assertLessEqual(labels[0].property("contentWidth"), labels[0].width() + 0.1)

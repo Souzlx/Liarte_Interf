@@ -1,4 +1,4 @@
-# Validação Windows — diagnóstico pendente
+# Validação Windows — correções de portabilidade
 
 O workflow manual foi executado na `main`, em Windows Server 2025 x64,
 com CPython 3.11, 3.12, 3.13 e 3.14.
@@ -24,17 +24,41 @@ como `cp1252`, executou **586 testes em 113,857 s: todos passaram, sem
 testes ignorados**. Isso confirma essa correção de portabilidade; não
 substitui a validação no Windows.
 
-## Bloqueio atual
+## Diagnóstico pelos logs do Windows
 
-As anotações acessíveis pela API do GitHub informam apenas
-`Process completed with exit code 1`. O download dos logs detalhados foi
-bloqueado para `results-receiver.actions.githubusercontent.com`.
-A permissão desse domínio está salva no rascunho do ambiente e precisa
-ser aplicada/publicada para continuar o diagnóstico.
+Depois da publicação da permissão para
+`results-receiver.actions.githubusercontent.com`, os logs foram baixados.
+A primeira execução confirma `UnicodeDecodeError` na leitura da fixture com
+`cp1252`, na posição 1462 no checkout Windows; a diferença para a reprodução
+Linux decorre das quebras de linha do checkout.
 
-Ainda não foi confirmada a causa das falhas reais do CI nem quantos testes
-concluíram no Windows. A próxima ação é ler os logs da segunda execução,
-corrigir a causa comprovada e repetir a matriz.
+Na segunda execução, os mocks de `urllib.request.urlopen` não interceptavam
+o transporte TLS nativo do Windows. Os testes que deveriam usar fixtures
+acessaram a API real, receberam HTTP 429 e provocaram falhas em cascata;
+dois jobs atingiram o limite de 300 segundos. Os mocks agora interceptam
+`liarte_engine.secure_http.urlopen`, comum às duas plataformas. Uma regressão
+bloqueia os dois caminhos reais de rede e confirma o uso da fixture.
+O transporte TLS de produção e seus requisitos de certificados permanecem
+preservados.
+
+Três testes também comparavam caminhos de maneira incompatível com Windows:
+dois ignoravam a expansão do alias `RUNNER~1` por `Path.resolve()`, e um
+exigia `/` no argumento de uma chamada COM. As expectativas agora acompanham
+os caminhos canônicos e o separador nativo, preservando as verificações.
+
+Nos testes Qt, a navegação por teclado agora aguarda o layout da tabela e
+confirma que a linha selecionada está entre as linhas visíveis. O teste do
+cabeçalho verifica a largura e a truncagem do texto efetivamente renderizado,
+em vez de estimar sua largura com um dispositivo de pintura externo. Esses
+ajustes tratam diferenças de agendamento e DPI do runner, mantendo as
+exigências de visibilidade e legibilidade.
+
+Com esses ajustes, `python verificar.py --headless --volume` executou
+**587 testes em 127,010 s, todos aprovados, sem testes ignorados**, no Linux.
+O ensaio de 100 mil registros concluiu a primeira consulta em 1,775 s,
+processando 87 eventos Qt. A matriz Windows será repetida com as correções.
+Até uma execução bem-sucedida, o pacote Windows continua sem validação
+concluída.
 
 O workflow gera a pasta portátil e testa o executável congelado. A criação
 do instalador Inno Setup e a homologação de instalação, atualização,
