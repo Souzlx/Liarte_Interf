@@ -1,10 +1,12 @@
-LIARTE — 5.2.0-rc.9
+LIARTE — 5.2.0-rc.10
 Importações e Estoque na mesma plataforma nativa
 
 COMECE AQUI
-1. Extraia TODO o ZIP em uma pasta própria, preservando a versão anterior.
-2. Na máquina da TI, use CPython 3.11–3.14 padrão de 64 bits, com Tkinter.
-3. Abra INICIAR_DESKTOP.cmd com dois cliques. A primeira preparação usa internet.
+1. Feche a versão anterior e extraia TODO o ZIP em uma pasta nova.
+2. Se a pasta contém LIARTE_Desktop.exe, abra esse executável. O pacote portátil
+   já inclui Python e dependências; não é necessário instalar Python.
+3. Se você recebeu somente os fontes, a TI usa CPython 3.11–3.14 padrão de
+   64 bits, com Tkinter, e abre INICIAR_DESKTOP.cmd. A preparação usa internet.
 4. Em Início, abra Estoque. A base da empresa já abre automaticamente.
 5. Para atualizar os dados, use Atualizar base e selecione o novo PBIX com dados
    ou uma base .liarte. Não é necessário selecionar arquivos na primeira utilização.
@@ -44,12 +46,14 @@ solicita todo o cadastro e período em uma chamada geral e outra municipal.
 A conexão não depende do cliente legado, de central ou de cache de respostas.
 Não há metadados prévios, consultas extras de totais ou espera preventiva fixa.
 
-Se a fonte pedir uma pausa curta, há somente uma recuperação do mesmo pedido,
-com contagem regressiva visível e cancelamento. Retry-After tem prioridade;
-sem esse cabeçalho, usa-se o prazo da mensagem do MDIC. Sem prazo informado,
-o recuo é de 30 segundos. O orçamento automático de espera é de 45 segundos.
-Prazos maiores são preservados e informados, sem aguardar minutos na interface.
-Uma segunda recusa encerra a operação. Não há tentativas infinitas.
+Se a fonte limitar as consultas (HTTP 429), a RC10 permite até quatro tentativas
+no pedido afetado, com contagem regressiva visível e cancelamento. Retry-After
+tem prioridade; sem esse cabeçalho, usa-se o prazo da mensagem do MDIC. Sem
+prazo informado, o recuo é de 30 segundos. Recusas repetidas aumentam a espera
+progressivamente. O orçamento automático de espera é de 90 segundos por pedido.
+Prazos que ultrapassem o orçamento são preservados e informados. Não há
+tentativas infinitas. Erros de conexão e de serviço mantêm a recuperação curta.
+Uma base já recebida não é baixada novamente para recuperar a outra base.
 
 Respostas gzip são aceitas e verificadas. Números decimais do JSON são lidos
 sem conversão intermediária para ponto flutuante. Estrutura, códigos, meses,
@@ -75,19 +79,20 @@ O modo direto não utiliza downloads CSV ou uma central como alternativa.
 A conferência HTTPS do Windows continua ativa. Não se desativa a segurança TLS.
 
 ATUALIZAR ESTA ENTREGA
-Feche a versão anterior e qualquer janela antiga da central, extraia todo o ZIP
-em uma pasta nova e abra INICIAR_DESKTOP.cmd com dois cliques. Aguarde o assistente.
-Depois, selecione o período e consulte normalmente. Não configure uma central.
+Feche a versão anterior, extraia todo o ZIP em uma pasta nova e abra o
+LIARTE_Desktop.exe dessa pasta. Nos fontes, use INICIAR_DESKTOP.cmd e aguarde
+o assistente. Depois, selecione o período e consulte normalmente.
 Um atalho de um executável antigo não é atualizado apenas por extrair este ZIP.
-Este pacote contém fontes e assistentes; não contém um Setup Windows compilado.
+Confira a versão 5.2.0-rc.10 em Ajuda. O pacote portátil não é um instalador Setup.
 
 VALIDAÇÃO
 Os testes verificam uso exclusivo da API pelo modo direto, consultas novas no
 mesmo período, independência das instalações, precisão, interrupções e os três
 geradores. Os ensaios Qt em Linux não substituem a validação do Windows da empresa.
 Consulte o escopo e o resultado do teste externo no arquivo de evidências.
-Guia atual: docs/NOVO_CLIENTE_API_520_RC9.md.
-Resultados atuais: docs/EVIDENCIAS_NOVO_CLIENTE_API_520_RC9.json.
+Guia da correção RC10: docs/CORRECAO_HTTP_429_RC10.md.
+Arquitetura e evidências anteriores: docs/NOVO_CLIENTE_API_520_RC9.md e
+docs/EVIDENCIAS_NOVO_CLIENTE_API_520_RC9.json.
 
 Geral: NCM/CIF. Municipal: domicílio fiscal/SH4/FOB, com outro universo de produtos.
 Não some as duas bases nem trate linhas agregadas como pedidos individuais.
@@ -105,11 +110,12 @@ Em Preferências, escolha Início, Importações, Estoque ou última tela ao abr
 Crédito permanece como módulo planejado.
 
 INSTALAÇÃO E DISTRIBUIÇÃO
-Este ZIP contém fontes, testes, base de estoque e assistentes; não contém um Setup
-Windows já compilado. Abra INICIAR_DESKTOP.cmd na nova pasta para testar os fontes.
-Um atalho para um executável antigo só abrirá a nova versão após recompilar e
-instalar o Setup atualizado. A TI compila o Setup no Windows pelo fluxo existente, incluindo
-Python e dependências para os demais usuários. Veja docs/INSTALACAO_510.md.
+O pacote portátil do GitHub Actions contém o executável e seus recursos;
+extraia a pasta inteira. O arquivo de fontes contém src/, testes e assistentes;
+use INICIAR_DESKTOP.cmd para executar os fontes com Python instalado.
+Um atalho para um executável antigo continua abrindo a versão anterior. A TI
+pode compilar o instalador Setup no Windows pelo fluxo existente.
+Veja docs/INSTALACAO_510.md.
 A identidade da instalação, atalhos, pastas e preferências foi preservada.
 A base de estoque faz parte dos recursos do programa e do pacote compilado.
 A última base válida importada pelo usuário tem preferência nas atualizações.

@@ -1,8 +1,8 @@
 """Cliente direto do desktop: um pedido por base, recuperação curta e verificável.
 
 Não inicia serviços nem lê respostas de consultas em disco. A única informação
-persistida pelo transporte é uma pausa efetivamente recebida da fonte. Validações
-de negócio permanecem nas funções comuns dos geradores.
+persistida pelo transporte é a pausa de recuperação decorrente de uma recusa da
+fonte. Validações de negócio permanecem nas funções comuns dos geradores.
 """
 
 from __future__ import annotations
@@ -137,6 +137,7 @@ class ApiClient:
         min_interval=0,
         max_attempts=2,
         *,
+        rate_limit_attempts=None,
         use_cache=False,
         coordinator_path=None,
         pause_state=None,
@@ -152,6 +153,10 @@ class ApiClient:
             raise ValueError("Tempo limite inválido.")
         if type(max_attempts) is not int or not 1 <= max_attempts <= 2:
             raise ValueError("Use uma ou duas tentativas por pedido.")
+        if rate_limit_attempts is None:
+            rate_limit_attempts = max_attempts
+        if type(rate_limit_attempts) is not int or not 1 <= rate_limit_attempts <= 4:
+            raise ValueError("Use de uma a quatro tentativas para pausas da fonte.")
         if (
             min_interval != 0
             or use_cache
@@ -162,6 +167,7 @@ class ApiClient:
             raise ValueError("Este cliente utiliza somente pedidos diretos do período inteiro.")
         self.timeout = float(timeout)
         self.max_attempts = max_attempts
+        self.rate_limit_attempts = rate_limit_attempts
         self.pause = pause_state or ApiPause(coordinator_path)
         self.cancel_check, self.cancel_wait = cancel_check, cancel_wait
         self.progress_callback, self.failure_callback = progress_callback, failure_callback
@@ -351,17 +357,20 @@ class ApiClient:
             "Accept": "application/json",
             "Content-Type": "application/json",
             "Accept-Encoding": "gzip",
-            "User-Agent": "LIARTE-Desktop/5.2.0-rc.9",
+            "User-Agent": "LIARTE-Desktop/5.2.0-rc.10",
         }
-        attempt, wait_budget, previous_error = 0, 45.0, None
-        while attempt < self.max_attempts:
+        attempt, wait_budget, previous_error = 0, 90.0, None
+        transient_failures, previous_rate_delay = 0, 0.0
+        attempt_limit = max(self.max_attempts, self.rate_limit_attempts)
+        while attempt < attempt_limit:
             wait_budget = self._pause_wait(wait_budget, path, previous_error)
             transient = None
+            rate_limited = False
             with self._serial():
                 if self.pause.remaining() > 0:
                     continue
                 attempt += 1
-                self._notify(f"Acessando o Comex Stat · tentativa {attempt}/{self.max_attempts}")
+                self._notify(f"Acessando o Comex Stat · tentativa {attempt}/{attempt_limit}")
                 try:
                     status, response_headers, text = self._receive(
                         urllib.request.Request(
@@ -416,6 +425,13 @@ class ApiClient:
                         self._diagnose(path, status, effective, response_headers, text)
                     if effective in (429, 500, 502, 503, 504):
                         delay = retry_delay(response_headers, text)
+                        rate_limited = effective == 429
+                        if rate_limited and self.rate_limit_attempts > self.max_attempts:
+                            # A short generic pause can repeat while the origin is
+                            # still busy. Never shorten its deadline; back off on
+                            # subsequent refusals within this endpoint operation.
+                            delay = max(delay, previous_rate_delay * 2)
+                            previous_rate_delay = delay
                         self.pause.defer(delay, effective)
                         transient = (
                             contract.ComexRateLimitError(delay, path, text, status)
@@ -434,12 +450,20 @@ class ApiClient:
                         )
                     else:
                         return payload
-            if attempt >= self.max_attempts:
+            if rate_limited:
+                can_retry = attempt < self.rate_limit_attempts
+            else:
+                transient_failures += 1
+                can_retry = transient_failures < self.max_attempts and attempt < attempt_limit
+            if not can_retry:
                 raise transient
             previous_error = transient
             if self.pause.remaining() == 0:
+                if wait_budget < 2:
+                    raise transient
                 self._notify("Aguardando o Comex Stat · reconectando em 2 s")
                 self._sleep(2)
+                wait_budget -= 2
         raise contract.ComexStatError("A consulta não foi concluída.")
 
     def latest_published_period(self):

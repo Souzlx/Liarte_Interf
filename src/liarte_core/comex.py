@@ -243,7 +243,10 @@ class ComexProvider:
                 failure_callback=self._record_failure,
                 verify_official_totals=self._verify_official_totals,
                 window_months=None,
-                **({"pause_state": self._api_pause} if self._native_api else {}),
+                **(
+                    {"pause_state": self._api_pause, "rate_limit_attempts": 4}
+                    if self._native_api else {}
+                ),
             )
         try:
             connection = load_connection(self.directory / "conexao_comex.json")

@@ -98,6 +98,66 @@ class NativeApiTests(unittest.TestCase):
             100,
         )
 
+    def test_second_period_recovers_municipal_rate_limits_without_repeating_general(self):
+        first = self.load()
+        clock, waits, calls = Clock(), [], []
+        self.provider._api_pause.clock = clock
+        refused = 0
+
+        def receive(request, **kwargs):
+            nonlocal refused
+            path = request.full_url.split(".gov.br", 1)[1].split("?", 1)[0]
+            calls.append(path)
+            if path == "/cities" and refused < 2:
+                refused += 1
+                raise limited(None)
+            return self.transport(request, **kwargs)
+
+        def wait(client, seconds):
+            client._check()
+            waits.append(seconds)
+            clock.wait(seconds)
+
+        self.period = Period("2025-10", "2026-09")
+        with (
+            patch.object(ApiClient, "_open", side_effect=receive),
+            patch.object(ApiClient, "_sleep", new=wait),
+            patch("liarte_core.comex_api.time.monotonic", new=clock),
+        ):
+            second = self.load()
+        self.assertEqual(calls, ["/general", "/cities", "/cities", "/cities"])
+        self.assertEqual(second.api_requests, 4)
+        self.assertEqual(second.period, self.period)
+        self.assertIs(self.provider.snapshot, second)
+        self.assertIsNot(second, first)
+        self.assertEqual(len(second.general), 18)
+        self.assertEqual(len(second.municipal), 216)
+        self.assertAlmostEqual(sum(waits), 31.5)
+
+    def test_exhausted_municipal_rate_limits_preserve_previous_complete_period(self):
+        first = self.load()
+        clock, calls = Clock(), []
+        self.provider._api_pause.clock = clock
+
+        def receive(request, **kwargs):
+            path = request.full_url.split(".gov.br", 1)[1].split("?", 1)[0]
+            calls.append(path)
+            if path == "/cities":
+                raise limited(None)
+            return self.transport(request, **kwargs)
+
+        self.period = Period("2025-10", "2026-09")
+        with (
+            patch.object(ApiClient, "_open", side_effect=receive),
+            patch.object(ApiClient, "_sleep", new=lambda client, seconds: clock.wait(seconds)),
+            patch("liarte_core.comex_api.time.monotonic", new=clock),
+            self.assertRaises(ComexError),
+        ):
+            self.load()
+        self.assertEqual(calls, ["/general", "/cities", "/cities", "/cities", "/cities"])
+        self.assertIs(self.provider.snapshot, first)
+        self.assertAlmostEqual(self.provider._api_pause.remaining(), 84)
+
     def test_full_catalog_and_multi_year_period_still_make_only_two_post_requests(self):
         provider = ComexProvider(self.directory)
         with patch.object(provider, "availability", side_effect=AssertionError("metadata")):
@@ -226,17 +286,19 @@ class NativeApiTests(unittest.TestCase):
 
 
 class ApiProtocolTests(unittest.TestCase):
-    def client(self, *, attempts=2, path=None):
+    def client(self, *, attempts=2, rate_attempts=None, path=None):
         self.clock = Clock()
         self.messages = []
         client = ApiClient(
             max_attempts=attempts,
+            rate_limit_attempts=rate_attempts,
             pause_state=ApiPause(path, clock=self.clock),
             progress_callback=lambda p, m: self.messages.append(m),
         )
         self.waits = []
 
         def wait(seconds):
+            client._check()
             self.waits.append(seconds)
             self.clock.wait(seconds)
 
@@ -272,10 +334,109 @@ class ApiProtocolTests(unittest.TestCase):
         self.assertAlmostEqual(sum(self.waits), 10.5)
         self.assertAlmostEqual(client.pause.remaining(), 10.5)
 
+    def test_extended_rate_limit_policy_recovers_after_two_short_refusals(self):
+        client = self.client(rate_attempts=4)
+        calls = []
+
+        def receive(*args, **kwargs):
+            calls.append(self.clock())
+            if len(calls) <= 2:
+                raise limited(None)
+            return BytesResponse(b'{"data":{"list":[]}}')
+
+        client._network_opener = receive
+        with patch("liarte_core.comex_api.time.monotonic", new=self.clock):
+            self.assertEqual(self.request(client), {"data": {"list": []}})
+        self.assertEqual(calls, [1000, 1010.5, 1031.5])
+        self.assertEqual(client.network_requests, 3)
+        self.assertAlmostEqual(sum(self.waits), 31.5)
+
+    def test_repeated_rate_limits_stop_at_four_requests_and_persist_extended_pause(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "pause.json"
+            client = self.client(rate_attempts=4, path=path)
+            client._network_opener = lambda *a, **k: (_ for _ in ()).throw(limited(None))
+            with (
+                patch("liarte_core.comex_api.time.monotonic", new=self.clock),
+                self.assertRaises(legacy.ComexRateLimitError),
+            ):
+                self.request(client)
+            self.assertEqual(client.network_requests, 4)
+            self.assertAlmostEqual(sum(self.waits), 73.5)
+            self.assertAlmostEqual(client.pause.remaining(), 84)
+            self.assertAlmostEqual(ApiPause(path, clock=self.clock).remaining(), 84)
+
+    def test_rate_limit_wait_budget_prevents_a_retry_beyond_ninety_seconds(self):
+        client = self.client(rate_attempts=4)
+        client._network_opener = lambda *a, **k: (_ for _ in ()).throw(limited("30"))
+        with (
+            patch("liarte_core.comex_api.time.monotonic", new=self.clock),
+            self.assertRaises(legacy.ComexRateLimitError),
+        ):
+            self.request(client)
+        self.assertEqual(client.network_requests, 2)
+        self.assertAlmostEqual(sum(self.waits), 30.5)
+        self.assertAlmostEqual(client.pause.remaining(), 61)
+
+    def test_cancellation_during_the_second_rate_limit_wait_prevents_a_third_request(self):
+        cancel = Event()
+        client = self.client(rate_attempts=4)
+        client.cancel_check = lambda: checkpoint(cancel)
+        client.progress_callback = (
+            lambda p, message: cancel.set()
+            if client.network_requests == 2 and "Aguardando" in message else None
+        )
+        client._network_opener = lambda *a, **k: (_ for _ in ()).throw(limited(None))
+        with (
+            patch("liarte_core.comex_api.time.monotonic", new=self.clock),
+            self.assertRaises(Cancelled),
+        ):
+            self.request(client)
+        self.assertEqual(client.network_requests, 2)
+        self.assertAlmostEqual(sum(self.waits), 10.5)
+        self.assertAlmostEqual(client.pause.remaining(), 21)
+
+    def test_extended_rate_limit_policy_keeps_connection_and_server_errors_at_two_requests(self):
+        for status in (None, 503):
+            with self.subTest(status=status):
+                client = self.client(rate_attempts=4)
+
+                def receive(*args, **kwargs):
+                    if status is None:
+                        raise URLError("connection reset")
+                    return BytesResponse(b"busy", status=status, headers={"Retry-After": "1"})
+
+                client._network_opener = receive
+                with (
+                    patch("liarte_core.comex_api.time.monotonic", new=self.clock),
+                    self.assertRaises(legacy.ComexStatError),
+                ):
+                    self.request(client)
+                self.assertEqual(client.network_requests, 2)
+                self.assertAlmostEqual(sum(self.waits), 2 if status is None else 1.5)
+
+    def test_connection_retry_limit_still_applies_when_a_rate_limit_intervenes(self):
+        client = self.client(rate_attempts=4)
+        responses = [URLError("connection reset"), limited(None), URLError("still offline")]
+
+        def receive(*args, **kwargs):
+            if not responses:
+                self.fail("The two failed connections must stop recovery")
+            raise responses.pop(0)
+
+        client._network_opener = receive
+        with (
+            patch("liarte_core.comex_api.time.monotonic", new=self.clock),
+            self.assertRaises(legacy.ComexStatError),
+        ):
+            self.request(client)
+        self.assertEqual(client.network_requests, 3)
+        self.assertAlmostEqual(sum(self.waits), 12.5)
+
     def test_long_retry_after_is_preserved_without_waiting_minutes_or_repeating(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "pause.json"
-            client = self.client(path=path)
+            client = self.client(path=path, rate_attempts=4)
             client._network_opener = lambda *a, **k: (_ for _ in ()).throw(limited("1800"))
             with self.assertRaises(legacy.ComexRateLimitError):
                 self.request(client)
@@ -347,7 +508,7 @@ class ApiProtocolTests(unittest.TestCase):
         self.assertEqual(client.network_requests, 1)
 
     def test_certificate_failure_is_never_retried_or_treated_as_rate_limit(self):
-        client = self.client()
+        client = self.client(rate_attempts=4)
         error = URLError(ssl.SSLCertVerificationError(1, "unknown issuer"))
         client._network_opener = lambda *a, **k: (_ for _ in ()).throw(error)
         with self.assertRaisesRegex(legacy.ComexStatError, "certificado"):
@@ -460,6 +621,9 @@ class ApiProtocolTests(unittest.TestCase):
             {"gateway": object()},
             {"min_interval": 65},
             {"max_attempts": 100},
+            {"rate_limit_attempts": 100},
+            {"rate_limit_attempts": 0},
+            {"rate_limit_attempts": True},
             {"verify_official_totals": True},
             {"window_months": 12},
         ):
@@ -525,6 +689,19 @@ class NativeApiQtTests(unittest.TestCase):
         self.window = self.bundle.engine.rootObjects()[0]
         APP.processEvents()
 
+    def controlled_pause(self):
+        clock, release = Clock(), Event()
+        self.provider._api_pause.clock = clock
+
+        def wait(client, seconds):
+            while not release.wait(0.01):
+                client._check()
+            client._check()
+            clock.wait(seconds)
+            client._check()
+
+        return clock, release, patch.object(ApiClient, "_sleep", wait)
+
     def test_real_desktop_uses_new_client_and_keeps_navigation_local(self):
         from tests.test_qt import settled
 
@@ -562,4 +739,117 @@ class NativeApiQtTests(unittest.TestCase):
             settled(self.controller)
         self.assertEqual(len(calls), 1)
         self.assertFalse(self.controller.state["error"])
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_second_period_query_recovers_repeated_municipal_limits_without_replaying_general(self):
+        from urllib.parse import urlsplit
+        from tests.test_qt import pump, settled
+
+        self.load()
+        previous, rows = self.provider.snapshot, self.controller.table.rows
+        total = sum(row.cif_cents for row in previous.general_records)
+        self.transport.general[0]["metricFOB"] = str(Decimal(self.transport.general[0]["metricFOB"]) + 1)
+        self.transport.general[0]["metricCIF"] = str(Decimal(self.transport.general[0]["metricCIF"]) + 1)
+        _, release, sleeping = self.controlled_pause()
+        wire = []
+
+        def receive(request, **kwargs):
+            path = urlsplit(request.full_url).path
+            wire.append(path)
+            if path == "/cities" and wire.count("/cities") <= 2:
+                raise limited("1")
+            return self.transport(request, **kwargs)
+
+        with sleeping, patch.object(ApiClient, "_open", side_effect=receive):
+            try:
+                self.controller.queryPeriod("2025-10", "2026-09")
+                self.assertTrue(pump(lambda: "Aguardando o Comex Stat" in self.controller.state["stage"]))
+                self.assertTrue(self.controller.state["busy"])
+                self.assertTrue(self.controller.state["loaded"])
+                self.assertFalse(self.controller.state["error"])
+                self.assertEqual(self.controller.table.rows, rows)
+                self.assertIs(self.provider.snapshot, previous)
+                self.assertEqual(self.controller.state["appliedStart"], "2026-09")
+                self.assertTrue(self.item("queryProgress").property("visible"))
+                self.assertFalse(self.item("queryButton").property("enabled"))
+                release.set()
+                settled(self.controller)
+            finally:
+                release.set()
+        self.assertEqual(wire, ["/general", "/cities", "/cities", "/cities"])
+        self.assertFalse(self.controller.state["error"])
+        self.assertEqual(self.controller.state["appliedStart"], "2025-10")
+        self.assertEqual(self.provider.snapshot.period, Period("2025-10", "2026-09"))
+        self.assertEqual(sum(row.cif_cents for row in self.provider.snapshot.general_records), total + 100)
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_second_query_can_cancel_its_pause_without_losing_the_first_result(self):
+        from urllib.parse import urlsplit
+        from tests.test_qt import pump, settled
+
+        self.load()
+        previous, rows = self.provider.snapshot, self.controller.table.rows
+        _, release, sleeping = self.controlled_pause()
+        wire = []
+
+        def receive(request, **kwargs):
+            path = urlsplit(request.full_url).path
+            wire.append(path)
+            if path == "/cities":
+                raise limited("10")
+            return self.transport(request, **kwargs)
+
+        with sleeping, patch.object(ApiClient, "_open", side_effect=receive):
+            try:
+                self.controller.queryPeriod("2025-10", "2026-09")
+                self.assertTrue(pump(lambda: "Aguardando o Comex Stat" in self.controller.state["stage"]))
+                self.assertEqual(self.controller.table.rows, rows)
+                self.assertTrue(self.item("cancelButton").property("enabled"))
+                self.controller.cancel()
+                settled(self.controller)
+            finally:
+                release.set()
+        self.assertEqual(wire, ["/general", "/cities"])
+        self.assertIs(self.provider.snapshot, previous)
+        self.assertEqual(self.controller.table.rows, rows)
+        self.assertTrue(self.controller.state["loaded"])
+        self.assertFalse(self.controller.state["error"])
+        self.assertEqual(self.controller._selection.period, previous.period)
+        self.assertGreater(self.provider.access_status()["pause_seconds"], 0)
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_expired_source_pause_reenables_query_without_an_obsolete_seconds_message(self):
+        from tests.test_qt import pump, settled
+
+        self.load()
+        previous, rows = self.provider.snapshot, self.controller.table.rows
+        clock, release, sleeping = self.controlled_pause()
+        release.set()
+        calls = []
+
+        def deny(*args, **kwargs):
+            calls.append(1)
+            raise limited("1")
+
+        with sleeping, patch.object(ApiClient, "_open", side_effect=deny):
+            self.controller.queryPeriod("2025-10", "2026-09")
+            settled(self.controller)
+        self.assertEqual(len(calls), 4)
+        self.assertIs(self.provider.snapshot, previous)
+        self.assertEqual(self.controller.table.rows, rows)
+        self.assertGreater(self.controller.state["sourcePauseSeconds"], 0)
+        self.assertFalse(self.item("queryButton").property("enabled"))
+        self.assertIn("Aguarde", self.item("queryError").property("text"))
+        diagnostic = self.controller.state["error"]
+        clock.wait(self.provider._api_pause.remaining() + 1)
+        self.controller._sync_access_status()
+        self.assertTrue(pump(lambda: self.item("queryButton").property("enabled")))
+        message = self.item("queryError").property("text")
+        self.assertIn("terminou", message)
+        self.assertIn("consultar novamente", message)
+        self.assertNotIn("Aguarde", message)
+        self.assertNotIn("HTTP", message)
+        self.assertEqual(self.item("queryError").property("color"), self.item("queryStage").property("color"))
+        self.assertEqual(self.controller.state["error"], diagnostic)
+        self.assertEqual(len(calls), 4)
         self.assertEqual(self.bundle.messages, [])

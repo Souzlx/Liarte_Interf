@@ -1137,6 +1137,7 @@ class DesktopController(QObject):
             and not self._closing
             and not stale
         ):
+            self._sync_access_status()
             self._update(
                 error=message,
                 waiting=False,

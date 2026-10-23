@@ -141,11 +141,14 @@ FocusScope {
     readonly property string valueBasis: viewState.appliedKind === "municipal" ? "FOB" : "CIF"
     readonly property int pauseSeconds: viewState.sourcePauseSeconds || 0
     readonly property string pauseLabel: Math.floor(pauseSeconds / 60) + ":" + String(pauseSeconds % 60).padStart(2, "0")
+    function sourcePauseError(message) {
+        return message.includes("Comex Stat solicitou uma pausa") || /HTTP\s*429|"code"\s*:\s*429/.test(message);
+    }
     function userError(message) {
         if (message.includes("Comex Stat solicitou uma pausa"))
-            return message;
-        if (/HTTP\s*429|"code"\s*:\s*429/.test(message))
-            return "O Comex Stat está com limite de consultas. Aguarde um pouco e tente novamente.";
+            return "A pausa solicitada pelo Comex Stat terminou. Você pode consultar novamente.";
+        if (sourcePauseError(message))
+            return "O Comex Stat está com limite de consultas. Você pode tentar novamente.";
         if (/HTTP\s*5\d\d/.test(message))
             return "O Comex Stat está temporariamente indisponível. Tente novamente em instantes.";
         if (/HTTP\s*(401|403)/.test(message))
@@ -437,7 +440,7 @@ FocusScope {
                         Layout.fillWidth: true
                         visible: window.pauseSeconds > 0 || window.viewState.error.length > 0 || window.viewState.metadataError.length > 0
                         text: window.pauseSeconds > 0 ? "O Comex Stat solicitou uma pausa. " + (window.viewState.busy || window.viewState.metadataBusy ? "Aguardando " + window.pauseLabel + " para uma nova tentativa automática." : "Aguarde " + window.pauseLabel + " antes de consultar novamente.") : window.userError(window.viewState.error || window.viewState.metadataError)
-                        color: window.pauseSeconds > 0 ? Ui.Theme.muted : Ui.Theme.danger
+                        color: window.pauseSeconds > 0 || window.sourcePauseError(window.viewState.error || window.viewState.metadataError) ? Ui.Theme.muted : Ui.Theme.danger
                         font.pixelSize: 12
                         wrapMode: Text.WordWrap
                         Accessible.role: Accessible.AlertMessage
