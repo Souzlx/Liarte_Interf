@@ -37,13 +37,33 @@ entre NCM/CIF e município fiscal/SH4/FOB continuam cobertas pelos testes existe
 - As telas de Importações e Estoque foram inspecionadas em 1380×900 e 760×700,
   com dados sintéticos e sem avisos QML.
 
-## Limites da validação externa
+## Validação externa
 
-A tentativa real de ler os metadados do Comex Stat foi bloqueada pelo proxy
-do ambiente antes de alcançar a API: `Tunnel connection failed: 403 Forbidden`.
-O domínio `api-comexstat.mdic.gov.br` foi acrescentado ao rascunho da política
-de rede. O acesso precisa ser aplicado nas configurações do ambiente antes
-de repetir a consulta real.
+A primeira tentativa foi bloqueada pelo proxy do ambiente. Após aplicar a
+permissão para `api-comexstat.mdic.gov.br`, a conexão e a consulta real passaram.
+As duas bases confirmaram publicação até setembro de 2026, atualizada em
+06/10/2026.
+
+A consulta de setembro de 2026 utilizou o `ApiClient` padrão, os 35 NCMs e as
+19 posições SH4 do cadastro: **920 registros gerais e 5.306 municipais**,
+em **3,321 s**, com **dois POSTs**, sem repetição ou uso de cache de respostas.
+As duas bases foram validadas antes da publicação do resultado.
+
+Os totais do Excel conferiram com o resultado recebido. O PDF filtrado para
+China passou na verificação das três páginas A4 e dos cabeçalhos. O pacote
+Power BI foi gerado a partir desse Excel validado: seis páginas, 85 visuais
+e 57 medidas, com o Excel incorporado idêntico ao original e controles de
+totais e hashes conferidos. Filtros locais e geração de documentos usaram
+os dados já recebidos, sem novas consultas à API.
+
+A primeira checagem manual do PDF esperava indevidamente um cabeçalho CIF.
+A checagem foi corrigida para os cabeçalhos reais do layout, incluindo US$/kg;
+o aplicativo não precisou de alteração. A retomada usou o Excel já salvo.
+
+As evidências e hashes estão em
+[`VALIDACAO_API_REAL_2026-10-22.json`](VALIDACAO_API_REAL_2026-10-22.json).
+Essa validação confirma a resposta e a integridade das exportações; não fez
+uma consulta adicional de totais oficiais para conciliação independente.
 
 A validação Linux cobre a geração do pacote Power BI e das expressões M;
 a execução dessas expressões no Power BI Desktop e a homologação do instalador

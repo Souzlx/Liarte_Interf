@@ -1,0 +1,86 @@
+{
+  "status": "ok",
+  "synthetic": false,
+  "checked_at": "2026-10-22T23:53:07+00:00",
+  "tested_commit": "de0522a2fae8c38880eb74e1826ae0c5fb39e8d8",
+  "period": {
+    "start": "2026-09",
+    "end": "2026-09"
+  },
+  "availability": {
+    "latest": "2026-09",
+    "updated": "2026-10-06",
+    "checked_at": "2026-10-22T23:53:08+00:00",
+    "cached": false,
+    "municipal_latest": "2026-09",
+    "municipal_updated": "2026-10-06",
+    "confirmed": true
+  },
+  "ncm_count": 35,
+  "sh4_count": 19,
+  "query_seconds": 3.321,
+  "api_post_requests": 2,
+  "response_validated": true,
+  "independent_official_totals_reconciled": false,
+  "source_channels": [
+    "comex-api"
+  ],
+  "cache_hits": 0,
+  "shared_cache_hits": 0,
+  "units": {
+    "money": "US$ cents",
+    "weight": "kg"
+  },
+  "totals_by_separate_dataset": {
+    "general": {
+      "rows": 920,
+      "zero_weight_rows": 55,
+      "kg": 148137480,
+      "fob_cents": 28316206000,
+      "freight_cents": 1957962800,
+      "insurance_cents": 14196100,
+      "cif_cents": 30288364900
+    },
+    "municipal": {
+      "rows": 5306,
+      "zero_weight_rows": 295,
+      "kg": 2541235758,
+      "fob_cents": 311542582600
+    }
+  },
+  "pdf_country_filter": "China",
+  "artifacts": {
+    "excel": {
+      "file": "IMPORTACAO_2026-09_2026-09.xlsx",
+      "bytes": 654342,
+      "sha256": "4a3dd73d5bcd74c74667f98e2eae1a0a7657ba163a6bf7cd5c17891722987d0e",
+      "totals_match_snapshot": true
+    },
+    "pdf": {
+      "file": "IMPORTACOES_FILTRADAS_2026-09.pdf",
+      "bytes": 728038,
+      "sha256": "5846e9348cca6bc8ebda28a5149b762f51cf628231fb1e7faac7c47717d519b9",
+      "pages": 3,
+      "a4_headers_checked": true
+    },
+    "powerbi": {
+      "file": "POWERBI_LIARTE_2026-09.zip",
+      "bytes": 1269421,
+      "sha256": "d96127fc25032a3c8470c62751b20964424ca48df2d58625ecbd910d59fbc5a7",
+      "pages": 6,
+      "visuals": 85,
+      "measures": 57,
+      "json_files": 99,
+      "totals_match_snapshot": true,
+      "embedded_excel_byte_identical": true
+    }
+  },
+  "export_checks_did_not_refetch_api": true,
+  "powerbi_generated_from_verified_excel": true,
+  "initial_checker_error": "CIF was incorrectly expected in the PDF headers; actual PDF_HEADERS verified on every page. No application change.",
+  "limitations": [
+    "Official aggregate totals were not fetched for independent reconciliation.",
+    "Power BI M/DAX were inspected in the generated project, not executed in Power BI Desktop.",
+    "Windows installer and company network validation are separate."
+  ]
+}
