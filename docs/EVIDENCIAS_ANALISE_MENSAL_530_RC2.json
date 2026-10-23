@@ -160,6 +160,32 @@
     "banner": "Temporary in-app label created by capture helper only; all numbers and names are synthetic."
   },
   "windows": {
-    "status": "pending"
-  }
+    "status": "success",
+    "report": "VALIDACAO_WINDOWS_530_RC2.json",
+    "workflow_run": 40010674136,
+    "tested_commit": "c700403678551ab3a7c65df24d9e0ec77d4d8582",
+    "aggregate_logs_available": true,
+    "tests_per_job": 657,
+    "passed_per_job": 656,
+    "skipped_per_job": 1,
+    "frozen_smoke": "all four passed; 5.3.0-rc.2, Qt 6.10.3, no QML warnings"
+  },
+  "bundled_data_reconciliation": {
+    "as_of": "2026-10-21",
+    "selected_months": 94,
+    "observed_stock_months": 93,
+    "reconciled_stock_comparisons": 92,
+    "reconciled_sales_comparisons": 91,
+    "seconds": 0.902,
+    "checks": [
+      "Cost deltas reconcile matched positions + new records - absent records",
+      "All product contributions reconcile paired cost deltas",
+      "Sales rows reconcile per unit and all product deltas reconcile sales changes",
+      "Low turnover uses only nonnegative eligible source values",
+      "Historical recency does not become negative"
+    ],
+    "network_used": false,
+    "financial_values_published": false
+  },
+  "tested_code_commit": "c700403678551ab3a7c65df24d9e0ec77d4d8582"
 }

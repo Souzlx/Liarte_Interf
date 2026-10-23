@@ -105,7 +105,36 @@ eventos Qt. Após os últimos ajustes de apresentação e do controle de retorno
 a todos os produtos, os **31 testes específicos passaram em 2,832 s**.
 As capturas integradas não registraram avisos QML.
 
-A compilação Windows será registrada após sua conclusão. A versão estável
+Na base integrada, os 94 meses selecionados foram processados em 0,902 s.
+As 92 comparações disponíveis de estoque e as 91 de vendas conciliam com
+as contribuições por produto. A verificação usou a fonte local e não publicou
+valores financeiros; meses parciais e sem fechamento permaneceram identificados.
+
+Os quatro jobs Windows e a execução completa passaram no commit
+`c700403678551ab3a7c65df24d9e0ec77d4d8582`. Cada job executou **657 testes**:
+656 aprovados, um teste exclusivo de POSIX ignorado e nenhuma falha.
+Os quatro executáveis 5.3.0-rc.2 passaram no autoteste nativo com Qt 6.10.3,
+sem avisos QML e com os recursos de Excel, PDF e Power BI aprovados.
+
+| Python do pacote | Aprovados | Ignorados | Tempo da suíte | Prévia Windows |
+|---|---:|---:|---:|---|
+| 3.11 | 656 | 1 | 236,624 s | [ZIP](https://github.com/Souzlx/Liarte_Interf/actions/runs/40010674136/artifacts/12526981355) |
+| 3.12 | 656 | 1 | 252,839 s | [ZIP recomendado](https://github.com/Souzlx/Liarte_Interf/actions/runs/40010674136/artifacts/12526402134) |
+| 3.13 | 656 | 1 | 233,825 s | [ZIP](https://github.com/Souzlx/Liarte_Interf/actions/runs/40010674136/artifacts/12527300058) |
+| 3.14 | 656 | 1 | 288,311 s | [ZIP](https://github.com/Souzlx/Liarte_Interf/actions/runs/40010674136/artifacts/12526907022) |
+
+Entre no GitHub para baixar. Feche a versão anterior, extraia o ZIP inteiro
+em uma pasta nova e abra **LIARTE_Desktop.exe**. Confira **5.3.0-rc.2** em
+Ajuda. O pacote inclui Python e dependências.
+
+Os resultados nativos foram conferidos nos logs agrupados liberados após a
+conclusão do workflow. O ZIP e seus hashes internos não foram reinspecionados
+localmente. DPI/GPU específicos e a interpretação dos dados da empresa
+continuam sujeitos à avaliação no computador de destino.
+Metadados oficiais, digests e limites da conferência estão em
+[VALIDACAO_WINDOWS_530_RC2.json](VALIDACAO_WINDOWS_530_RC2.json).
+
+O job de publicação de release foi ignorado nesta prévia. A versão estável
 5.2.0 permanece disponível; esta revisão é uma prévia para avaliação.
 Evidências e hashes das imagens:
 [EVIDENCIAS_ANALISE_MENSAL_530_RC2.json](EVIDENCIAS_ANALISE_MENSAL_530_RC2.json).
