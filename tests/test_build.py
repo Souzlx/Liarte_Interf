@@ -52,7 +52,7 @@ class DistributionTests(unittest.TestCase):
         project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         pins = {
             line.strip()
-            for line in (ROOT / "requirements.txt").read_text().splitlines()
+            for line in (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines()
             if line.strip() and not line.startswith("#")
         }
         self.assertEqual(set(project["project"]["dependencies"]), pins)
@@ -77,7 +77,7 @@ class DistributionTests(unittest.TestCase):
                 env=env,
             )
             self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
-            payload = json.loads(result.read_text())
+            payload = json.loads(result.read_text(encoding="utf-8"))
             self.assertEqual(payload["status"], "ok")
             self.assertTrue(payload["synthetic"])
             self.assertEqual(payload["qml_warnings"], [])

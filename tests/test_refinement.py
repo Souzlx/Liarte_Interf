@@ -76,11 +76,11 @@ class InstallationTests(unittest.TestCase):
             build_installer.installer_name("../other")
 
     def test_release_metadata_agrees_in_project_pe_and_installer(self):
-        project = tomllib.loads((ROOT / "pyproject.toml").read_text())
+        project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         self.assertEqual(project["project"]["version"], __version__.replace("-rc.", "rc"))
         script = (ROOT / "INSTALADOR_LIARTE.iss").read_text(encoding="utf-8-sig")
         self.assertIn(f'#define AppVersion "{__version__}"', script)
-        tree = ast.parse((ROOT / "versao_windows.txt").read_text())
+        tree = ast.parse((ROOT / "versao_windows.txt").read_text(encoding="utf-8"))
         numeric = []
         for node in ast.walk(tree):
             if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
@@ -204,7 +204,7 @@ class InstallationTests(unittest.TestCase):
 
     def test_verification_stamp_is_bounded_and_rejects_invalid_data(self):
         preparation.save_probe(self.stamp, "current")
-        report = json.loads(self.stamp.read_text())
+        report = json.loads(self.stamp.read_text(encoding="utf-8"))
         now = report["verified_at"]
         self.assertTrue(preparation.probe_is_current(self.stamp, "current", now=now + 1))
         self.assertFalse(preparation.probe_is_current(self.stamp, "changed", now=now + 1))
@@ -398,7 +398,7 @@ class BrandedPdfTests(unittest.TestCase):
 
     def test_table_coordinates_text_and_page_count_match_rc4_baseline(self):
         self.create()
-        baseline = json.loads((ROOT / "tests/fixtures/pdf_layout_rc4.json").read_text())
+        baseline = json.loads((ROOT / "tests/fixtures/pdf_layout_rc4.json").read_text(encoding="utf-8"))
         result = []
         for page in PdfReader(self.path).pages:
             fragments = []

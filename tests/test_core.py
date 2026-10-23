@@ -193,7 +193,7 @@ class CoreTests(unittest.TestCase):
 
     def test_core_has_no_ui_or_network_dependencies(self):
         for module in (demo, domain):
-            tree = ast.parse(Path(module.__file__).read_text())
+            tree = ast.parse(Path(module.__file__).read_text(encoding="utf-8"))
             for node in ast.walk(tree):
                 if isinstance(node, ast.ImportFrom):
                     self.assertFalse(

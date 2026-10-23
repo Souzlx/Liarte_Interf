@@ -43,7 +43,7 @@ def click(window, item):
 
 
 FIXTURE = json.loads(
-    (Path(__file__).parent / "fixtures/comex_2026-09.json").read_text()
+    (Path(__file__).parent / "fixtures/comex_2026-09.json").read_text(encoding="utf-8")
 )
 
 

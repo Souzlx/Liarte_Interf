@@ -218,7 +218,7 @@ class DirectApiTests(unittest.TestCase):
         self.assertIsNone(provider.snapshot)
         self.assertEqual(len(self.wire), 1)
         self.assertGreaterEqual(provider.access_status()["pause_seconds"], 179)
-        record = json.loads((self.directory / "ultima_falha_comex.json").read_text())
+        record = json.loads((self.directory / "ultima_falha_comex.json").read_text(encoding="utf-8"))
         self.assertEqual(record["observed_http_status"], 429)
         self.assertEqual(record["retry_after_header"], "180")
         self.assertEqual(record["endpoint"], "/general?language=pt")
@@ -310,7 +310,7 @@ class DirectApiTests(unittest.TestCase):
         request = ExportRequest("excel", destination, snapshot, Selection(self.period))
         result = export_document(request, Event(), lambda *a: None, self.root / "audit")
         audit = json.loads(
-            (self.root / "audit" / (result["sha256"] + ".json")).read_text()
+            (self.root / "audit" / (result["sha256"] + ".json")).read_text(encoding="utf-8")
         )
         self.assertTrue(audit["response_validated"])
         self.assertFalse(audit["totals_verified"])

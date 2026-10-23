@@ -244,7 +244,7 @@ class PaletteTests(unittest.TestCase):
     def test_text_and_emphasized_card_contrast_in_both_themes(self):
         source = (
             Path(__file__).parents[1] / "src/liarte_desktop/qml/components/Theme.qml"
-        ).read_text()
+        ).read_text(encoding="utf-8")
 
         def luminance(color):
             channels = [int(color[i : i + 2], 16) / 255 for i in (1, 3, 5)]

@@ -172,7 +172,7 @@ m.close()
             port = reserved.getsockname()[1]
             connection = GatewayConnection(True, f"http://127.0.0.1:{port}", TOKEN)
             save_connection(manager.registry, connection)
-            value = json.loads(manager.registry.read_text())
+            value = json.loads(manager.registry.read_text(encoding="utf-8"))
             value["pid"] = os.getpid()
             atomic_json(manager.registry, value)
             with self.assertRaises(GatewayError):
@@ -227,7 +227,7 @@ m.close()
         connection = GatewayConnection(True, f"http://127.0.0.1:{port}", TOKEN)
         path = self.directory.parent / "central-comex" / "central.json"
         save_connection(path, connection)
-        value = json.loads(path.read_text())
+        value = json.loads(path.read_text(encoding="utf-8"))
         value.update(host=host, port=port, interval=0.005)
         value.update(changes or {})
         atomic_json(path, value)
@@ -302,7 +302,7 @@ m.close()
         from liarte_core.comex_managed import read_managed
 
         _, config = self.managed_configuration()
-        original = json.loads(config.read_text())
+        original = json.loads(config.read_text(encoding="utf-8"))
         for changes in (
             {"host": "8.8.8.8"},
             {"host": "224.0.0.1"},
@@ -381,7 +381,9 @@ m.close()
         self.assertGreaterEqual(failure.exception.retry_after, 179)
         state = RequestCoordinator.peek(self.directory / "acesso_comex.sqlite3")
         self.assertGreaterEqual(state["pause_seconds"], 179)
-        evidence = json.loads((self.brokers[0].directory / "ultima_falha_comex.json").read_text())
+        evidence = json.loads(
+            (self.brokers[0].directory / "ultima_falha_comex.json").read_text(encoding="utf-8")
+        )
         self.assertEqual(evidence["http_status"], 429)
         self.assertEqual(evidence["endpoint"], "/general?language=pt")
         self.assertIn("limite controlado da fonte", evidence["response_excerpt"])
@@ -396,7 +398,9 @@ m.close()
             self.request(self.manager())
         self.assertNotIsInstance(failure.exception, engine.ComexRateLimitError)
         self.assertIn("HTTP 403", str(failure.exception))
-        evidence = json.loads((self.brokers[0].directory / "ultima_falha_comex.json").read_text())
+        evidence = json.loads(
+            (self.brokers[0].directory / "ultima_falha_comex.json").read_text(encoding="utf-8")
+        )
         self.assertEqual(evidence["http_status"], 403)
         self.assertEqual(
             RequestCoordinator.peek(self.directory / "acesso_comex.sqlite3")["pause_seconds"], 0

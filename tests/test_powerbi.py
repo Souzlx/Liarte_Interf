@@ -254,7 +254,7 @@ class PowerBiTests(unittest.TestCase):
     def test_13_source_hash_tampering_is_detected(self):
         project = self.unpack()
         control = project / "CONTROLE_FONTE.json"
-        c = json.loads(control.read_text())
+        c = json.loads(control.read_text(encoding="utf-8"))
         c["sha256"] = "0" * 64
         control.write_text(json.dumps(c))
         with self.assertRaisesRegex(bi.PowerBIProjectError, "hash"):
@@ -262,7 +262,7 @@ class PowerBiTests(unittest.TestCase):
 
     def visual(self, project, kind):
         for p in project.glob("*.Report/definition/pages/*/visuals/*/visual.json"):
-            doc = json.loads(p.read_text())
+            doc = json.loads(p.read_text(encoding="utf-8"))
             if doc["visual"]["visualType"] == kind:
                 return p, doc
         self.fail("Visual ausente: " + kind)
@@ -310,14 +310,17 @@ class PowerBiTests(unittest.TestCase):
     def test_17_relationship_cardinality_tampering_is_detected(self):
         project = self.unpack()
         p = project / (bi.MODEL_DIR_NAME + "/definition/relationships.tmdl")
-        p.write_text(p.read_text().replace("toCardinality: one", "toCardinality: many", 1))
+        p.write_text(
+            p.read_text(encoding="utf-8").replace("toCardinality: one", "toCardinality: many", 1),
+            encoding="utf-8",
+        )
         with self.assertRaisesRegex(bi.PowerBIProjectError, "cardinalidades"):
             bi.validate_powerbi_project(project)
 
     def test_18_municipal_slicers_cannot_share_general_group(self):
         project = self.unpack()
         for p in project.glob("*.Report/definition/pages/*/visuals/*/visual.json"):
-            d = json.loads(p.read_text())
+            d = json.loads(p.read_text(encoding="utf-8"))
             v = d["visual"]
             g = v.get("syncGroup", {}).get("groupName", "")
             if g.startswith("municipal_"):
@@ -381,7 +384,9 @@ class PowerBiTests(unittest.TestCase):
         self.assertIn("Replace('#(', '#(#)(')", bi._powershell_launcher())
         self.assertIn("MatchEvaluator", bi._powershell_launcher())
         project = self.unpack()
-        definition = json.loads((project / bi.REPORT_DIR_NAME / "definition.pbir").read_text())
+        definition = json.loads(
+            (project / bi.REPORT_DIR_NAME / "definition.pbir").read_text(encoding="utf-8")
+        )
         self.assertNotIn("byConnection", definition["datasetReference"])
 
     def test_23_detail_tables_are_flat_single_fact_column_queries(self):

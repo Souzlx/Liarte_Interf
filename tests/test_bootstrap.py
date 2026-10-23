@@ -157,7 +157,7 @@ class BootstrapTests(unittest.TestCase):
         report = self.root / "validacao-qt.json"
         report.write_text('{"status":"ok"}')
         self.assertFalse(self.check_probe(None, returncode=1))
-        self.assertEqual(json.loads(report.read_text())["status"], "failed")
+        self.assertEqual(json.loads(report.read_text(encoding="utf-8"))["status"], "failed")
 
     def test_probe_rejects_qml_warnings(self):
         self.assertFalse(
@@ -174,7 +174,7 @@ class BootstrapTests(unittest.TestCase):
                 assistente.check_interface(Path("python.exe"), self.root / "bootstrap.log")
             )
         self.assertEqual(
-            json.loads((self.root / "validacao-qt.json").read_text())["reason"], "timeout"
+            json.loads((self.root / "validacao-qt.json").read_text(encoding="utf-8"))["reason"], "timeout"
         )
 
     def prepare(self, checks, *, repair=False):

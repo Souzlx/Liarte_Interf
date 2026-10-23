@@ -38,7 +38,9 @@ from liarte_engine.comex_gateway_client import (
 from liarte_core.comex_central import CentralBroker, CentralServer, SharedResponses
 from liarte_core.query import Cancelled
 
-FIXTURE = json.loads((Path(__file__).parent / "fixtures/comex_2026-09.json").read_text())
+FIXTURE = json.loads(
+    (Path(__file__).parent / "fixtures/comex_2026-09.json").read_text(encoding="utf-8")
+)
 TOKEN = "teste_" + "A" * 40
 
 
@@ -524,6 +526,6 @@ class ComexConnectionUiTests(unittest.TestCase):
             timeout=20,
         )
         self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
-        result = json.loads(report.read_text())
+        result = json.loads(report.read_text(encoding="utf-8"))
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["api_requests"], 0)

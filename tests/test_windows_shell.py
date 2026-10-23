@@ -72,7 +72,7 @@ class WindowsShellTests(unittest.TestCase):
         self.exe.write_bytes(b"fixture2")
         self.assertEqual(self.run_shortcuts(), 1)
         self.assertEqual(
-            json.loads((self.directory / "atalhos.json").read_text())["target"], str(self.exe)
+            json.loads((self.directory / "atalhos.json").read_text(encoding="utf-8"))["target"], str(self.exe)
         )
 
     def test_powershell_literals_do_not_expand_paths(self):
@@ -95,7 +95,7 @@ class WindowsShellTests(unittest.TestCase):
     def test_legacy_marker_gets_appid_migration_once(self):
         self.run_shortcuts()
         marker = self.directory / "atalhos.json"
-        old = json.loads(marker.read_text())
+        old = json.loads(marker.read_text(encoding="utf-8"))
         old.pop("schema")
         old.pop("app_id")
         marker.write_text(json.dumps(old))
