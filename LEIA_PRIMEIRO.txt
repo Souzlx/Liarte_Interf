@@ -66,16 +66,19 @@ Filtros, gráficos, busca, paginação, troca de base e os três geradores usam 
 resultado já carregado. Uma falha preserva o último resultado completo.
 Verificar fonte continua opcional e separado da consulta.
 
-O controle de acesso do novo transporte guarda somente uma pausa real da fonte
-em acesso_api.json; falhas também têm diagnóstico local. Uma pausa ainda vigente de versão anterior é preservada
+O controle de acesso do novo transporte guarda somente a pausa de recuperação
+decorrente de uma recusa da fonte em acesso_api.json; falhas também têm
+diagnóstico local. Uma pausa ainda vigente de versão anterior é preservada
 na atualização; intervalos preventivos e respostas antigas não são importados.
 Uma instalação não depende de arquivos de conexão ou servidores de outra.
 
 HTTP 429 é uma recusa da API. O código melhora a recuperação e evita esperas
 indevidas, mas não pode garantir a disponibilidade de um serviço externo.
-O teste real de janeiro a setembro de 2026, com os 35 NCMs do cadastro, concluiu
-em 24,796 segundos, com duas respostas 200: 7.789 linhas gerais e 46.074 municipais.
-Esse ensaio Linux não é homologação da rede Windows da empresa.
+No ensaio real RC10, duas consultas consecutivas com os 35 NCMs concluíram:
+setembro de 2026 e, logo depois, outubro de 2025 a setembro de 2026. A segunda
+levou 16,699 segundos e retornou 10.387 linhas gerais e 60.914 municipais,
+com os 12 meses e quatro respostas 200. Os dados de setembro coincidiram
+entre ambas. Esse ensaio Linux não é homologação da rede Windows da empresa.
 
 O modo direto não utiliza downloads CSV ou uma central como alternativa.
 A conferência HTTPS do Windows continua ativa. Não se desativa a segurança TLS.
@@ -125,7 +128,9 @@ Se a cópia local estiver inválida, o sistema recupera a base integrada, regist
 O PBIX original e os seus dados de clientes, pedidos e contas não são incluídos.
 
 VERIFICAÇÃO
-Acessos e testes atuais: docs/EVIDENCIAS_API_DIRETA_520_RC7.json.
+Acesso real e correções RC10: docs/VALIDACAO_API_RC10_2026-10-23.json e
+docs/CORRECAO_HTTP_429_RC10.md.
+Acessos e testes anteriores: docs/EVIDENCIAS_API_DIRETA_520_RC7.json.
 Conservação das regras e dados: docs/PRESERVACAO_API_DIRETA_520_RC7.json.
 Resultados anteriores de estoque: docs/EVIDENCIAS_ESTOQUE_520_RC2.json.
 Conciliação com o PBIX: docs/CONCILIACAO_ESTOQUE_520_RC2.json.

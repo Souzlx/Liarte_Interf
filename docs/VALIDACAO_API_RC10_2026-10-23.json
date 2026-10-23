@@ -1,0 +1,370 @@
+{
+  "repository": "Souzlx/Liarte_Interf",
+  "scope": "Real Comex Stat API, Linux cloud host; not native Windows/company-network certification.",
+  "final_validation": {
+    "status": "ok",
+    "synthetic": false,
+    "platform": "Linux",
+    "version": "5.2.0-rc.10",
+    "tested_commit": "c2da61335c71e6803db1d4bdc3cc89a592a61854",
+    "started_at": "2026-10-23T08:52:17+00:00",
+    "ncm_count": 35,
+    "sh4_count": 19,
+    "same_provider_for_both_queries": true,
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/general",
+        "started_at": "2026-10-23T08:52:17+00:00",
+        "period": {
+          "from": "2026-09",
+          "to": "2026-09"
+        },
+        "http_status": 200,
+        "retry_after": null,
+        "decoded_body_bytes": 279232,
+        "decoded_body_sha256": "ff75897ab6908545035fde6ee53f0923bebb8b871d4dbdb52329b1cdb642d6be",
+        "seconds": 1.454
+      },
+      {
+        "method": "POST",
+        "path": "/cities",
+        "started_at": "2026-10-23T08:52:19+00:00",
+        "period": {
+          "from": "2026-09",
+          "to": "2026-09"
+        },
+        "http_status": 200,
+        "retry_after": null,
+        "decoded_body_bytes": 2119932,
+        "decoded_body_sha256": "c5eaab0e42f96203586e2844d5e74896be80de080c2c84e302822dfe82b7f811",
+        "seconds": 2.148
+      },
+      {
+        "method": "POST",
+        "path": "/general",
+        "started_at": "2026-10-23T08:52:21+00:00",
+        "period": {
+          "from": "2025-10",
+          "to": "2025-12"
+        },
+        "http_status": 200,
+        "retry_after": null,
+        "decoded_body_bytes": 792329,
+        "decoded_body_sha256": "b7354afd9cb440a9451f4444cf425407f9fd6b78320c652f3d4ae04d18ca82a2",
+        "seconds": 1.438
+      },
+      {
+        "method": "POST",
+        "path": "/general",
+        "started_at": "2026-10-23T08:52:23+00:00",
+        "period": {
+          "from": "2026-01",
+          "to": "2026-09"
+        },
+        "http_status": 200,
+        "retry_after": null,
+        "decoded_body_bytes": 2367611,
+        "decoded_body_sha256": "975d282436d498c2da636d06919cfea7fb7a7d6b0c81a5327ae3dac8d5ff32e9",
+        "seconds": 1.972
+      },
+      {
+        "method": "POST",
+        "path": "/cities",
+        "started_at": "2026-10-23T08:52:25+00:00",
+        "period": {
+          "from": "2025-10",
+          "to": "2025-12"
+        },
+        "http_status": 200,
+        "retry_after": null,
+        "decoded_body_bytes": 5923792,
+        "decoded_body_sha256": "26460ca67a423c52394873520799a7113f8857d288744a2c2de50f0653490a01",
+        "seconds": 2.784
+      },
+      {
+        "method": "POST",
+        "path": "/cities",
+        "started_at": "2026-10-23T08:52:28+00:00",
+        "period": {
+          "from": "2026-01",
+          "to": "2026-09"
+        },
+        "http_status": 200,
+        "retry_after": null,
+        "decoded_body_bytes": 18347723,
+        "decoded_body_sha256": "a64cb11f43e779caf60dc737306a916567f7cec20211fe1e8500117e93bbb508",
+        "seconds": 6.167
+      }
+    ],
+    "queries": [
+      {
+        "period": {
+          "start": "2026-09",
+          "end": "2026-09"
+        },
+        "seconds": 3.946,
+        "general_rows": 920,
+        "municipal_rows": 5306,
+        "api_requests": 2,
+        "response_validated": true,
+        "independent_totals_reconciled": false,
+        "source_channels": [
+          "comex-api"
+        ],
+        "general_cif_cents": 30288364900,
+        "municipal_fob_cents": 311542582600,
+        "previous_query_month_reconciled": null,
+        "general_months": [
+          "2026-09"
+        ],
+        "municipal_months": [
+          "2026-09"
+        ]
+      },
+      {
+        "period": {
+          "start": "2025-10",
+          "end": "2026-09"
+        },
+        "seconds": 16.699,
+        "general_rows": 10387,
+        "municipal_rows": 60914,
+        "api_requests": 4,
+        "response_validated": true,
+        "independent_totals_reconciled": false,
+        "source_channels": [
+          "comex-api"
+        ],
+        "general_cif_cents": 269992372900,
+        "municipal_fob_cents": 2779462407400,
+        "previous_query_month_reconciled": true,
+        "general_months": [
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "municipal_months": [
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ]
+      }
+    ],
+    "finished_at": "2026-10-23T08:52:38+00:00"
+  },
+  "earlier_attempts": [
+    {
+      "observation": "Source refused all four attempts. The terminal 84-second pause was persisted and allowed to expire before another query.",
+      "report": {
+        "status": "failed",
+        "synthetic": false,
+        "platform": "Linux",
+        "version": "5.2.0-rc.10",
+        "tested_commit": "88038b9549dd2de8b973ce9f01657a1a573547f0",
+        "started_at": "2026-10-23T08:35:27+00:00",
+        "ncm_count": 35,
+        "sh4_count": 19,
+        "same_provider_for_both_queries": true,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/general",
+            "started_at": "2026-10-23T08:35:27+00:00",
+            "period": {
+              "from": "2026-09",
+              "to": "2026-09"
+            },
+            "http_status": 429,
+            "retry_after": null,
+            "decoded_body_bytes": 131,
+            "decoded_body_sha256": "7876c5384e882b42017ea3ee7e241ff182852bf8489f12564699e067527418a6",
+            "seconds": 1.097
+          },
+          {
+            "method": "POST",
+            "path": "/general",
+            "started_at": "2026-10-23T08:35:39+00:00",
+            "period": {
+              "from": "2026-09",
+              "to": "2026-09"
+            },
+            "http_status": 429,
+            "retry_after": null,
+            "decoded_body_bytes": 131,
+            "decoded_body_sha256": "7876c5384e882b42017ea3ee7e241ff182852bf8489f12564699e067527418a6",
+            "seconds": 1.075
+          },
+          {
+            "method": "POST",
+            "path": "/general",
+            "started_at": "2026-10-23T08:36:01+00:00",
+            "period": {
+              "from": "2026-09",
+              "to": "2026-09"
+            },
+            "http_status": 429,
+            "retry_after": null,
+            "decoded_body_bytes": 131,
+            "decoded_body_sha256": "7876c5384e882b42017ea3ee7e241ff182852bf8489f12564699e067527418a6",
+            "seconds": 1.092
+          },
+          {
+            "method": "POST",
+            "path": "/general",
+            "started_at": "2026-10-23T08:36:44+00:00",
+            "period": {
+              "from": "2026-09",
+              "to": "2026-09"
+            },
+            "http_status": 429,
+            "retry_after": null,
+            "decoded_body_bytes": 131,
+            "decoded_body_sha256": "7876c5384e882b42017ea3ee7e241ff182852bf8489f12564699e067527418a6",
+            "seconds": 0.742
+          }
+        ],
+        "queries": [],
+        "error_type": "ComexError",
+        "error": "Consulta oficial não concluída: Comex Stat solicitou uma pausa (HTTP 429). Aguarde 84 s antes de tentar novamente.",
+        "finished_at": "2026-10-23T08:36:45+00:00"
+      }
+    },
+    {
+      "observation": "Four HTTP 200 responses. September had data; the cross-year interval containing September returned empty arrays in both bases. The checker raised AssertionError on its nonempty-result assertion, not on an HTTP failure.",
+      "report": {
+        "status": "failed",
+        "synthetic": false,
+        "platform": "Linux",
+        "version": "5.2.0-rc.10",
+        "tested_commit": "88038b9549dd2de8b973ce9f01657a1a573547f0",
+        "started_at": "2026-10-23T08:38:48+00:00",
+        "ncm_count": 35,
+        "sh4_count": 19,
+        "same_provider_for_both_queries": true,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/general",
+            "started_at": "2026-10-23T08:38:48+00:00",
+            "period": {
+              "from": "2026-09",
+              "to": "2026-09"
+            },
+            "http_status": 200,
+            "retry_after": null,
+            "decoded_body_bytes": 279232,
+            "decoded_body_sha256": "ff75897ab6908545035fde6ee53f0923bebb8b871d4dbdb52329b1cdb642d6be",
+            "seconds": 1.38
+          },
+          {
+            "method": "POST",
+            "path": "/cities",
+            "started_at": "2026-10-23T08:38:50+00:00",
+            "period": {
+              "from": "2026-09",
+              "to": "2026-09"
+            },
+            "http_status": 200,
+            "retry_after": null,
+            "decoded_body_bytes": 2119932,
+            "decoded_body_sha256": "c5eaab0e42f96203586e2844d5e74896be80de080c2c84e302822dfe82b7f811",
+            "seconds": 1.763
+          },
+          {
+            "method": "POST",
+            "path": "/general",
+            "started_at": "2026-10-23T08:38:52+00:00",
+            "period": {
+              "from": "2025-10",
+              "to": "2026-09"
+            },
+            "http_status": 200,
+            "retry_after": null,
+            "decoded_body_bytes": 87,
+            "decoded_body_sha256": "05fd4c259c525644db9fbbd9f62a1413257991c60fdc3a4b67645771deeda5a7",
+            "seconds": 0.864
+          },
+          {
+            "method": "POST",
+            "path": "/cities",
+            "started_at": "2026-10-23T08:38:53+00:00",
+            "period": {
+              "from": "2025-10",
+              "to": "2026-09"
+            },
+            "http_status": 200,
+            "retry_after": null,
+            "decoded_body_bytes": 87,
+            "decoded_body_sha256": "05fd4c259c525644db9fbbd9f62a1413257991c60fdc3a4b67645771deeda5a7",
+            "seconds": 1.058
+          }
+        ],
+        "queries": [
+          {
+            "period": {
+              "start": "2026-09",
+              "end": "2026-09"
+            },
+            "seconds": 3.569,
+            "general_rows": 920,
+            "municipal_rows": 5306,
+            "api_requests": 2,
+            "response_validated": true,
+            "independent_totals_reconciled": false,
+            "source_channels": [
+              "comex-api"
+            ],
+            "general_cif_cents": 30288364900,
+            "municipal_fob_cents": 311542582600
+          }
+        ],
+        "error_type": "AssertionError",
+        "error": "",
+        "finished_at": "2026-10-23T08:38:54+00:00"
+      }
+    }
+  ],
+  "single_cross_year_confirmation": {
+    "period": {
+      "from": "2025-10",
+      "to": "2026-09"
+    },
+    "ncm_count": 35,
+    "status": "received",
+    "payload": {
+      "data": {
+        "list": []
+      },
+      "success": true,
+      "message": null,
+      "processo_info": null,
+      "language": "pt"
+    }
+  },
+  "limitations": [
+    "Final pair used one provider and the same persisted pause profile; source requests were not replayed to force a 429.",
+    "Final six requests all returned HTTP 200. Recovery from repeated 429 followed by 200 is covered by controlled transport and Qt regressions, not by this final external pair.",
+    "The September rows and metric signatures matched exactly between the first query and its subset in the second query. This does not independently reconcile official totals.",
+    "The source internal cause of empty cross-year intervals was not established. Calendar-year partition was verified with real data for this interval and with controlled boundary cases.",
+    "Independent source quotas and network availability remain outside the application control."
+  ]
+}

@@ -85,8 +85,28 @@ As regressões anuais cobrem a resposta vazia entre anos, a omissão de meses
 em faixas sem inversão do mês inicial/final, a rejeição de linhas fora da
 faixa e a preservação do último resultado após falha no segundo ano.
 
-A consulta real consecutiva e os links do novo pacote serão registrados após
-concluir a verificação externa e a compilação nativa Windows.
+Na API oficial, usando o mesmo provedor e perfil de pausa para duas consultas
+consecutivas, setembro de 2026 concluiu em 3,946 s: 920 linhas gerais e 5.306
+municipais. Logo depois, outubro de 2025 a setembro de 2026 concluiu em
+16,699 s: 10.387 linhas gerais e 60.914 municipais, com os 12 meses presentes
+em ambas as bases. As linhas e métricas de setembro coincidiram exatamente
+entre a primeira consulta e o recorte da segunda. Os seis pedidos retornaram
+HTTP 200; o segundo período usou quatro pedidos, divididos por ano.
+
+Uma tentativa externa anterior encontrou quatro HTTP 429 e encerrou com uma
+pausa persistida de 84 segundos, respeitada antes de consultar novamente.
+O teste final não forçou novas recusas: a sequência de recuperação
+`429 → 429 → 200` foi verificada nos testes controlados. As medições e os
+ensaios anteriores estão em
+[VALIDACAO_API_RC10_2026-10-23.json](VALIDACAO_API_RC10_2026-10-23.json).
+Não houve reconciliação independente de totais oficiais nem homologação da
+rede Windows da empresa.
+
+A [compilação Windows RC10](VALIDACAO_WINDOWS_RC10_2026-10-23.md) passou
+com Python 3.11, 3.12, 3.13 e 3.14: cada job executou 603 testes, com 602
+aprovados, um teste POSIX ignorado e nenhuma falha. Os quatro executáveis
+passaram no autoteste nativo. Os links dos pacotes e o escopo da verificação
+estão no relatório Windows.
 
 As evidências RC9 são históricas e permanecem em
 [NOVO_CLIENTE_API_520_RC9.md](NOVO_CLIENTE_API_520_RC9.md) e
