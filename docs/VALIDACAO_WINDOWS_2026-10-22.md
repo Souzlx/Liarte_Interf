@@ -9,6 +9,7 @@ com CPython 3.11, 3.12, 3.13 e 3.14.
 | [39878269032](https://github.com/Souzlx/Liarte_Interf/actions/runs/39878269032) | `35a9f23` | Quatro jobs falharam novamente na etapa de testes/compilação. Nenhum pacote foi publicado. |
 | [39880901606](https://github.com/Souzlx/Liarte_Interf/actions/runs/39880901606) | `9ac1bed` | Python 3.11–3.13 concluíram 587 testes e revelaram cortes de legendas; 3.11–3.12 também falharam no teste de expiração. Python 3.14 atingiu 300 s próximo ao fim da suíte. |
 | [39882702056](https://github.com/Souzlx/Liarte_Interf/actions/runs/39882702056) | `301a459` | As quatro versões concluíram 588 testes. Somente a nova regressão com fontes ampliadas falhou: Limpar ultrapassou a borda de 500 px; um teste POSIX foi ignorado em cada job. |
+| [39883707044](https://github.com/Souzlx/Liarte_Interf/actions/runs/39883707044) | `7dbcf72` | Python 3.11, 3.12 e 3.13 passaram e publicaram pacotes com autoteste do executável aprovado. Python 3.14 concluiu 588 testes, com uma falha na medição inicial do layout de navegação. |
 
 ## Correção comprovada durante o diagnóstico
 
@@ -93,6 +94,21 @@ Após o ajuste adicional para uma coluna e quebra da legenda, os **50 testes
 das três classes de interface afetadas passaram em 22,241 s**, sem testes
 ignorados. A revisão independente também conferiu 760 pixels e as métricas
 largas equivalentes às observadas no runner Windows.
+
+Na execução `39883707044`, Python 3.11, 3.12 e 3.13 executaram 588 testes em
+309,916 s, 172,560 s e 236,581 s, respectivamente, sem falhas e com um teste
+POSIX ignorado por job. Os três executáveis compilados passaram no autoteste
+e seus pacotes foram publicados. O job 3.14 teve somente uma falha: o teste
+de paginação comparou a altura antes e depois do primeiro layout completo.
+O painel passou de 175 para 124 pixels quando o Qt concluiu a remoção do
+progresso inicial.
+
+Esse atraso foi reproduzido localmente. A preparação dos testes de navegação
+agora aguarda o frame solicitado após a conclusão do worker. As verificações
+de altura, rolagem, paginação e ausência de novo worker permanecem intactas;
+os **oito testes de navegação passaram em 3,307 s**. O script de compilação
+também passa a registrar o JSON do autoteste nos logs, além de incluí-lo no
+pacote, para permitir sua conferência sem baixar a distribuição completa.
 A matriz Windows será repetida com as correções.
 Até uma execução bem-sucedida, o pacote Windows continua sem validação
 concluída.

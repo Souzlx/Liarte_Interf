@@ -154,6 +154,10 @@ class NavigationQtTests(unittest.TestCase):
         APP.processEvents()
         self.controller.queryPeriod("2026-04", "2026-09")
         settled(self.controller)
+        # Worker completion can precede the polish that hides its progress block.
+        rendered = QSignalSpy(self.window.frameSwapped)
+        self.window.update()
+        self.assertTrue(pump(lambda: rendered.count() > 0), "O Qt não concluiu o layout inicial.")
 
     def tearDown(self):
         self.controller.shutdown()

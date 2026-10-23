@@ -198,8 +198,10 @@ def main():
         )
         import json
 
-        if json.loads(result.read_text(encoding="utf-8")).get("status") != "ok":
+        smoke_result = json.loads(result.read_text(encoding="utf-8"))
+        if smoke_result.get("status") != "ok":
             raise RuntimeError("O executável não passou no autoteste de recursos e consulta Qt.")
+        print("Autoteste do executavel: " + json.dumps(smoke_result, ensure_ascii=True, sort_keys=True))
         shutil.copy2(result, bundle / "AUTOTESTE.json")
         shutil.copy2(ROOT / "LEIA_PRIMEIRO.txt", bundle / "LEIA_PRIMEIRO.txt")
         files = sorted(p for p in bundle.rglob("*") if p.is_file())
