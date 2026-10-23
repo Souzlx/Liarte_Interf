@@ -42,7 +42,9 @@ central, servidor na empresa, pareamento ou arquivo de conexão. Configurações
 antigas de central e cache ficam preservadas, mas não são usadas neste modo.
 
 O transporte do desktop foi reescrito em liarte_core/comex_api.py. Consultar
-solicita todo o cadastro e período em uma chamada geral e outra municipal.
+solicita todo o cadastro em uma chamada geral e outra municipal por ano civil
+abrangido. Períodos que atravessam anos são divididos em faixas anuais, para
+evitar respostas vazias ou incompletas da fonte no intervalo entre anos.
 A conexão não depende do cliente legado, de central ou de cache de respostas.
 Não há metadados prévios, consultas extras de totais ou espera preventiva fixa.
 

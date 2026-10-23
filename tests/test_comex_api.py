@@ -107,8 +107,9 @@ class NativeApiTests(unittest.TestCase):
         def receive(request, **kwargs):
             nonlocal refused
             path = request.full_url.split(".gov.br", 1)[1].split("?", 1)[0]
-            calls.append(path)
-            if path == "/cities" and refused < 2:
+            window = json.loads(request.data)["period"]
+            calls.append((path, window["from"], window["to"]))
+            if path == "/cities" and window["from"] == "2026-01" and refused < 2:
                 refused += 1
                 raise limited(None)
             return self.transport(request, **kwargs)
@@ -125,8 +126,15 @@ class NativeApiTests(unittest.TestCase):
             patch("liarte_core.comex_api.time.monotonic", new=clock),
         ):
             second = self.load()
-        self.assertEqual(calls, ["/general", "/cities", "/cities", "/cities"])
-        self.assertEqual(second.api_requests, 4)
+        self.assertEqual(calls, [
+            ("/general", "2025-10", "2025-12"),
+            ("/general", "2026-01", "2026-09"),
+            ("/cities", "2025-10", "2025-12"),
+            ("/cities", "2026-01", "2026-09"),
+            ("/cities", "2026-01", "2026-09"),
+            ("/cities", "2026-01", "2026-09"),
+        ])
+        self.assertEqual(second.api_requests, 6)
         self.assertEqual(second.period, self.period)
         self.assertIs(self.provider.snapshot, second)
         self.assertIsNot(second, first)
@@ -154,16 +162,94 @@ class NativeApiTests(unittest.TestCase):
             self.assertRaises(ComexError),
         ):
             self.load()
-        self.assertEqual(calls, ["/general", "/cities", "/cities", "/cities", "/cities"])
+        self.assertEqual(calls, ["/general", "/general", "/cities", "/cities", "/cities", "/cities"])
         self.assertIs(self.provider.snapshot, first)
         self.assertAlmostEqual(self.provider._api_pause.remaining(), 84)
 
-    def test_full_catalog_and_multi_year_period_still_make_only_two_post_requests(self):
+    def test_full_catalog_uses_one_post_per_base_and_calendar_year_without_metadata(self):
         provider = ComexProvider(self.directory)
         with patch.object(provider, "availability", side_effect=AssertionError("metadata")):
             result = provider.load(Period("2024-01", "2026-09"), Event(), lambda *a: None)
-        self.assertEqual(result.api_requests, 2)
-        self.assertEqual(len(self.transport.calls), 2)
+        self.assertEqual(result.api_requests, 6)
+        self.assertEqual(self.transport.calls, [("POST", "/general")] * 3 + [("POST", "/cities")] * 3)
+
+    def rectangular_period_transport(self):
+        """Model independent year/month bounds, including month-wrap emptiness."""
+        calls = []
+        periods = [("2025", "03"), ("2025", "10"), ("2025", "12"),
+                   ("2026", "01"), ("2026", "09"), ("2026", "10")]
+
+        def receive(request, **kwargs):
+            path = request.full_url.split(".gov.br", 1)[1].split("?", 1)[0]
+            body = json.loads(request.data)
+            start, end = body["period"]["from"], body["period"]["to"]
+            calls.append((path, start, end))
+            source = FIXTURE["municipal" if path == "/cities" else "general"][0]
+            rows = [
+                dict(source, year=year, monthNumber=month)
+                for year, month in periods
+                if start[:4] <= year <= end[:4] and start[5:] <= month <= end[5:]
+            ]
+            return BytesResponse(json.dumps({"success": True, "data": {"list": rows}}).encode())
+
+        return calls, receive
+
+    def test_cross_year_month_wrap_loads_every_month_instead_of_an_empty_period(self):
+        calls, receive = self.rectangular_period_transport()
+        self.period = Period("2025-10", "2026-09")
+        with patch.object(ApiClient, "_open", side_effect=receive):
+            snapshot = self.load()
+        expected = {"2025-10", "2025-12", "2026-01", "2026-09"}
+        for rows in (snapshot.general, snapshot.municipal):
+            self.assertEqual({legacy.row_period(row) for row in rows}, expected)
+            self.assertEqual(len(rows), 4)
+        self.assertEqual(snapshot.api_requests, 4)
+        self.assertEqual(calls, [
+            ("/general", "2025-10", "2025-12"),
+            ("/general", "2026-01", "2026-09"),
+            ("/cities", "2025-10", "2025-12"),
+            ("/cities", "2026-01", "2026-09"),
+        ])
+
+    def test_cross_year_nonwrapping_month_bounds_do_not_silently_omit_months(self):
+        calls, receive = self.rectangular_period_transport()
+        self.period = Period("2025-03", "2026-09")
+        with patch.object(ApiClient, "_open", side_effect=receive):
+            snapshot = self.load()
+        expected = {"2025-03", "2025-10", "2025-12", "2026-01", "2026-09"}
+        for rows in (snapshot.general, snapshot.municipal):
+            self.assertEqual({legacy.row_period(row) for row in rows}, expected)
+            self.assertEqual(len(rows), 5)
+        self.assertEqual(calls[0], ("/general", "2025-03", "2025-12"))
+        self.assertEqual(calls[-1], ("/cities", "2026-01", "2026-09"))
+
+    def test_second_calendar_year_failure_does_not_publish_the_first_year(self):
+        first = self.load()
+        calls, receive = self.rectangular_period_transport()
+
+        def fail_second_year(request, **kwargs):
+            period = json.loads(request.data)["period"]
+            if period["from"] == "2026-01":
+                raise legacy.ComexStatError("Falha da fonte no segundo ano")
+            return receive(request, **kwargs)
+
+        self.period = Period("2025-10", "2026-09")
+        with (
+            patch.object(ApiClient, "_open", side_effect=fail_second_year),
+            self.assertRaisesRegex(ComexError, "segundo ano"),
+        ):
+            self.load()
+        self.assertEqual(calls, [("/general", "2025-10", "2025-12")])
+        self.assertIs(self.provider.snapshot, first)
+        self.assertEqual(self.provider.snapshot.period, Period("2026-09", "2026-09"))
+
+    def test_each_calendar_year_response_is_validated_against_its_own_bounds(self):
+        client = ApiClient(max_attempts=1)
+        payload = {"data": {"list": [FIXTURE["general"][0]]}}
+        client._network_opener = lambda *args, **kwargs: BytesResponse(json.dumps(payload).encode())
+        with self.assertRaisesRegex(legacy.ComexStatError, "período"):
+            client.query_imports(("29161220",), "2025-10", "2026-09")
+        self.assertEqual(client.network_requests, 1)
 
     def test_filters_switches_and_exports_never_recontact_the_api(self):
         from liarte_core.exports import ExportRequest, export_document
@@ -776,7 +862,10 @@ class NativeApiQtTests(unittest.TestCase):
                 settled(self.controller)
             finally:
                 release.set()
-        self.assertEqual(wire, ["/general", "/cities", "/cities", "/cities"])
+        self.assertEqual(
+            wire,
+            ["/general", "/general", "/cities", "/cities", "/cities", "/cities"],
+        )
         self.assertFalse(self.controller.state["error"])
         self.assertEqual(self.controller.state["appliedStart"], "2025-10")
         self.assertEqual(self.provider.snapshot.period, Period("2025-10", "2026-09"))
@@ -809,7 +898,7 @@ class NativeApiQtTests(unittest.TestCase):
                 settled(self.controller)
             finally:
                 release.set()
-        self.assertEqual(wire, ["/general", "/cities"])
+        self.assertEqual(wire, ["/general", "/general", "/cities"])
         self.assertIs(self.provider.snapshot, previous)
         self.assertEqual(self.controller.table.rows, rows)
         self.assertTrue(self.controller.state["loaded"])

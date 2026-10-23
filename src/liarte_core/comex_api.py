@@ -1,4 +1,4 @@
-"""Cliente direto do desktop: um pedido por base, recuperação curta e verificável.
+"""Cliente direto do desktop: períodos mensais e recuperação verificável.
 
 Não inicia serviços nem lê respostas de consultas em disco. A única informação
 persistida pelo transporte é a pausa de recuperação decorrente de uma recusa da
@@ -164,7 +164,7 @@ class ApiClient:
             or verify_official_totals
             or window_months is not None
         ):
-            raise ValueError("Este cliente utiliza somente pedidos diretos do período inteiro.")
+            raise ValueError("Este cliente utiliza somente consultas diretas da API.")
         self.timeout = float(timeout)
         self.max_attempts = max_attempts
         self.rate_limit_attempts = rate_limit_attempts
@@ -493,7 +493,6 @@ class ApiClient:
         body = {
             "flow": "import",
             "monthDetail": True,
-            "period": {"from": start, "to": end},
             "filters": [
                 {
                     "filter": "heading" if municipal else "ncm",
@@ -504,30 +503,37 @@ class ApiClient:
             "metrics": list(contract.MUNICIPAL_METRICS if municipal else contract.DEFAULT_METRICS),
         }
         path = "/cities?language=pt" if municipal else "/general?language=pt"
-        payload = self.request_json("POST", path, body)
-        data = payload.get("data")
-        rows = data.get("list") if isinstance(data, dict) else None
-        if not isinstance(rows, list):
-            raise contract.ComexStatError("A resposta não contém uma lista de registros válida.")
         validate = contract.validate_municipal_api_row if municipal else contract.validate_api_row
         identity = contract.municipal_row_identity if municipal else contract.api_row_identity
         signature = (
             contract.municipal_metric_signature if municipal else contract.api_metric_signature
         )
         unique = {}
-        for index, row in enumerate(rows):
-            if index % 256 == 0:
-                self._check()
-            if not isinstance(row, dict):
-                raise contract.ComexStatError("A API retornou um registro inválido.")
-            validate(row, codes, start, end, f"registro {index + 1}")
-            key = identity(row)
-            previous = unique.get(key)
-            if previous is not None and signature(previous) != signature(row):
-                raise contract.ComexStatError(
-                    "A API retornou registros duplicados com valores divergentes."
-                )
-            unique[key] = row
+        # The source returned an empty cross-year interval containing a known
+        # nonempty month. Keep each request inside one calendar year, including
+        # partial first/last years, without gaps or overlaps.
+        for year in range(int(start[:4]), int(end[:4]) + 1):
+            self._check()
+            window_start, window_end = max(start, f"{year:04d}-01"), min(end, f"{year:04d}-12")
+            body["period"] = {"from": window_start, "to": window_end}
+            payload = self.request_json("POST", path, body)
+            data = payload.get("data")
+            rows = data.get("list") if isinstance(data, dict) else None
+            if not isinstance(rows, list):
+                raise contract.ComexStatError("A resposta não contém uma lista de registros válida.")
+            for index, row in enumerate(rows):
+                if index % 256 == 0:
+                    self._check()
+                if not isinstance(row, dict):
+                    raise contract.ComexStatError("A API retornou um registro inválido.")
+                validate(row, codes, window_start, window_end, f"registro {index + 1}")
+                key = identity(row)
+                previous = unique.get(key)
+                if previous is not None and signature(previous) != signature(row):
+                    raise contract.ComexStatError(
+                        "A API retornou registros duplicados com valores divergentes."
+                    )
+                unique[key] = row
         self._notify("Base municipal validada" if municipal else "Base geral validada", 1.0)
         return list(unique.values())
 

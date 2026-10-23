@@ -8,7 +8,7 @@ Aguarde 11 s”. A recuperação permitia somente duas tentativas. A sequência
 controlada `429 → 429 → 200` encerrava a operação antes da terceira resposta.
 
 A RC10 mantém a consulta aberta para recuperar recusas curtas repetidas.
-O transporte repete somente o endpoint afetado. Se a base geral já foi
+O transporte repete somente o pedido afetado. Se a base geral já foi
 obtida, uma recusa na base municipal não provoca outro download da geral.
 O resultado completo anterior permanece visível até a nova consulta concluir
 e validar ambas as bases. A espera informa a contagem regressiva e permite
@@ -16,8 +16,10 @@ cancelar.
 
 ## Limites da recuperação
 
-- O desktop permite até quatro tentativas no endpoint afetado por HTTP 429,
-  com orçamento de 90 segundos por endpoint para esperas de recuperação.
+- O desktop permite até quatro tentativas no pedido afetado por HTTP 429,
+  com orçamento de 90 segundos por pedido para esperas de recuperação.
+  Esses limites valem para cada faixa anual de cada base, não para a consulta
+  completa quando ela abrange vários anos.
 - O primeiro prazo vem de `Retry-After`, quando válido, ou da mensagem do
   MDIC. A margem de 0,5 segundo evita antecipar o prazo. Sem prazo, o recuo
   é de 30 segundos.
@@ -31,8 +33,25 @@ cancelar.
   Certificados inválidos, HTTP 403, redirecionamentos e respostas incoerentes
   não recebem novas tentativas.
 - Não há intervalo preventivo fixo entre respostas bem-sucedidas, troca de IP,
-  cache de resultados, central ou alternativa CSV. A consulta normal continua
-  fazendo somente um POST geral e outro municipal quando ambos têm sucesso.
+  cache de resultados, central ou alternativa CSV. Para um período no mesmo
+  ano, a consulta normal faz um POST geral e outro municipal. Períodos que
+  atravessam anos fazem um pedido de cada base por ano civil abrangido.
+
+## Períodos que atravessam anos
+
+Na verificação externa, setembro de 2026 retornou dados, mas o período de
+outubro de 2025 a setembro de 2026 retornou listas vazias nas duas bases, com
+HTTP 200. Como o intervalo inclui aquele mês, a resposta vazia não representa
+corretamente o período. A documentação pública informa o formato `AAAA-MM`,
+mas não explica essa diferença; a causa interna do serviço não foi confirmada.
+
+A RC10 divide esses intervalos por ano civil: outubro a dezembro de 2025 e
+janeiro a setembro de 2026, no exemplo. Cada resposta é validada dentro da
+sua faixa e o resultado completo só é publicado depois de obter ambas as
+bases. Isso também cobre intervalos como março de 2025 a setembro de 2026.
+Uma recusa repete apenas o pedido daquele ano, sem baixar novamente os
+pedidos já concluídos. O exemplo de dois anos faz quatro POSTs quando a
+fonte responde sem recusas.
 
 Ao terminar uma pausa sem recuperação, a interface usa o contador vigente.
 Depois da expiração, informa que uma nova consulta pode ser feita, sem
@@ -59,9 +78,12 @@ base municipal sem repetir a geral. A reprodução Qt usa a mesma janela e
 a troca de setembro de 2026 para outubro de 2025 a setembro de 2026.
 
 A suíte completa `python verificar.py --headless --volume` passou no Linux:
-**599 testes em 124,489 s, sem falhas nem testes ignorados**. O ensaio de
-100 mil registros fez a primeira consulta em 1,678 s e processou 92 eventos Qt.
+**603 testes em 127,136 s, sem falhas nem testes ignorados**. O ensaio de
+100 mil registros fez a primeira consulta em 1,700 s e processou 95 eventos Qt.
 Os testes direcionados de transporte, interface e versão também passaram.
+As regressões anuais cobrem a resposta vazia entre anos, a omissão de meses
+em faixas sem inversão do mês inicial/final, a rejeição de linhas fora da
+faixa e a preservação do último resultado após falha no segundo ano.
 
 A consulta real consecutiva e os links do novo pacote serão registrados após
 concluir a verificação externa e a compilação nativa Windows.
