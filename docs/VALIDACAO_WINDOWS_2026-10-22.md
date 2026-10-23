@@ -1,7 +1,39 @@
-# Validação Windows — correções de portabilidade
+# Validação Windows — concluída
 
 O workflow manual foi executado na `main`, em Windows Server 2025 x64,
 com CPython 3.11, 3.12, 3.13 e 3.14.
+
+Na [execução final 39919861421](https://github.com/Souzlx/Liarte_Interf/actions/runs/39919861421),
+o commit `b6bf99d0025481745ba3e4fae7daaeaf06fcc7a7` passou nos quatro jobs.
+Cada job executou **588 testes: 587 aprovados, um ignorado e nenhuma falha**.
+O teste ignorado simula uma queda de processo POSIX e exige homologação
+própria para o mecanismo de bloqueio do Windows.
+
+| Python | Tempo da suíte | Pacote portátil aprovado |
+|---|---:|---|
+| 3.11 | 210,043 s | [Download](https://github.com/Souzlx/Liarte_Interf/actions/runs/39919861421/artifacts/12486907970) |
+| 3.12 | 209,318 s | [Download](https://github.com/Souzlx/Liarte_Interf/actions/runs/39919861421/artifacts/12487181390) |
+| 3.13 | 178,587 s | [Download](https://github.com/Souzlx/Liarte_Interf/actions/runs/39919861421/artifacts/12486463190) |
+| 3.14 | 205,744 s | [Download](https://github.com/Souzlx/Liarte_Interf/actions/runs/39919861421/artifacts/12486158577) |
+
+Os quatro executáveis compilados passaram no autoteste nativo, com Qt
+6.10.3, 50 linhas na página, temas claro/escuro, ícone, diálogo de gravação
+e recursos de Excel, PDF e Power BI aprovados. Nenhum aviso QML foi
+registrado. O transporte HTTPS usa `windows-cryptoapi-v1`.
+
+Os resultados completos do autoteste, os identificadores dos artefatos e
+os hashes informados pelo GitHub estão em
+[VALIDACAO_WINDOWS_2026-10-23.json](VALIDACAO_WINDOWS_2026-10-23.json).
+O autoteste usa dados sintéticos e não consulta a API pública; a validação
+real de Comex Stat em Linux está documentada separadamente em
+[VALIDACAO_API_REAL_2026-10-22.json](VALIDACAO_API_REAL_2026-10-22.json).
+
+Os ZIPs não foram baixados neste ambiente porque o host de armazenamento
+está fora da política de rede publicada. Os resultados nativos foram
+conferidos nos logs; os arquivos internos e seus checksums não foram
+recalculados localmente. Os quatro pacotes estão disponíveis nos links acima.
+
+## Histórico do diagnóstico
 
 | Execução | Commit testado | Resultado |
 |---|---|---|
@@ -10,6 +42,7 @@ com CPython 3.11, 3.12, 3.13 e 3.14.
 | [39880901606](https://github.com/Souzlx/Liarte_Interf/actions/runs/39880901606) | `9ac1bed` | Python 3.11–3.13 concluíram 587 testes e revelaram cortes de legendas; 3.11–3.12 também falharam no teste de expiração. Python 3.14 atingiu 300 s próximo ao fim da suíte. |
 | [39882702056](https://github.com/Souzlx/Liarte_Interf/actions/runs/39882702056) | `301a459` | As quatro versões concluíram 588 testes. Somente a nova regressão com fontes ampliadas falhou: Limpar ultrapassou a borda de 500 px; um teste POSIX foi ignorado em cada job. |
 | [39883707044](https://github.com/Souzlx/Liarte_Interf/actions/runs/39883707044) | `7dbcf72` | Python 3.11, 3.12 e 3.13 passaram e publicaram pacotes com autoteste do executável aprovado. Python 3.14 concluiu 588 testes, com uma falha na medição inicial do layout de navegação. |
+| [39919861421](https://github.com/Souzlx/Liarte_Interf/actions/runs/39919861421) | `b6bf99d` | Quatro jobs aprovados, cada um com 587 testes aprovados e um ignorado. Quatro executáveis aprovados no autoteste e pacotes publicados. |
 
 ## Correção comprovada durante o diagnóstico
 
@@ -109,9 +142,7 @@ de altura, rolagem, paginação e ausência de novo worker permanecem intactas;
 os **oito testes de navegação passaram em 3,307 s**. O script de compilação
 também passa a registrar o JSON do autoteste nos logs, além de incluí-lo no
 pacote, para permitir sua conferência sem baixar a distribuição completa.
-A matriz Windows será repetida com as correções.
-Até uma execução bem-sucedida, o pacote Windows continua sem validação
-concluída.
+A execução final confirmou essas correções nas quatro versões do Python.
 
 O workflow gera a pasta portátil e testa o executável congelado. A criação
 do instalador Inno Setup e a homologação de instalação, atualização,
