@@ -30,6 +30,51 @@ As capturas desta revisão usam exclusivamente dados sintéticos. Elas servem
 para avaliar o layout e não representam resultados reais da empresa ou da
 API. A versão estável 5.2.0 permanece disponível no GitHub Releases.
 
+## Validação
+
+No Linux, `python verificar.py --headless --volume` passou com **626 testes
+em 105,199 s**, sem falhas ou testes ignorados. O ensaio de 100 mil registros
+fez a primeira consulta em 1,104 s e processou 68 eventos Qt. Os testes
+direcionados verificaram também fontes ampliadas e a posição dos rótulos
+nas margens dinâmicas dos eixos. A revisão independente e as capturas não
+registraram avisos QML.
+
+As evidências, os hashes das imagens e o escopo estão em
+[EVIDENCIAS_INTERFACE_530_RC1.json](EVIDENCIAS_INTERFACE_530_RC1.json).
+A [execução Windows 40000381574](https://github.com/Souzlx/Liarte_Interf/actions/runs/40000381574) passou no
+commit `7058bc74dbf3493d118e211afafd3ab817bab327`. Cada job executou 626 testes, com 625 aprovados,
+um caso exclusivo de POSIX ignorado e nenhuma falha. Os quatro executáveis
+5.3.0-rc.1 passaram no autoteste nativo com Qt 6.10.3, sem avisos QML, e
+recursos de Excel, PDF e Power BI aprovados.
+
+| Python | Aprovados | Ignorados | Tempo da suíte | Prévia portátil |
+|---|---:|---:|---:|---|
+| 3.11 | 625 | 1 | 236,329 s | [ZIP](https://github.com/Souzlx/Liarte_Interf/actions/runs/40000381574/artifacts/12521558617) |
+| 3.12 | 625 | 1 | 254,152 s | [ZIP](https://github.com/Souzlx/Liarte_Interf/actions/runs/40000381574/artifacts/12522111554) |
+| 3.13 | 625 | 1 | 234,302 s | [ZIP](https://github.com/Souzlx/Liarte_Interf/actions/runs/40000381574/artifacts/12521628028) |
+| 3.14 | 625 | 1 | 233,294 s | [ZIP](https://github.com/Souzlx/Liarte_Interf/actions/runs/40000381574/artifacts/12522326445) |
+
+Para baixar, entre no GitHub e use o ZIP desejado. Se necessário, abra a
+execução, selecione **Summary** e baixe em **Artifacts**. Extraia o ZIP
+inteiro em uma pasta nova e abra LIARTE_Desktop.exe. Confira **5.3.0-rc.1**
+em Ajuda. O pacote inclui Python e dependências.
+
+As métricas e metadados completos estão em
+[VALIDACAO_WINDOWS_530_RC1.json](VALIDACAO_WINDOWS_530_RC1.json). Os resultados
+nativos foram conferidos nos logs; o ZIP do Actions não foi reinspecionado
+localmente. O teste POSIX ignorado não certifica o bloqueio por processos
+Windows; DPI/GPU específicos continuam dependentes do computador de destino.
+
+Na primeira execução Windows, dois testes revelaram o deslocamento do rótulo
+do último mês e o corte de um valor do ranking com fontes mais largas. As
+margens passaram a reservar a meia largura do rótulo em ambos os extremos;
+o ranking mede a coluna numérica pelo texto integral e reorganiza percentual
+e valor no modo compacto. Regressões com fontes largas reproduzem os casos.
+A nova execução validou as correções nas quatro versões do Python.
+
+O job de publicação de release permaneceu desativado para esta prévia;
+a versão estável 5.2.0 e seu download permanecem disponíveis.
+
 ## Capturas com dados sintéticos
 
 Resumo inicial, com resultados de exemplo dos dois módulos:

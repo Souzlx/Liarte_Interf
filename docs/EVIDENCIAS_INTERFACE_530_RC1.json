@@ -1,0 +1,161 @@
+{
+  "version": "5.3.0-rc.1",
+  "tested_commit": "7058bc74dbf3493d118e211afafd3ab817bab327",
+  "recorded_at_utc": "2026-10-23T14:01:27+00:00",
+  "changes": [
+    "Responsive axes and monthly labels in imports and inventory",
+    "Content-based chart panels, aligned columns and wrapping descriptions",
+    "Expanded charts preserve current data, units and options",
+    "Visible currency and shares in origin/product rankings",
+    "Home summary of loaded results with applied context"
+  ],
+  "linux_full_suite": {
+    "command": "python verificar.py --headless --volume",
+    "tests_run": 626,
+    "tests_passed": 626,
+    "tests_skipped": 0,
+    "seconds": 105.199,
+    "volume_records": 100000,
+    "volume_first_query_seconds": 1.104,
+    "volume_qt_events": 68
+  },
+  "focused_tests": [
+    {
+      "suite": "ChartImportsTests + InterfaceTests + endpoint alignment regression",
+      "tests_passed": 19,
+      "seconds": 6.916
+    },
+    {
+      "suite": "StockChartResponsiveTests + InventoryUiTests",
+      "tests_passed": 26,
+      "seconds": 7.568
+    },
+    {
+      "suite": "HomeIndicatorsTests + existing home regressions",
+      "tests_passed": 6,
+      "seconds": 1.708
+    },
+    {
+      "suite": "ChartWorkspaceTests + axis alignment and enlarged-font regressions",
+      "tests_passed": 6,
+      "seconds": 1.952
+    },
+    {
+      "suite": "DistributionTests + InstallationTests",
+      "tests_passed": 21,
+      "seconds": 1.444
+    }
+  ],
+  "visual_checks": {
+    "synthetic_data_only": true,
+    "public_api_requests": 0,
+    "qml_warnings": [],
+    "widths_checked": [
+      500,
+      760,
+      1120,
+      1380
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "screenshots": [
+      {
+        "file": "docs/preview_530_rc1/estoque.png",
+        "synthetic": true,
+        "width": 1380,
+        "height": 900,
+        "sha256": "c747d37ebbfe22aa76f1244caccb8c02b983a8c9fd328067d2cf7199da634893"
+      },
+      {
+        "file": "docs/preview_530_rc1/estoque_escuro.png",
+        "synthetic": true,
+        "width": 1380,
+        "height": 900,
+        "sha256": "1a9d8022706d51b041fbe1737fdf30fc37ef202250a4d1352d196419a654a2ac"
+      },
+      {
+        "file": "docs/preview_530_rc1/importacoes.png",
+        "synthetic": true,
+        "width": 1380,
+        "height": 900,
+        "sha256": "0dcb7ded670ba2de27f07b580f15a382179c6fc42041af713c919fbf0873dc25"
+      },
+      {
+        "file": "docs/preview_530_rc1/importacoes_compacto.png",
+        "synthetic": true,
+        "width": 500,
+        "height": 800,
+        "sha256": "2f0c54d4e232b609c4d03c7c99f7d0e8f9c67ac8e6c851a53e7d6b1c6c709d77"
+      },
+      {
+        "file": "docs/preview_530_rc1/inicio.png",
+        "synthetic": true,
+        "width": 1380,
+        "height": 900,
+        "sha256": "e40c181b719c962bce473c2c72fe69c1bc23c80fedda1e9cb3994a191b0f02bb"
+      }
+    ]
+  },
+  "preservation": {
+    "core_diff": "Only the User-Agent version changed in src/liarte_core; calculations and API recovery remain the stable 5.2.0 implementation.",
+    "no_additional_queries_for_chart_or_home_controls": true,
+    "negatives_and_null_gaps_preserved": true,
+    "same_expanded_chart_points_and_units": true
+  },
+  "windows_validation": {
+    "report": "VALIDACAO_WINDOWS_530_RC1.json",
+    "workflow_run": 40000381574,
+    "tested_commit": "7058bc74dbf3493d118e211afafd3ab817bab327",
+    "conclusion": "success",
+    "python_versions": [
+      "3.11",
+      "3.12",
+      "3.13",
+      "3.14"
+    ],
+    "tests_per_job": 626,
+    "passed_per_job": 625,
+    "skipped_per_job": 1,
+    "skip_scope": "POSIX-specific process test",
+    "native_smoke_all_passed": true,
+    "qml_warnings": []
+  },
+  "limits": [
+    "Visual captures and automated Qt checks use synthetic data.",
+    "Linux screenshots do not certify all destination-machine DPI/GPU settings.",
+    "This preview is a portable Windows bundle; no Setup installer is generated."
+  ],
+  "first_windows_run": {
+    "run": 39965657556,
+    "commit": "0dbe75315a431c557e40451ebfeb0e763ed37343",
+    "conclusion": "cancelled",
+    "completed_jobs": {
+      "3.11": {
+        "tests_run": 625,
+        "failures": 2,
+        "skipped": 1
+      },
+      "3.13": {
+        "tests_run": 625,
+        "failures": 2,
+        "skipped": 1
+      },
+      "3.14": {
+        "tests_run": 625,
+        "failures": 2,
+        "skipped": 1
+      }
+    },
+    "cancelled_job": "3.12 was cancelled while still progressing through the final tests, to make the completed failure logs available.",
+    "findings": [
+      "The last month caption was clamped inside the chart and no longer centered on its endpoint with wide Windows font metrics.",
+      "A ranking amount was truncated with Windows font metrics."
+    ],
+    "fixes": [
+      "Reserve the measured month-caption half-width plus padding at both plot endpoints.",
+      "Measure numeric columns against their full implicit width and allow compact amounts and shares to use separate rows."
+    ]
+  }
+}
