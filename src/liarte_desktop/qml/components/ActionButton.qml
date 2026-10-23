@@ -7,6 +7,7 @@ Button {
     property bool primary: false
     property bool subtle: false
     property string iconName: ""
+    readonly property real naturalWidth: Math.ceil(implicitContentWidth + leftPadding + rightPadding)
     readonly property color fillColor: {
         if (!enabled)
             return Theme.subtle;
@@ -22,7 +23,7 @@ Button {
         return subtle ? "transparent" : Theme.surface;
     }
     implicitHeight: 42
-    implicitWidth: Math.max(100, contentItem.implicitWidth + 28)
+    implicitWidth: Math.max(100, naturalWidth)
     hoverEnabled: true
     font.pixelSize: 13
     font.weight: primary ? Font.DemiBold : Font.Medium

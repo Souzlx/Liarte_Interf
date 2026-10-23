@@ -401,7 +401,8 @@ ApplicationWindow {
                         visible: platform.activeModule === "imports" && !window.viewState.demo && window.viewState.loaded
                         text: window.width >= 1000 ? (window.viewState.exportBusy ? window.viewState.exportProgress + "%" : "Baixar") : ""
                         iconName: window.viewState.exportBusy ? "file" : "download"
-                        implicitWidth: window.width >= 1000 ? 108 : 40
+                        implicitWidth: window.width >= 1000 ? Math.max(108, naturalWidth) : 40
+                        Layout.minimumWidth: implicitWidth
                         leftPadding: window.width >= 1000 ? 14 : 10
                         rightPadding: leftPadding
                         primary: true
@@ -430,7 +431,8 @@ ApplicationWindow {
                         objectName: "settingsButton"
                         iconName: "settings"
                         text: window.width < 680 ? "" : "Preferências"
-                        implicitWidth: window.width < 680 ? 40 : 150
+                        implicitWidth: window.width < 680 ? 40 : Math.max(150, naturalWidth)
+                        Layout.minimumWidth: implicitWidth
                         leftPadding: window.width < 680 ? 10 : 14
                         rightPadding: leftPadding
                         Accessible.name: "Preferências"

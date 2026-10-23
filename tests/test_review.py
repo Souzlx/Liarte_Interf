@@ -349,3 +349,67 @@ class ReviewQtTests(unittest.TestCase):
                 if caption:
                     self.assertFalse(labels[0].property("truncated"), (width, name, caption))
                     self.assertLessEqual(labels[0].property("contentWidth"), labels[0].width() + 0.1)
+
+    def test_action_widths_follow_larger_rendered_font_metrics(self):
+        from PySide6.QtCore import QPointF
+        from PySide6.QtGui import QFont
+
+        self.load()
+        self.item("trendMetric").setProperty("currentIndex", 1)
+        self.item("quickExportButton").setProperty("visible", True)
+        controls = [
+            self.item(name)
+            for name in (
+                "settingsButton", "toggleFilters", "filterExpansion", "clearFilters",
+                "priceScale", "openTrendValues", "quickExportButton", "queryButton",
+                "cancelButton",
+            )
+        ]
+        preset_names = {"preset3", "preset6", "preset12"}
+        presets = [
+            child for child in self.item("cancelButton").parentItem().childItems()
+            if child.objectName() in preset_names
+        ]
+        self.assertEqual({child.objectName() for child in presets}, preset_names)
+        controls.extend(presets)
+        for control in controls:
+            font = QFont(control.property("font"))
+            font.setPixelSize(font.pixelSize() * 2)
+            control.setProperty("font", font)
+        for width in (500, 1380):
+            self.window.resize(width, 900)
+            QTest.qWait(30)
+            for control in controls:
+                caption = control.property("text")
+                if not caption:
+                    continue
+                pending = list(control.childItems())
+                labels = []
+                while pending:
+                    child = pending.pop()
+                    pending.extend(child.childItems())
+                    if (
+                        child.property("text") == caption
+                        and child.property("truncated") is not None
+                    ):
+                        labels.append(child)
+                self.assertEqual(len(labels), 1, caption)
+                self.assertFalse(labels[0].property("truncated"), (width, caption))
+                left = control.mapToScene(QPointF()).x()
+                self.assertGreaterEqual(left, 0, caption)
+                self.assertLessEqual(left + control.width(), width, caption)
+            for names in (
+                ("toggleFilters", "filterExpansion", "clearFilters"),
+                ("priceScale", "openTrendValues"),
+            ):
+                first, last = self.item(names[0]), self.item(names[-1])
+                layout = first.parentItem()
+                available = layout.parentItem().width()
+                needed = sum(self.item(name).implicitWidth() for name in names)
+                needed += len(names) * layout.property("columnSpacing")
+                same_row = max(first.y(), last.y()) < min(
+                    first.y() + first.height(), last.y() + last.height()
+                )
+                self.assertEqual(same_row, available >= needed, (width, names))
+                self.assertAlmostEqual(layout.width(), available, delta=0.1)
+        self.assertEqual(self.bundle.messages, [])

@@ -7,6 +7,7 @@ com CPython 3.11, 3.12, 3.13 e 3.14.
 |---|---|---|
 | [39877201447](https://github.com/Souzlx/Liarte_Interf/actions/runs/39877201447) | `ec78df0` | Quatro jobs falharam na etapa de testes/compilação, após instalar as dependências. |
 | [39878269032](https://github.com/Souzlx/Liarte_Interf/actions/runs/39878269032) | `35a9f23` | Quatro jobs falharam novamente na etapa de testes/compilação. Nenhum pacote foi publicado. |
+| [39880901606](https://github.com/Souzlx/Liarte_Interf/actions/runs/39880901606) | `9ac1bed` | Python 3.11–3.13 concluíram 587 testes e revelaram cortes de legendas; 3.11–3.12 também falharam no teste de expiração. Python 3.14 atingiu 300 s próximo ao fim da suíte. |
 
 ## Correção comprovada durante o diagnóstico
 
@@ -53,10 +54,34 @@ em vez de estimar sua largura com um dispositivo de pintura externo. Esses
 ajustes tratam diferenças de agendamento e DPI do runner, mantendo as
 exigências de visibilidade e legibilidade.
 
-Com esses ajustes, `python verificar.py --headless --volume` executou
-**587 testes em 127,010 s, todos aprovados, sem testes ignorados**, no Linux.
-O ensaio de 100 mil registros concluiu a primeira consulta em 1,775 s,
-processando 87 eventos Qt. A matriz Windows será repetida com as correções.
+O teste do texto renderizado revelou cortes reais nas legendas de três
+botões no Windows: Preferências, Limpar e Ver valores. As larguras fixas
+foram substituídas por mínimos que acompanham as medidas intrínsecas do
+conteúdo; os grupos de ações passam a se reorganizar na janela compacta.
+Os atalhos de período e os botões de consulta, cancelamento e download
+também respeitam o tamanho do conteúdo, preservando o modo somente ícone.
+Uma regressão amplia as fontes e exige legendas completas e controles
+dentro da janela. Ela falha no QML anterior e passa com a correção.
+
+O teste de modo offline assumia que o instante monotônico `0` sempre
+representava uma entrada expirada. Em um runner Windows iniciado há menos
+de cinco minutos, a entrada ainda era válida. O teste agora usa
+`time.monotonic() - 301`, incluindo a reprodução com relógio em 100 segundos.
+
+O limite da suíte no script de compilação foi ajustado de 300 para 600 s.
+Os logs de Python 3.14 mostram progresso contínuo: 581 dos 587 testes
+foram iniciados em 297 s, sem um teste bloqueado. Os jobs 3.11–3.13
+concluíram a suíte em 203,333 s, 220,176 s e 236,156 s, respectivamente,
+com um teste POSIX ignorado em cada job. Os limites individuais dos testes
+e o prazo total de 35 minutos do workflow foram preservados.
+
+Com os ajustes finais de layout, `python verificar.py --headless --volume`
+executou **588 testes em 131,362 s, todos aprovados, sem testes ignorados**,
+no Linux. O ensaio de 100 mil registros concluiu a primeira consulta em
+1,630 s, processando 92 eventos Qt. Cinco testes direcionados de legendas,
+fontes ampliadas e clique do gráfico também passaram. A inspeção das
+capturas em 500 e 1380 pixels confirmou o layout, sem avisos QML.
+A matriz Windows será repetida com as correções.
 Até uma execução bem-sucedida, o pacote Windows continua sem validação
 concluída.
 

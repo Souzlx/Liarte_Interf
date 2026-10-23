@@ -344,6 +344,7 @@ FocusScope {
                             primary: true
                             Layout.fillWidth: true
                             Layout.preferredWidth: 155
+                            Layout.minimumWidth: naturalWidth
                             Layout.alignment: Qt.AlignBottom
                             enabled: !window.viewState.busy && !window.viewState.metadataBusy && window.pauseSeconds === 0
                             onClicked: controller.queryPeriod(startPeriod.currentValue, endPeriod.currentValue)
@@ -355,7 +356,7 @@ FocusScope {
                         Ui.ActionButton {
                             objectName: "cancelButton"
                             text: window.viewState.busy || window.viewState.waiting || window.viewState.metadataBusy ? "Cancelar" : window.viewState.demo ? "Todo o período" : "Último mês"
-                            implicitWidth: 130
+                            implicitWidth: Math.max(130, naturalWidth)
                             implicitHeight: 30
                             font.pixelSize: 11
                             subtle: !window.viewState.busy && !window.viewState.waiting
@@ -377,7 +378,7 @@ FocusScope {
                                 objectName: "preset" + modelData
                                 text: "Últimos " + modelData + " meses"
                                 implicitHeight: 30
-                                implicitWidth: 130
+                                implicitWidth: Math.max(130, naturalWidth)
                                 subtle: true
                                 font.pixelSize: 11
                                 enabled: !window.viewState.busy && !window.viewState.metadataBusy
@@ -585,10 +586,16 @@ FocusScope {
                     anchors.fill: parent
                     anchors.margins: 12
                     spacing: 8
-                    RowLayout {
+                    GridLayout {
+                        id: filterActions
                         Layout.fillWidth: true
+                        Layout.maximumWidth: Infinity
+                        columns: parent.width >= toggleFilters.implicitWidth + filterExpansion.implicitWidth + clearFilters.implicitWidth + 3 * columnSpacing ? 4 : 2
                         Ui.ActionButton {
+                            id: toggleFilters
                             objectName: "toggleFilters"
+                            Layout.columnSpan: filterActions.columns === 2 ? 2 : 1
+                            Layout.minimumWidth: naturalWidth
                             iconName: "filter"
                             text: "Filtros" + (window.viewState.filterCount ? " · " + window.viewState.filterCount : "")
                             implicitHeight: 30
@@ -597,21 +604,26 @@ FocusScope {
                             onClicked: window.filtersExpanded = !window.filtersExpanded
                         }
                         Item {
+                            visible: filterActions.columns === 4
                             Layout.fillWidth: true
                         }
                         Ui.ActionButton {
+                            id: filterExpansion
                             objectName: "filterExpansion"
                             text: window.filtersExpanded ? "Recolher" : "Expandir"
                             implicitHeight: 30
-                            implicitWidth: 90
+                            implicitWidth: Math.max(90, naturalWidth)
+                            Layout.minimumWidth: implicitWidth
                             subtle: true
                             onClicked: window.filtersExpanded = !window.filtersExpanded
                         }
                         Ui.ActionButton {
+                            id: clearFilters
                             objectName: "clearFilters"
                             text: "Limpar"
                             implicitHeight: 28
-                            implicitWidth: 80
+                            implicitWidth: Math.max(80, naturalWidth)
+                            Layout.minimumWidth: implicitWidth
                             subtle: true
                             enabled: window.viewState.filterCount > 0 || searchBox.text.length > 0
                             onClicked: controller.clearFilters()
@@ -880,8 +892,11 @@ FocusScope {
                                 Layout.maximumWidth: 160
                             }
                         }
-                        RowLayout {
+                        GridLayout {
+                            id: trendActions
                             Layout.fillWidth: true
+                            Layout.maximumWidth: Infinity
+                            columns: parent.width >= priceScale.implicitWidth + openTrendValues.implicitWidth + 2 * columnSpacing ? 3 : 1
                             Ui.AppCheck {
                                 id: priceScale
                                 objectName: "priceScale"
@@ -892,14 +907,17 @@ FocusScope {
                                 ToolTip.text: "Ajusta o eixo para comparar pequenas diferenças. Os valores permanecem iguais."
                             }
                             Item {
+                                visible: trendActions.columns === 3
                                 Layout.fillWidth: true
                             }
                             Ui.ActionButton {
+                                id: openTrendValues
                                 objectName: "openTrendValues"
                                 text: "Ver valores"
                                 iconName: "grid"
                                 implicitHeight: 30
-                                implicitWidth: 132
+                                implicitWidth: Math.max(132, naturalWidth)
+                                Layout.minimumWidth: implicitWidth
                                 font.pixelSize: 11
                                 subtle: true
                                 onClicked: trendValuesDialog.open()

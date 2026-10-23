@@ -292,7 +292,7 @@ class ComexTests(ComexFixtureCase):
         ):
             with self.assertRaises(ComexError):
                 self.provider.availability(Event(), force=True)
-            self.provider._availability_time = 0
+            self.provider._availability_time = time.monotonic() - 301
             fallback = self.provider.availability(Event())
         self.assertTrue(fallback.cached)
         self.assertEqual(fallback.municipal_latest, "2026-09")
