@@ -8,6 +8,8 @@ Baixe o pacote compilado da versão desejada, feche o aplicativo anterior e extr
 
 O ZIP de fontes oferecido pelo GitHub é diferente do pacote compilado. Veja [LEIA_PRIMEIRO.txt](LEIA_PRIMEIRO.txt) para uso, atualização e limites dos indicadores.
 
+A prévia **5.3.0-rc.3** reúne as [correções da auditoria](docs/CORRECOES_AUDITORIA_530_RC3.md), com os critérios de compatibilidade, ensaios de desempenho e evidências de validação.
+
 ## Executar os fontes
 
 No Windows, instale CPython padrão **3.11, 3.12, 3.13 ou 3.14 de 64 bits**, com Tkinter, e abra `INICIAR_DESKTOP.cmd`. O assistente cria `.liarte-desktop-env`, instala as dependências fixadas e verifica a interface. A preparação inicial exige acesso aos gerenciadores de pacotes.
@@ -46,7 +48,7 @@ python -m pip install -r requirements-build.txt
 python tools/build_windows.py
 ```
 
-O resultado fica em `dist/LIARTE_Desktop/`, incluindo recursos e manifesto de integridade. `CRIAR_INSTALADOR.cmd` acrescenta a geração do Setup com Inno Setup; consulte [INSTALACAO_510.md](docs/INSTALACAO_510.md). O workflow [Windows](.github/workflows/windows.yml) mantém a compilação nas quatro versões Python suportadas. Publicar uma versão estável é uma etapa separada.
+O resultado fica em `dist/LIARTE_Desktop/`, incluindo recursos e manifesto de integridade. `CRIAR_INSTALADOR.cmd` acrescenta a geração do Setup com Inno Setup; consulte [INSTALACAO_510.md](docs/INSTALACAO_510.md). O workflow [Windows](.github/workflows/windows.yml) mantém a compilação nas quatro versões Python suportadas; o [CI de alterações](.github/workflows/tests.yml) executa testes em push/PR de código. Publicar uma versão estável é uma etapa separada.
 
 ## Organização
 

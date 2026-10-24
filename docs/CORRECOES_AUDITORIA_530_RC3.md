@@ -21,9 +21,24 @@ A RC3 aplica as correções dos 29 achados confirmados na auditoria da revisão 
 | A25–A27 | JSON/cache legado preserva Decimal; manifesto e comparações mantêm unidades inteiras e decimais exatos; ordenação auxiliar reconhece Decimal como número. | `ExactJsonAuditTests` e `AuditExactTotalsTests`, inclusive contexto Decimal reduzido e valores acima de 2⁵³. |
 | A28–A29 | Falhas na publicação de ZIP/checksum restauram o par anterior; falha na própria restauração conserva cópias recuperáveis. Mudanças em `qmldir` e na base `.liarte` invalidam a preparação reutilizada. | `BuildAuditTests`: falhas em cada publicação, restauração bloqueada e fingerprint do registro QML. |
 
-A saída programática aguarda a conclusão do worker cancelado antes de destruir a interface. Caso o primeiro prazo de espera expire, o controlador e os arquivos temporários permanecem vivos até a conclusão. Há regressões com QThread real para esse contrato.
+A saída programática aguarda a conclusão do worker cancelado antes de destruir a interface, incluindo a limpeza nativa da thread após o sinal `finished`. Caso o primeiro prazo de espera expire, o controlador e os arquivos temporários permanecem vivos até a conclusão. Há regressões com QThread real para esse contrato, incluindo um caso que reproduz a notificação antes da limpeza terminar.
 
 As listas enviadas aos rankings visuais ficam limitadas aos 12 primeiros resultados de cada grupo. Totais, participações, filtros e fatos brutos continuam completos; a exportação não usa essa limitação visual. Registros mensais compartilham objetos quando possível para reduzir cópias em memória.
+
+## Ensaios de desempenho
+
+| Operação | Auditoria anterior | Após as correções |
+|---|---:|---:|
+| Montagem mensal de 1.000 linhas sintéticas | 1,095 s | 0,062 s |
+| Montagem mensal de 2.000 linhas sintéticas | 4,524 s | 0,126 s |
+| Montagem mensal de 4.000 linhas sintéticas | 19,111 s | 0,290 s |
+| Análise de 100 mil produtos/saldos/vendas, 241 meses | 22,327 s | 2,982 s |
+| Paginação em memória, 200 mil saldos | 194,624 ms | 0,146 ms, média de cinco mudanças |
+| Memória mensal retida, 24 mil fechamentos + 24 mil vendas | 59,063 MiB | 48,924 MiB |
+
+A montagem mensal é uma etapa do Excel, não o tempo total de exportação. O arquivo completo da base integrada no recorte outubro/2025–setembro/2026 foi exportado em **19,660 s**, com 15.441 posições históricas, 1.747 fatos mensais de vendas e 1.784 saldos atuais; o XLSX salvo foi validado e reaberto. Não houve medição anterior equivalente da exportação completa.
+
+O ensaio de paginação mede a troca do modelo/controlador sem janela QML, excluindo pintura. A memória mensal foi medida com `tracemalloc`, como alocações adicionais retidas; não é o RSS total do aplicativo. O cancelamento da análise sintética respondeu em 1,088 ms após o pedido nessa execução. O host foi compartilhado com outros testes: são observações locais para os cenários descritos, sem garantia de duração no computador do usuário.
 
 ## Compatibilidade e limites
 
@@ -40,4 +55,29 @@ A [limpeza separada](LIMPEZA_530_RC3.md) retirou 101 arquivos, 7.690.304 bytes d
 
 O workflow de testes agora roda em alterações de código por push/PR. A compilação dos quatro pacotes Windows e a publicação estável continuam manuais. As Actions usadas nos workflows estão fixadas por SHA verificado. A publicação de uma RC não substitui a versão estável.
 
-Os resultados finais de testes, desempenho e compilação desta entrega serão registrados em `EVIDENCIAS_CORRECOES_530_RC3.json` e `VALIDACAO_WINDOWS_530_RC3.json`. Resultados Linux/offscreen não equivalem à homologação do Setup, Power BI Desktop, rede corporativa, leitor de tela ou DPI/GPU da empresa.
+## Validação e download
+
+Código de produto validado: `c23e82c2a3efad766f472f7380dba85d79ec4a0a`. As atualizações posteriores deste guia e dos arquivos de evidência não alteram o executável compilado.
+
+| Ambiente | Resultado da suíte |
+|---|---|
+| Linux local, Python 3.12, Qt offscreen/software | 741 aprovados, zero ignorados, 172,864 s. |
+| CI Linux, Python 3.12 | 741 aprovados, zero ignorados, 166,126 s. |
+| Windows, Python 3.11 | 740 aprovados, um teste POSIX ignorado, 253,435 s. |
+| Windows, Python 3.12 | 740 aprovados, um teste POSIX ignorado, 260,589 s. |
+| Windows, Python 3.13 | 740 aprovados, um teste POSIX ignorado, 188,857 s. |
+| Windows, Python 3.14 | 740 aprovados, um teste POSIX ignorado, 235,012 s. |
+
+São **84 regressões novas**, incorporadas à suíte de 741 casos. A compilação e o autoteste nativo dos quatro executáveis também passaram: versão RC3, ícone, temas claro/escuro, diálogo de exportação, recursos Excel/PDF/BI e configuração TLS do Windows. A publicação estável foi ignorada intencionalmente. A versão estável permanece 5.2.0.
+
+O ensaio adicional do encerramento passou em 200 repetições no Python 3.12 e em 200 no Python 3.13; essas repetições não são somadas à contagem da suíte. O teste reforçado demonstra a falha do contrato anterior de finalização.
+
+- [Baixar pacote Windows RC3 — Python 3.12 incluído](https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/artifacts/12569587717).
+- [Compilação Windows validada](https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707).
+- [CI Linux validado](https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128187).
+- [Evidências de correções e desempenho](EVIDENCIAS_CORRECOES_530_RC3.json).
+- [Resultados nativos, digests e expiração dos quatro pacotes](VALIDACAO_WINDOWS_530_RC3.json).
+
+Entre no GitHub para baixar o artefato. Feche o aplicativo anterior, extraia todo o ZIP em uma pasta nova e abra `LIARTE_Desktop.exe`, mantendo `_internal` junto dele. O pacote inclui Python. Confira **5.3.0-rc.3** em Ajuda; atalhos antigos podem abrir outra instalação. Artefatos do Actions têm validade e os prazos estão no registro de distribuição.
+
+Os resultados nativos foram conferidos nos logs do CI; não houve uma segunda abertura local dos ZIPs. Resultados Linux/offscreen e autoteste Windows não equivalem à homologação do Setup, Power BI Desktop, rede corporativa, leitor de tela ou DPI/GPU da empresa.

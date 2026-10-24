@@ -1,0 +1,234 @@
+{
+  "repository": "Souzlx/Liarte_Interf",
+  "workflow_run": 40118128707,
+  "workflow_url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707",
+  "tested_commit": "c23e82c2a3efad766f472f7380dba85d79ec4a0a",
+  "conclusion": "success",
+  "publication_job": {
+    "completedAt": "2026-10-24T18:00:04Z",
+    "conclusion": "skipped",
+    "databaseId": 120945262524,
+    "name": "release",
+    "startedAt": "2026-10-24T18:00:05Z",
+    "status": "completed",
+    "steps": [],
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/job/120945262524"
+  },
+  "matrix": [
+    {
+      "python": "3.11",
+      "job_id": 120943641549,
+      "job_url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/job/120943641549",
+      "conclusion": "success",
+      "tests_run": 741,
+      "tests_passed": 740,
+      "tests_skipped": 1,
+      "seconds": 253.435,
+      "skip_reasons": [
+        "'POSIX subprocess crash; Windows locking requires native QA'"
+      ],
+      "frozen_smoke": {
+        "api_network_test": false,
+        "document_resources": {
+          "excel": "ok",
+          "pdf": "ok",
+          "pdf_logo": true,
+          "powerbi": "ok",
+          "powerbi_pages": 6,
+          "powerbi_visuals": 85,
+          "synthetic": true,
+          "temporary": true
+        },
+        "error": "",
+        "frozen": true,
+        "https_transport": {
+          "policy": "windows-cryptoapi-v1"
+        },
+        "platform": "win32",
+        "qml_warnings": [],
+        "qt": "6.10.3",
+        "rows_in_page": 50,
+        "save_dialog_checked": true,
+        "status": "ok",
+        "synthetic": true,
+        "themes_checked": [
+          "light",
+          "dark"
+        ],
+        "version": "5.3.0-rc.3",
+        "window_icon_checked": true,
+        "window_title": "Liarte Importações"
+      },
+      "artifact": {
+        "id": 12569318456,
+        "name": "LIARTE_Desktop_Python_3.11_Windows",
+        "size_in_bytes": 94861865,
+        "digest": "sha256:605039cd8884bcd96e3f131902b50655d0fe8965ef11be109be5202ba7664c4a",
+        "expires_at": "2027-01-22T17:52:44Z",
+        "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/artifacts/12569318456"
+      }
+    },
+    {
+      "python": "3.12",
+      "job_id": 120943641544,
+      "job_url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/job/120943641544",
+      "conclusion": "success",
+      "tests_run": 741,
+      "tests_passed": 740,
+      "tests_skipped": 1,
+      "seconds": 260.589,
+      "skip_reasons": [
+        "'POSIX subprocess crash; Windows locking requires native QA'"
+      ],
+      "frozen_smoke": {
+        "api_network_test": false,
+        "document_resources": {
+          "excel": "ok",
+          "pdf": "ok",
+          "pdf_logo": true,
+          "powerbi": "ok",
+          "powerbi_pages": 6,
+          "powerbi_visuals": 85,
+          "synthetic": true,
+          "temporary": true
+        },
+        "error": "",
+        "frozen": true,
+        "https_transport": {
+          "policy": "windows-cryptoapi-v1"
+        },
+        "platform": "win32",
+        "qml_warnings": [],
+        "qt": "6.10.3",
+        "rows_in_page": 50,
+        "save_dialog_checked": true,
+        "status": "ok",
+        "synthetic": true,
+        "themes_checked": [
+          "light",
+          "dark"
+        ],
+        "version": "5.3.0-rc.3",
+        "window_icon_checked": true,
+        "window_title": "Liarte Importações"
+      },
+      "artifact": {
+        "id": 12569587717,
+        "name": "LIARTE_Desktop_Python_3.12_Windows",
+        "size_in_bytes": 94273405,
+        "digest": "sha256:dadc7fab2be7f0146ebed7c9cb4aa1f9fcce12107709233d9aa0699fa51534fd",
+        "expires_at": "2027-01-22T17:52:44Z",
+        "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/artifacts/12569587717"
+      }
+    },
+    {
+      "python": "3.13",
+      "job_id": 120943641464,
+      "job_url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/job/120943641464",
+      "conclusion": "success",
+      "tests_run": 741,
+      "tests_passed": 740,
+      "tests_skipped": 1,
+      "seconds": 188.857,
+      "skip_reasons": [
+        "'POSIX subprocess crash; Windows locking requires native QA'"
+      ],
+      "frozen_smoke": {
+        "api_network_test": false,
+        "document_resources": {
+          "excel": "ok",
+          "pdf": "ok",
+          "pdf_logo": true,
+          "powerbi": "ok",
+          "powerbi_pages": 6,
+          "powerbi_visuals": 85,
+          "synthetic": true,
+          "temporary": true
+        },
+        "error": "",
+        "frozen": true,
+        "https_transport": {
+          "policy": "windows-cryptoapi-v1"
+        },
+        "platform": "win32",
+        "qml_warnings": [],
+        "qt": "6.10.3",
+        "rows_in_page": 50,
+        "save_dialog_checked": true,
+        "status": "ok",
+        "synthetic": true,
+        "themes_checked": [
+          "light",
+          "dark"
+        ],
+        "version": "5.3.0-rc.3",
+        "window_icon_checked": true,
+        "window_title": "Liarte Importações"
+      },
+      "artifact": {
+        "id": 12569348301,
+        "name": "LIARTE_Desktop_Python_3.13_Windows",
+        "size_in_bytes": 94796557,
+        "digest": "sha256:4dc93b182341b8acb1342143300a3199ff19ca2ec847c75d49b5d0544dd909e3",
+        "expires_at": "2027-01-22T17:52:44Z",
+        "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/artifacts/12569348301"
+      }
+    },
+    {
+      "python": "3.14",
+      "job_id": 120943641624,
+      "job_url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/job/120943641624",
+      "conclusion": "success",
+      "tests_run": 741,
+      "tests_passed": 740,
+      "tests_skipped": 1,
+      "seconds": 235.012,
+      "skip_reasons": [
+        "'POSIX subprocess crash; Windows locking requires native QA'"
+      ],
+      "frozen_smoke": {
+        "api_network_test": false,
+        "document_resources": {
+          "excel": "ok",
+          "pdf": "ok",
+          "pdf_logo": true,
+          "powerbi": "ok",
+          "powerbi_pages": 6,
+          "powerbi_visuals": 85,
+          "synthetic": true,
+          "temporary": true
+        },
+        "error": "",
+        "frozen": true,
+        "https_transport": {
+          "policy": "windows-cryptoapi-v1"
+        },
+        "platform": "win32",
+        "qml_warnings": [],
+        "qt": "6.10.3",
+        "rows_in_page": 50,
+        "save_dialog_checked": true,
+        "status": "ok",
+        "synthetic": true,
+        "themes_checked": [
+          "light",
+          "dark"
+        ],
+        "version": "5.3.0-rc.3",
+        "window_icon_checked": true,
+        "window_title": "Liarte Importações"
+      },
+      "artifact": {
+        "id": 12570278343,
+        "name": "LIARTE_Desktop_Python_3.14_Windows",
+        "size_in_bytes": 96041572,
+        "digest": "sha256:5ccb97ca3f9dea1bbc0b3f33fc4fa1accd52c3ee59c5009b152ef78cf1d85005",
+        "expires_at": "2027-01-22T17:52:44Z",
+        "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707/artifacts/12570278343"
+      }
+    }
+  ],
+  "artifact_archive_independently_downloaded": false,
+  "artifact_digest_source": "GitHub Actions artifact metadata",
+  "inspection_limit": "Autotestes lidos dos logs do CI. O ZIP não foi baixado e reaberto neste host; os digests são os informados pelo GitHub, sem novo cálculo independente local."
+}

@@ -1,0 +1,272 @@
+{
+  "version": "5.3.0-rc.3",
+  "recorded_at_utc": "2026-10-24T18:01:26.377194+00:00",
+  "repository": "Souzlx/Liarte_Interf",
+  "audited_commit": "e5be36410488dbba306a7b4ce49553213a777531",
+  "cleanup_commit": "68bc914",
+  "tested_product_commit": "c23e82c2a3efad766f472f7380dba85d79ec4a0a",
+  "findings_addressed": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08",
+    "A09",
+    "A10",
+    "A11",
+    "A12",
+    "A13",
+    "A14",
+    "A15",
+    "A16",
+    "A17",
+    "A18",
+    "A19",
+    "A20",
+    "A21",
+    "A22",
+    "A23",
+    "A24",
+    "A25",
+    "A26",
+    "A27",
+    "A28",
+    "A29"
+  ],
+  "change_map": "CORRECOES_AUDITORIA_530_RC3.md",
+  "linux_local": {
+    "command": "python verificar.py --headless --volume",
+    "platform": "Linux / Qt offscreen / software",
+    "tests": 741,
+    "passed": 741,
+    "skipped": 0,
+    "seconds": 172.864,
+    "log_sha256": "5d2d027e5823f3bef8b542cda6550ef934c5479342e520583241a6d0d992d5a9",
+    "volume": {
+      "records": 100000,
+      "first_query_seconds": 1.849,
+      "qt_events": 103
+    }
+  },
+  "linux_ci": {
+    "workflow_run": 40118128187,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128187",
+    "conclusion": "success",
+    "tested_commit": "c23e82c2a3efad766f472f7380dba85d79ec4a0a",
+    "tests": 741,
+    "seconds": 166.126
+  },
+  "windows": {
+    "report": "VALIDACAO_WINDOWS_530_RC3.json",
+    "workflow_url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40118128707",
+    "tested_commit": "c23e82c2a3efad766f472f7380dba85d79ec4a0a",
+    "matrix": [
+      {
+        "python": "3.11",
+        "tests": 741,
+        "passed": 740,
+        "skipped": 1,
+        "frozen_smoke": "ok"
+      },
+      {
+        "python": "3.12",
+        "tests": 741,
+        "passed": 740,
+        "skipped": 1,
+        "frozen_smoke": "ok"
+      },
+      {
+        "python": "3.13",
+        "tests": 741,
+        "passed": 740,
+        "skipped": 1,
+        "frozen_smoke": "ok"
+      },
+      {
+        "python": "3.14",
+        "tests": 741,
+        "passed": 740,
+        "skipped": 1,
+        "frozen_smoke": "ok"
+      }
+    ]
+  },
+  "regressions_added": {
+    "total": 84,
+    "files": {
+      "tests/test_audit_build.py": 6,
+      "tests/test_audit_stock_core.py": 18,
+      "tests/test_audit_network.py": 7,
+      "tests/test_audit_network_legacy.py": 19,
+      "tests/test_audit_exports.py": 16,
+      "tests/test_audit_desktop.py": 12,
+      "tests/test_audit_qml.py": 6
+    }
+  },
+  "shutdown_stress": {
+    "python_3_13_5": {
+      "tests": 212,
+      "strict_shutdown_repetitions": 200,
+      "seconds": 16.358
+    },
+    "python_3_12": {
+      "strict_shutdown_repetitions": 200,
+      "seconds": 15.723
+    },
+    "previous_lifecycle_fails_strict_regression": true,
+    "faulthandler_enabled": true,
+    "included_in_741_total": false
+  },
+  "checks": {
+    "ruff": "passed: src tools tests verificar.py",
+    "ruff_format": "9 new tests/modified preparation and release files checked",
+    "pip_check": "No broken requirements found.",
+    "diff_check": "passed",
+    "json_syntax": "all tracked JSON files decoded"
+  },
+  "performance": {
+    "synthetic_monthly_construction": [
+      {
+        "rows": 1000,
+        "seconds": 0.061564862000523135
+      },
+      {
+        "rows": 2000,
+        "seconds": 0.12623034900752828
+      },
+      {
+        "rows": 4000,
+        "seconds": 0.2900571909995051
+      }
+    ],
+    "bundled_12_months": {
+      "start": "2025-10",
+      "end": "2026-09",
+      "closing_rows": 15441,
+      "sale_rows": 1747,
+      "current_rows": 1784,
+      "analysis_seconds": 0.6606856410071487,
+      "export_seconds": 19.66007427799923,
+      "xlsx_bytes": 1529517,
+      "read_only_reopen": true,
+      "sheet_rows_with_headers": {
+        "Estoque": 1787,
+        "Fechamentos": 13,
+        "Vendas por filial": 49,
+        "Análise mensal": 73,
+        "Variações mensais": 3732,
+        "Produtos mensais": 17189,
+        "Leitura dos indicadores": 22
+      }
+    },
+    "timing_scope": "Observações Linux em host compartilhado, sem SLA; montagem mensal não é exportação completa; paginação exclui pintura QML.",
+    "before_monthly_construction_seconds": {
+      "1000": 1.095,
+      "2000": 4.524,
+      "4000": 19.111
+    },
+    "analysis_100000_products_balances_sales_241_months": {
+      "before_seconds": 22.327,
+      "after_seconds": 2.982
+    },
+    "monthly_24000_closings_24000_sales_tracemalloc": {
+      "before_retained_MiB": 59.063,
+      "after_retained_MiB": 48.924,
+      "before_peak_MiB": 65.354,
+      "after_peak_MiB": 55.425,
+      "after_traced_seconds": 13.191
+    },
+    "cancellation": {
+      "products": 100000,
+      "balances": 100000,
+      "sales": 100000,
+      "months": 241,
+      "elapsed_seconds": 0.056355,
+      "seconds_after_cancellation_request": 0.001088,
+      "outcome": "Cancelled"
+    },
+    "pagination_before_200000_rows_gui_ms": 194.624,
+    "pagination_after": [
+      {
+        "rows": 10000,
+        "gui_ms": [
+          0.14042500697541982,
+          0.1122859976021573,
+          0.12765299470629543,
+          0.10764900071080774,
+          0.1054980093613267
+        ],
+        "mean_gui_ms": 0.1187022018712014,
+        "cached_order": true,
+        "page_rows": 50
+      },
+      {
+        "rows": 100000,
+        "gui_ms": [
+          0.16559200594201684,
+          0.11415300832595676,
+          0.11304300278425217,
+          0.11284199717920274,
+          0.11434999760240316
+        ],
+        "mean_gui_ms": 0.12399600236676633,
+        "cached_order": true,
+        "page_rows": 50
+      },
+      {
+        "rows": 200000,
+        "gui_ms": [
+          0.16920699272304773,
+          0.1219369878526777,
+          0.20382899674586952,
+          0.11864400585182011,
+          0.11876800272148103
+        ],
+        "mean_gui_ms": 0.14647699717897922,
+        "cached_order": true,
+        "page_rows": 50
+      }
+    ],
+    "measured_product_commit": "1525f2fcdbf31f2e808d9b3fadf05ca6f4b3aebb"
+  },
+  "cleanup": {
+    "files_removed": 101,
+    "bytes_removed": 7690304,
+    "removal_hashes_rechecked": true,
+    "historical_manifests_archived_unchanged": 6,
+    "manifest": "LIMPEZA_530_RC3.md",
+    "git_history_rewritten": false,
+    "bundle_size_savings_claimed": false
+  },
+  "preserved_bundled_inventory": {
+    "path": "src/liarte_core/data/estoque.liarte",
+    "bytes": 991077,
+    "sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8"
+  },
+  "publication": {
+    "channel": "GitHub Actions preview artifacts",
+    "release_job": "skipped",
+    "stable_release_unchanged": "v5.2.0",
+    "recommended_python_artifact": "3.12",
+    "python_installation_required_by_portable": false,
+    "archive_independently_downloaded": false
+  },
+  "limits": [
+    "Socket open/read cancellation can wait for transport return or timeout, up to120s in native client.",
+    "Monthly analysis still materializes source-sized history and rankings; input bounds do not guarantee low peak RAM.",
+    "No independent completeness reconciliation of HTTP200 official replies was added.",
+    "No live Comex Stat API request or new real PBIX extraction was needed for this change.",
+    "Windows native executable smoke does not validate corporate network, Inno Setup, Power BI Desktop runtime, screen reader or all GPU/DPI configurations."
+  ],
+  "first_windows_gate": {
+    "run": 40117400266,
+    "result": "failure; no package published",
+    "corrections": [
+      "Test uses filesystem identity for Windows short/long path aliases.",
+      "Worker completion now joins native cleanup before releasing Qt objects; strict regression added to existing shutdown case."
+    ]
+  }
+}

@@ -132,4 +132,6 @@ Os hashes representam o conteúdo anterior à remoção. O campo canônico ident
 
 ## Validação
 
-A conferência local desta limpeza verificou a identidade dos 101 arquivos removidos e a preservação byte a byte dos seis manifestos movidos. Testes funcionais, validação dos comandos e compilação Windows devem ser avaliados pelas evidências da entrega completa RC3; o inventário e os hashes, isoladamente, não equivalem à homologação do aplicativo.
+A conferência local desta limpeza verificou a identidade dos 101 arquivos removidos e a preservação byte a byte dos seis manifestos movidos. A suíte final passou em Linux e nas quatro versões Windows suportadas; os executáveis compilados passaram no autoteste nativo. O CI também confirmou, por `cmd /d /c where`, que `python` e `pythonw` resolvem para a instalação configurada, fora da raiz do repositório. Essa conferência não equivale à execução interativa do assistente Tk por duplo clique.
+
+Veja as [evidências completas da RC3](EVIDENCIAS_CORRECOES_530_RC3.json) e os [resultados Windows](VALIDACAO_WINDOWS_530_RC3.json). O inventário e os hashes, isoladamente, não equivalem à homologação do aplicativo.
