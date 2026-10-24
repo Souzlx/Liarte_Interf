@@ -72,9 +72,35 @@ def main():
     from tests.test_secure_http import SecureHttpTests, LocalHttpsTests
     from tests.test_comex_direct import DirectApiTests, DirectApiUiTests
     from tests.test_comex_api import NativeApiTests, ApiProtocolTests, NativeApiQtTests
+    from tests.test_audit_build import BuildAuditTests
+    from tests.test_audit_stock_core import AuditStockCoreTests
+    from tests.test_audit_network import ProcessPauseTests, EndpointStatusTests
+    from tests.test_audit_network_legacy import (
+        LegacyWaitAuditTests, LeaseReleaseAuditTests, InterruptedReadAuditTests,
+        MunicipalCliAuditTests, ExactJsonAuditTests,
+    )
+    from tests.test_audit_exports import (
+        AuditInventoryExportTests, AuditSourceWorkbookTests, AuditExactTotalsTests,
+    )
+    from tests.test_audit_desktop import InventoryDesktopAuditTests
+    from tests.test_audit_qml import AuditQmlTests
 
     suite = unittest.TestSuite()
     for case in (
+        BuildAuditTests,
+        AuditStockCoreTests,
+        ProcessPauseTests,
+        EndpointStatusTests,
+        LegacyWaitAuditTests,
+        LeaseReleaseAuditTests,
+        InterruptedReadAuditTests,
+        MunicipalCliAuditTests,
+        ExactJsonAuditTests,
+        AuditInventoryExportTests,
+        AuditSourceWorkbookTests,
+        AuditExactTotalsTests,
+        InventoryDesktopAuditTests,
+        AuditQmlTests,
         NativeApiTests,
         ApiProtocolTests,
         NativeApiQtTests,

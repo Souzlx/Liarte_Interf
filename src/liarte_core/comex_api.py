@@ -12,9 +12,11 @@ from argparse import ArgumentTypeError
 from datetime import datetime, timezone
 from decimal import Decimal
 from email.utils import parsedate_to_datetime
+import errno
 import http.client
 import json
 import math
+import os
 from pathlib import Path
 import re
 from threading import RLock
@@ -22,6 +24,11 @@ import time
 import urllib.error
 import urllib.request
 import zlib
+
+if os.name == "nt":
+    import msvcrt
+else:
+    import fcntl
 
 from liarte_engine import comexstat_importacoes as contract
 from liarte_engine.liarte_dados import atomic_json
@@ -35,6 +42,59 @@ PATHS = {
     ("GET", "/general/dates/updated"),
     ("GET", "/cities/dates/updated"),
 }
+
+
+def _try_file_lock(handle):
+    """Trava nativa sem espera; o sistema a libera se o processo terminar."""
+    try:
+        if os.name == "nt":
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as exc:
+        if exc.errno not in (errno.EACCES, errno.EAGAIN, errno.EDEADLK):
+            raise
+        return False
+    return True
+
+
+@contextmanager
+def _process_lock(path, *, check=None, wait=None, notify=None):
+    """Arquivo estável: nunca remover/trocar o inode que carrega a trava."""
+    if path is None:
+        yield
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a+b") as handle:
+        # msvcrt trava um byte a partir da posição corrente e permite uma
+        # região além do EOF. Não escrever aqui evita uma corrida na criação
+        # do arquivo no Windows. Não há lease nem prazo preventivo.
+        started, last_notice = time.monotonic(), None
+        while True:
+            if check is not None:
+                check()
+            if _try_file_lock(handle):
+                break
+            elapsed = time.monotonic() - started
+            if elapsed > 45:
+                raise contract.ComexStatError(
+                    "Outra operação desta instalação ainda está em andamento."
+                )
+            if notify is not None and (last_notice is None or elapsed - last_notice >= 1):
+                notify("Aguardando outra consulta desta instalação")
+                last_notice = elapsed
+            (wait or time.sleep)(0.05)
+        try:
+            if check is not None:
+                check()
+            yield
+        finally:
+            if os.name == "nt":
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 def retry_delay(headers, text, *, now=None):
@@ -73,6 +133,12 @@ class ApiPause:
 
     def __init__(self, path=None, *, clock=time.time):
         self.path = Path(path) if path is not None else None
+        self.state_lock_path = (
+            self.path.with_name(self.path.name + ".pause.lock") if self.path else None
+        )
+        self.request_lock_path = (
+            self.path.with_name(self.path.name + ".request.lock") if self.path else None
+        )
         self.clock = clock
         self.until = 0.0
         self.status = 429
@@ -96,16 +162,22 @@ class ApiPause:
                 pass
         return max(0.0, self.until - self.clock())
 
-    def defer(self, seconds, status):
-        if not math.isfinite(seconds) or seconds < 0 or not math.isfinite(self.clock() + seconds):
+    def defer(self, seconds, status, *, cancel_check=None, cancel_wait=None):
+        deadline = self.clock() + seconds
+        if not math.isfinite(seconds) or seconds < 0 or not math.isfinite(deadline):
             raise contract.ComexStatError("A fonte retornou um prazo de espera inválido.")
         with self.lock:
             self.remaining()
-            self.until = max(self.until, self.clock() + seconds)
-            self.status = status
+            if deadline > self.until:
+                self.until, self.status = deadline, status
             if self.path is not None:
                 try:
-                    atomic_json(self.path, {"until": self.until, "status": status})
+                    # Trava distinta da operação HTTP: nenhum leitor da pausa
+                    # precisa aguardar a rede. Reabrir DENTRO da trava torna
+                    # indivisível a comparação/gravação entre processos.
+                    with _process_lock(self.state_lock_path, check=cancel_check, wait=cancel_wait):
+                        self.remaining()
+                        atomic_json(self.path, {"until": self.until, "status": self.status})
                 except OSError:
                     pass  # A pausa continua ativa na memória desta instalação.
 
@@ -236,7 +308,18 @@ class ApiClient:
                 )
         try:
             self._check()
-            yield
+            try:
+                with _process_lock(
+                    self.pause.request_lock_path,
+                    check=self._check,
+                    wait=self.cancel_wait,
+                    notify=self._notify,
+                ):
+                    yield
+            except OSError as exc:
+                raise contract.ComexStatError(
+                    "Não foi possível coordenar as consultas desta instalação."
+                ) from exc
         finally:
             self.pause.lock.release()
 
@@ -254,7 +337,7 @@ class ApiClient:
             response = exc
         with response:
             status, headers = int(response.status), response.headers
-            if not 200 <= status < 300:
+            if status != 200:
                 try:
                     raw = response.read(64 * 1024)
                     if str(headers.get("Content-Encoding", "")).lower() == "gzip":
@@ -357,7 +440,7 @@ class ApiClient:
             "Accept": "application/json",
             "Content-Type": "application/json",
             "Accept-Encoding": "gzip",
-            "User-Agent": "LIARTE-Desktop/5.3.0-rc.2",
+            "User-Agent": "LIARTE-Desktop/5.3.0-rc.3",
         }
         attempt, wait_budget, previous_error = 0, 90.0, None
         transient_failures, previous_rate_delay = 0, 0.0
@@ -394,7 +477,7 @@ class ApiClient:
                     payload = None
                 else:
                     payload = None
-                    if 200 <= status < 300:
+                    if status == 200:
                         try:
                             payload = json.loads(
                                 text,
@@ -421,7 +504,7 @@ class ApiClient:
                         and str(code) == "429"
                         else status
                     )
-                    if not 200 <= effective < 300:
+                    if effective != 200:
                         self._diagnose(path, status, effective, response_headers, text)
                     if effective in (429, 500, 502, 503, 504):
                         delay = retry_delay(response_headers, text)
@@ -432,7 +515,12 @@ class ApiClient:
                             # subsequent refusals within this endpoint operation.
                             delay = max(delay, previous_rate_delay * 2)
                             previous_rate_delay = delay
-                        self.pause.defer(delay, effective)
+                        self.pause.defer(
+                            delay,
+                            effective,
+                            cancel_check=self._check,
+                            cancel_wait=self.cancel_wait,
+                        )
                         transient = (
                             contract.ComexRateLimitError(delay, path, text, status)
                             if effective == 429
@@ -440,7 +528,7 @@ class ApiClient:
                                 f"O Comex Stat está temporariamente indisponível (HTTP {effective})."
                             )
                         )
-                    elif not 200 <= effective < 300:
+                    elif effective != 200:
                         raise contract.ComexStatError(
                             f"O Comex Stat recusou a consulta (HTTP {effective}). Verifique o período selecionado."
                         )

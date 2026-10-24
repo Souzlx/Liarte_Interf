@@ -14,6 +14,9 @@ import time
 from collections import defaultdict
 from contextlib import closing
 from datetime import datetime, timezone
+from decimal import Decimal, localcontext
+
+from .numeric import from_units, published_units
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
@@ -28,10 +31,56 @@ def data_directory() -> Path:
     return (Path(root) if root else Path.home() / ".cache") / "LIARTE"
 
 
+def _json_text(value: Any, *, pretty: bool = False) -> str:
+    """JSON numbers retain Decimal digits; canonical output stays byte compatible."""
+    active = set()
+
+    def encode(item, level=0):
+        if isinstance(item, Decimal):
+            if not item.is_finite():
+                raise ValueError("JSON não admite números não finitos.")
+            return str(item)
+        if isinstance(item, (dict, list, tuple)):
+            identity = id(item)
+            if identity in active:
+                raise ValueError("Circular reference detected")
+            active.add(identity)
+            try:
+                if isinstance(item, dict):
+                    parts = []
+                    for key in sorted(item):
+                        if not isinstance(key, str):
+                            raise TypeError("As chaves JSON devem ser texto.")
+                        parts.append(
+                            json.dumps(key, ensure_ascii=False)
+                            + (": " if pretty else ":")
+                            + encode(item[key], level + 1)
+                        )
+                    opening, closing = "{", "}"
+                else:
+                    parts = [encode(child, level + 1) for child in item]
+                    opening, closing = "[", "]"
+                if pretty and parts:
+                    indent = "  " * (level + 1)
+                    return (
+                        opening
+                        + "\n"
+                        + indent
+                        + (",\n" + indent).join(parts)
+                        + "\n"
+                        + "  " * level
+                        + closing
+                    )
+                return opening + ",".join(parts) + closing
+            finally:
+                active.remove(identity)
+        return json.dumps(item, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+
+    return encode(value)
+
+
 def json_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
-    ).encode("utf-8")
+    return _json_text(value).encode("utf-8")
 
 
 def atomic_json(path: Path, value: Any) -> None:
@@ -39,7 +88,7 @@ def atomic_json(path: Path, value: Any) -> None:
     fd, name = tempfile.mkstemp(prefix=path.stem + "-", suffix=".tmp", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
-            json.dump(value, handle, ensure_ascii=False, indent=2, allow_nan=False)
+            handle.write(_json_text(value, pretty=True))
             handle.write("\n")
             handle.flush()
             os.fsync(handle.fileno())
@@ -192,7 +241,7 @@ class IncrementalCache:
                 if hashlib.sha256(payload).hexdigest() != digest:
                     continue
                 try:
-                    rows = json.loads(payload)
+                    rows = json.loads(payload, parse_float=Decimal)
                     if isinstance(rows, list) and all(isinstance(row, dict) for row in rows):
                         result[(code, period)] = (rows, fetched, digest)
                 except (UnicodeError, ValueError):
@@ -350,6 +399,30 @@ class IncrementalCache:
         return rows
 
 
+def _json_number(value: Decimal):
+    """Usual JSON numeric types, exact decimal text beyond binary-float precision."""
+    if value == value.to_integral_value():
+        return int(value)
+    approximate = float(value)
+    return approximate if Decimal(str(approximate)) == value else format(value, "f")
+
+
+def _json_numbers(value, approximate=False):
+    if isinstance(value, Decimal):
+        if approximate:
+            result = float(value)
+            return result if math.isfinite(result) else format(value, "f")
+        return _json_number(value)
+    if isinstance(value, dict):
+        return {
+            key: _json_numbers(item, approximate or key in {"ratio", "price", "share"})
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_json_numbers(item, approximate) for item in value]
+    return value
+
+
 def create_manifest(
     *,
     excel_path: Path,
@@ -375,10 +448,23 @@ def create_manifest(
     ]
 
     def totals(rows: Sequence[dict], fields: Sequence[str]) -> dict:
-        return {field: math.fsum(number(row[field]) for row in rows) for field in fields}
+        return {
+            field: _json_number(
+                from_units(
+                    sum(
+                        published_units(row[field], places=0 if field == "metricKG" else 2)
+                        for row in rows
+                    ),
+                    places=0 if field == "metricKG" else 2,
+                )
+            )
+            for field in fields
+        }
 
     manifest = {
-        "schema": 1,
+        "schema": 2,
+        "numeric_encoding": "JSON numbers when exact; decimal strings otherwise",
+        "total_units": {"money": "US$", "weight": "kg"},
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "application_version": version,
         "catalog": {
@@ -432,19 +518,35 @@ def period_comparisons(
 
     def total(selected: Sequence[dict]) -> dict:
         result = {
-            key: math.fsum(number(row[field]) for row in selected) for key, field in metrics.items()
+            key: from_units(
+                sum(
+                    published_units(row[field], places=0 if key == "kg" else 2) for row in selected
+                ),
+                places=0 if key == "kg" else 2,
+            )
+            for key, field in metrics.items()
         }
-        result["price"] = result["cif"] / result["kg"] if result["kg"] else None
+        result["price"] = divide(result["cif"], result["kg"])
         return result
 
-    def delta(before: float | None, after: float | None) -> dict:
+    def divide(numerator, denominator):
+        if not denominator:
+            return None
+        with localcontext() as context:
+            context.prec = max(50, len(str(numerator)) + len(str(denominator)) + 10)
+            return numerator / denominator
+
+    def delta(before, after) -> dict:
         if before is None or after is None:
             return {"previous": before, "current": after, "change": None, "ratio": None}
+        with localcontext() as context:
+            context.prec = max(50, len(str(before)) + len(str(after)) + 10)
+            change = after - before
         return {
             "previous": before,
             "current": after,
-            "change": after - before,
-            "ratio": (after / before - 1) if before else None,
+            "change": change,
+            "ratio": divide(change, before),
         }
 
     dimensions = {
@@ -484,8 +586,8 @@ def period_comparisons(
             details = []
             for name, (before_rows, after_rows) in groups.items():
                 before, after = total(before_rows), total(after_rows)
-                share_before = before["cif"] / old_total["cif"] if old_total["cif"] else None
-                share_after = after["cif"] / current_total["cif"] if current_total["cif"] else None
+                share_before = divide(before["cif"], old_total["cif"])
+                share_after = divide(after["cif"], current_total["cif"])
                 details.append(
                     {
                         "name": name,
@@ -494,7 +596,11 @@ def period_comparisons(
                     }
                 )
             compared["dimensions"][dimension] = sorted(
-                details, key=lambda x: (-abs(x["metrics"]["cif"]["change"]), x["name"])
+                details,
+                key=lambda x: (x["metrics"]["cif"]["change"].copy_abs().copy_negate(), x["name"]),
             )
         result[mode] = compared
-    return result
+    result["numeric_encoding"] = (
+        "Exact money (US$) and kg: JSON numbers or decimal strings; ratios approximate"
+    )
+    return _json_numbers(result)

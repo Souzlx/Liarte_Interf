@@ -20,6 +20,7 @@ configure_windows_qt()
 from PySide6.QtCore import (
     QCoreApplication,
     QEvent,
+    QEventLoop,
     QSettings,
     QMetaObject,
     QObject,
@@ -46,6 +47,21 @@ from .preferences import ApplicationPreferences
 from .comex_connection import ComexConnectionController
 
 PACKAGE = Path(__file__).resolve().parent
+
+
+def _finish_inventory_shutdown(inventory: InventoryController) -> None:
+    """Keep Qt and its controllers alive until a cancelled worker has stopped."""
+    if inventory.shutdown():
+        return
+    loop = QEventLoop()
+    inventory.shutdownFinished.connect(loop.quit)
+    try:
+        # Completion can race with connecting the signal. Recheck after the
+        # connection, without a second blocking wait on the GUI thread.
+        if not inventory.shutdown(wait_ms=0):
+            loop.exec()
+    finally:
+        inventory.shutdownFinished.disconnect(loop.quit)
 
 
 @dataclass
@@ -438,7 +454,7 @@ def main(argv=None) -> int:
     finally:
         bundle.services.comex_access.shutdown()
         bundle.controller.shutdown()
-        bundle.inventory.shutdown()
+        _finish_inventory_shutdown(bundle.inventory)
         # Libera primeiro os bindings QML, enquanto seus objetos Python ainda
         # existem. Evita referências nulas durante a finalização do processo.
         bundle.engine.deleteLater()

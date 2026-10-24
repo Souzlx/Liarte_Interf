@@ -32,7 +32,13 @@ from xml.etree import ElementTree
 
 from . import powerbi_semantic as semantic
 from . import powerbi_visuals as visuals
-from .powerbi_source import audit_source
+from .powerbi_source import (
+    audit_source,
+    cell_reference,
+    read_shared_strings,
+    validate_xlsx_container,
+    _rows,
+)
 from .powerbi_visuals import CANVAS_WIDTH, CANVAS_HEIGHT
 
 PROJECT_NAME = "LIARTE_Importacoes"
@@ -40,7 +46,7 @@ REPORT_DIR_NAME = f"{PROJECT_NAME}.Report"
 MODEL_DIR_NAME = f"{PROJECT_NAME}.SemanticModel"
 PBIP_FILE_NAME = f"{PROJECT_NAME}.pbip"
 POWERBI_PACKAGE_PREFIX = "POWERBI_LIARTE_IMPORTACOES"
-POWERBI_GENERATOR_VERSION = "5.0.0-rc.9"
+POWERBI_GENERATOR_VERSION = "5.3.0-rc.3"
 MIN_POWERBI_PERIOD = "1997-01"
 MAX_XLSX_ENTRIES = 20_000
 
@@ -140,13 +146,7 @@ def default_powerbi_path(excel_path: Path) -> Path:
 
 
 def _column_index(reference: str) -> int:
-    match = re.match(r"([A-Z]+)", reference.upper())
-    if not match:
-        return 0
-    index = 0
-    for char in match.group(1):
-        index = index * 26 + (ord(char) - ord("A") + 1)
-    return index
+    return cell_reference(reference)[0]
 
 
 def _sheet_headers(
@@ -155,52 +155,13 @@ def _sheet_headers(
     shared_strings: Sequence[str],
     checkpoint: Callable[[], None] | None = None,
 ) -> tuple[str, ...]:
-    namespace = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
     first_row = None
-    sheet_data = None
-    row_count = 0
-    # Read the entire XML to validate its tail and CRC, releasing row content.
-    with archive.open(sheet_path) as source:
-        for event, element in ElementTree.iterparse(source, events=("start", "end")):
-            if event == "start":
-                if element.tag == f"{namespace}sheetData":
-                    sheet_data = element
-                continue
-            if element.tag == f"{namespace}row":
-                row_count += 1
-                if checkpoint is not None and row_count % 2048 == 0:
-                    checkpoint()
-                if first_row is None:
-                    first_row = ElementTree.fromstring(ElementTree.tostring(element))
-                element.clear()
-                if sheet_data is not None:
-                    sheet_data.clear()
-            elif element.tag == f"{namespace}sheetData":
-                element.clear()
-    if first_row is None:
-        return ()
-    values: dict[int, str] = {}
-    for cell in first_row.findall(f"{namespace}c"):
-        index = _column_index(str(cell.get("r") or ""))
-        if index < 1:
-            continue
-        cell_type = cell.get("t")
-        if cell_type == "inlineStr":
-            value = "".join(node.text or "" for node in cell.findall(f".//{namespace}t"))
-        else:
-            node = cell.find(f"{namespace}v")
-            raw = node.text if node is not None and node.text is not None else ""
-            if cell_type == "s":
-                try:
-                    value = shared_strings[int(raw)]
-                except (IndexError, ValueError) as exc:
-                    raise PowerBIProjectError(
-                        f"Referência de texto compartilhado inválida em {sheet_path}."
-                    ) from exc
-            else:
-                value = raw
-        values[index] = value
-    return tuple(values.get(index, "") for index in range(1, max(values, default=0) + 1))
+    # Every row is validated, including unused extra columns, without allocating
+    # a dense tuple wider than any source table consumed by this model.
+    for _, row in _rows(archive, sheet_path, shared_strings, checkpoint, 13, allow_formulas=True):
+        if first_row is None:
+            first_row = tuple("" if value is None else str(value) for value in row)
+    return first_row or ()
 
 
 def _validate_excel_source(
@@ -209,45 +170,8 @@ def _validate_excel_source(
     """Valida o XLSX e os cabeçalhos consumidos pelas consultas do Power BI."""
     try:
         with zipfile.ZipFile(excel_path) as archive:
-            entries = archive.infolist()
-            if len(entries) > MAX_XLSX_ENTRIES:
-                raise PowerBIProjectError("A planilha contém arquivos internos em excesso.")
-            if any(info.flag_bits & 0x1 for info in entries):
-                raise PowerBIProjectError("A planilha Excel não pode estar criptografada.")
-            names = {info.filename for info in entries}
-            if len(names) != len(entries):
-                raise PowerBIProjectError("O Excel contém arquivos internos duplicados.")
-            required = {
-                "[Content_Types].xml",
-                "xl/workbook.xml",
-                "xl/_rels/workbook.xml.rels",
-            }
-            missing = sorted(required - names)
-            if missing:
-                raise PowerBIProjectError(
-                    "A planilha não possui a estrutura XLSX esperada: " + ", ".join(missing)
-                )
-
-            namespace = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
-            office_rel = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
-            package_rel = "{http://schemas.openxmlformats.org/package/2006/relationships}"
-            workbook = ElementTree.fromstring(archive.read("xl/workbook.xml"))
-            relationships = ElementTree.fromstring(archive.read("xl/_rels/workbook.xml.rels"))
-            targets = {
-                str(item.get("Id")): str(item.get("Target") or "")
-                for item in relationships.findall(f"{package_rel}Relationship")
-            }
-            sheet_paths: dict[str, str] = {}
-            for sheet in workbook.findall(f".//{namespace}sheet"):
-                name = str(sheet.get("name") or "")
-                target = targets.get(str(sheet.get(office_rel) or ""), "")
-                if target.startswith("/"):
-                    path = target.lstrip("/")
-                else:
-                    path = f"xl/{target.lstrip('/')}"
-                path = posixpath.normpath(path).lstrip("/")
-                sheet_paths[name] = path
-
+            sheet_paths = validate_xlsx_container(archive, checkpoint)
+            names = set(archive.namelist())
             current_import_sheets = sorted(
                 name for name in sheet_paths if name.startswith(GENERAL_SHEET_PREFIX)
             )
@@ -275,13 +199,12 @@ def _validate_excel_source(
                     "para alimentar o Power BI."
                 )
 
-            shared_strings: list[str] = []
-            if "xl/sharedStrings.xml" in names:
-                shared_root = ElementTree.fromstring(archive.read("xl/sharedStrings.xml"))
-                shared_strings = [
-                    "".join(node.text or "" for node in item.findall(f".//{namespace}t"))
-                    for item in shared_root.findall(f"{namespace}si")
-                ]
+            shared_strings = read_shared_strings(archive, checkpoint)
+            selected_paths = {
+                sheet_paths[name] for name in (*import_sheets, *municipal_sheets, product_sheet)
+            }
+            for path in set(sheet_paths.values()) - selected_paths:
+                _sheet_headers(archive, path, shared_strings, checkpoint)
             for sheet_name in import_sheets:
                 path = sheet_paths[sheet_name]
                 if path not in names:
@@ -320,7 +243,7 @@ def _validate_excel_source(
                 "products": (product_sheet, product_path),
                 "strings": shared_strings,
             }
-    except (ElementTree.ParseError, KeyError, OSError, zipfile.BadZipFile) as exc:
+    except (ElementTree.ParseError, KeyError, OSError, zipfile.BadZipFile, ValueError) as exc:
         raise PowerBIProjectError(
             "A planilha de origem está corrompida ou não é um XLSX válido."
         ) from exc

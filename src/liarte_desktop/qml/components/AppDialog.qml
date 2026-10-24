@@ -14,6 +14,36 @@ Dialog {
     topPadding: 2
     bottomPadding: 12
     readonly property real bodyLimit: Math.max(70, (parent ? parent.height : 640) - header.implicitHeight - footer.implicitHeight - 52)
+    readonly property var bodyViewport: scroll.contentItem
+    readonly property real bodyViewportHeight: scroll.availableHeight
+    readonly property var hostWindow: parent ? parent.Window.window : null
+
+    function reveal(item) {
+        if (!visible || !item || !item.visible || !bodyViewport)
+            return;
+        let ancestor = item;
+        while (ancestor && ancestor !== bodyColumn)
+            ancestor = ancestor.parent;
+        if (!ancestor)
+            return;
+        const top = item.mapToItem(bodyViewport, 0, 0).y;
+        const maximum = Math.max(0, bodyViewport.contentHeight - bodyViewport.height);
+        if (top < 0 || item.height > bodyViewport.height)
+            bodyViewport.contentY = Math.max(0, Math.min(maximum, bodyViewport.contentY + top));
+        else if (top + item.height > bodyViewport.height)
+            bodyViewport.contentY = Math.min(maximum, bodyViewport.contentY + top + item.height - bodyViewport.height);
+    }
+    function revealFocus() {
+        if (hostWindow)
+            reveal(hostWindow.activeFocusItem);
+    }
+    Connections {
+        target: dialog.hostWindow
+        enabled: dialog.visible
+        function onActiveFocusItemChanged() {
+            Qt.callLater(dialog.revealFocus);
+        }
+    }
     background: Rectangle {
         color: Theme.surface
         border.color: Theme.line
@@ -36,6 +66,7 @@ Dialog {
         clip: true
         implicitHeight: Math.min(bodyColumn.implicitHeight, dialog.bodyLimit)
         contentWidth: availableWidth
+        onAvailableHeightChanged: Qt.callLater(dialog.revealFocus)
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
         ColumnLayout {
             id: bodyColumn

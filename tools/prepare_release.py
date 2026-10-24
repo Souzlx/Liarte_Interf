@@ -5,9 +5,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging
 import os
 from pathlib import Path, PurePosixPath
 import re
+import shutil
 import sys
 import tempfile
 import zipfile
@@ -26,6 +28,55 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: source.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _publish_release_files(staged, destination):
+    """Publish a related set, restoring every committed file on an I/O error."""
+    backup_directory = Path(
+        tempfile.mkdtemp(prefix=".release-recovery-", dir=destination[0].parent)
+    )
+    backups = {}
+    cleanup_backup = True
+    try:
+        for target in destination:
+            if target.is_symlink() or (target.exists() and not target.is_file()):
+                raise ValueError("O destino da release deve conter somente arquivos regulares.")
+            if target.exists():
+                backup = backup_directory / target.name
+                shutil.copy2(target, backup)
+                backups[target] = backup
+        published = []
+        try:
+            for source, target in zip(staged, destination, strict=True):
+                os.replace(source, target)
+                published.append(target)
+        except OSError as failure:
+            rollback_errors = []
+            for target in reversed(published):
+                try:
+                    if target in backups:
+                        os.replace(backups[target], target)
+                    else:
+                        target.unlink(missing_ok=True)
+                except OSError as exc:
+                    rollback_errors.append(exc)
+            if rollback_errors:
+                cleanup_backup = False
+                raise RuntimeError(
+                    "A publicação falhou e a restauração não pôde terminar. "
+                    "As cópias anteriores foram preservadas em " + str(backup_directory)
+                ) from failure
+            raise
+    finally:
+        if cleanup_backup:
+            try:
+                shutil.rmtree(backup_directory)
+            except OSError:
+                logging.getLogger(__name__).warning(
+                    "Não foi possível remover a pasta de recuperação %s.",
+                    backup_directory,
+                    exc_info=True,
+                )
 
 
 def prepare_release(bundle: Path, output: Path) -> dict[str, str]:
@@ -89,9 +140,10 @@ def prepare_release(bundle: Path, output: Path) -> dict[str, str]:
             for name, path in sorted(files.items()):
                 packed.write(path, "LIARTE_Desktop/" + name)
         staged_checksum = Path(temporary) / checksum.name
-        staged_checksum.write_text(sha256(staged_archive) + "  " + filename + "\n", encoding="utf-8")
-        os.replace(staged_archive, archive)
-        os.replace(staged_checksum, checksum)
+        staged_checksum.write_text(
+            sha256(staged_archive) + "  " + filename + "\n", encoding="utf-8"
+        )
+        _publish_release_files((staged_archive, staged_checksum), (archive, checksum))
     return {
         "tag": "v" + version,
         "title": "LIARTE " + version,

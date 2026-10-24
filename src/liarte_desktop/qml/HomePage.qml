@@ -9,8 +9,12 @@ FocusScope {
     required property var platform
     required property var importState
     required property var inventoryState
-    property var importAnalysis: ({ metrics: [] })
-    property var inventoryAnalysis: ({ metrics: [] })
+    property var importAnalysis: ({
+            metrics: []
+        })
+    property var inventoryAnalysis: ({
+            metrics: []
+        })
     readonly property real pageMargin: width < 600 ? 18 : 28
     readonly property var summaryCards: {
         const cards = [];
@@ -42,10 +46,41 @@ FocusScope {
     }
     signal moduleRequested(string key)
 
+    function revealAction(item) {
+        if (!item || !item.activeFocus)
+            return;
+        const top = item.mapToItem(homeScroll, 0, 0).y;
+        const maximum = Math.max(0, homeScroll.contentHeight - homeScroll.height);
+        if (top < 0)
+            homeScroll.contentY = Math.max(0, homeScroll.contentY + top);
+        else if (top + item.height > homeScroll.height)
+            homeScroll.contentY = Math.min(maximum, homeScroll.contentY + top + item.height - homeScroll.height);
+    }
     function focusFirst() {
-        const item = moduleCards.itemAt(0);
-        if (item)
-            item.forceActiveFocus();
+        const actions = [];
+        for (let i = 0; i < summaryRepeater.count; ++i)
+            actions.push(summaryRepeater.itemAt(i).openAction);
+        for (let i = 0; i < moduleCards.count; ++i)
+            actions.push(moduleCards.itemAt(i));
+        let nearest = null, distance = Infinity;
+        for (const item of actions) {
+            if (!item || !item.visible || !item.enabled)
+                continue;
+            const top = item.mapToItem(homeScroll, 0, 0).y;
+            if (top >= 0 && top + item.height <= homeScroll.height) {
+                item.forceActiveFocus(Qt.TabFocusReason);
+                return;
+            }
+            const gap = top < 0 ? -top : top + item.height - homeScroll.height;
+            if (gap < distance) {
+                nearest = item;
+                distance = gap;
+            }
+        }
+        if (nearest) {
+            nearest.forceActiveFocus(Qt.TabFocusReason);
+            revealAction(nearest);
+        }
     }
 
     Flickable {
@@ -93,10 +128,12 @@ FocusScope {
                 columnSpacing: 16
                 rowSpacing: 16
                 Repeater {
+                    id: summaryRepeater
                     model: page.summaryCards
                     Rectangle {
                         id: summaryCard
                         required property var modelData
+                        readonly property alias openAction: summaryOpen
                         objectName: "homeSummaryCard_" + modelData.key
                         Layout.fillWidth: true
                         Layout.minimumWidth: 0
@@ -185,10 +222,13 @@ FocusScope {
                                 wrapMode: Text.WordWrap
                             }
                             Ui.ActionButton {
+                                id: summaryOpen
                                 objectName: "homeSummaryOpen_" + summaryCard.modelData.key
                                 Layout.fillWidth: true
                                 text: "Abrir " + summaryCard.modelData.title
                                 Accessible.name: "Abrir o recorte de " + summaryCard.modelData.title
+                                onActiveFocusChanged: if (activeFocus)
+                                    page.revealAction(summaryOpen)
                                 onClicked: page.moduleRequested(summaryCard.modelData.key)
                             }
                         }
@@ -216,6 +256,8 @@ FocusScope {
                     padding: 20
                     Accessible.name: "Abrir " + modelData.title
                     Accessible.description: modelData.description
+                    onActiveFocusChanged: if (activeFocus)
+                        page.revealAction(moduleButton)
                     onClicked: page.moduleRequested(modelData.key)
                     background: Rectangle {
                         radius: 10

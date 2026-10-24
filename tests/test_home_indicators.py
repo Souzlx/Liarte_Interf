@@ -10,7 +10,7 @@ from PySide6.QtTest import QSignalSpy
 from liarte_core.inventory_io import write_snapshot
 from tests import test_platform
 from tests.test_inventory import sample
-from tests.test_qt import APP, click, pump, settled
+from tests.test_qt import click, pump, settled
 
 
 def variant(value):

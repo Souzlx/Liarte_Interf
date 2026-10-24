@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import base64
 import ctypes
+from decimal import Decimal
+from http.client import HTTPException
 import json
 import math
 import os
@@ -16,7 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
 
-from .liarte_dados import atomic_json
+from .liarte_dados import atomic_json, json_bytes
 from .secure_http import build_opener
 
 PROTOCOL = "liarte.comex/1"
@@ -164,9 +166,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def central_http(connection, method, path, body, *, check=lambda: None, timeout=10):
-    data = (
-        json.dumps(body, ensure_ascii=False, allow_nan=False).encode() if body is not None else None
-    )
+    data = json_bytes(body) if body is not None else None
     if data is not None and len(data) > MAX_REQUEST:
         raise GatewayError("A consulta excedeu o tamanho permitido pela central.")
     request = urllib.request.Request(
@@ -187,7 +187,7 @@ def central_http(connection, method, path, body, *, check=lambda: None, timeout=
         response = opener.open(request, timeout=timeout)
     except urllib.error.HTTPError as exc:
         response = exc
-    except (urllib.error.URLError, OSError) as exc:
+    except (urllib.error.URLError, OSError, HTTPException) as exc:
         raise GatewayError(
             "Não foi possível acessar a Central de Consultas. Verifique se ela está iniciada e se o endereço está correto."
         ) from exc
@@ -201,17 +201,27 @@ def central_http(connection, method, path, body, *, check=lambda: None, timeout=
             check()
             if time.monotonic() > deadline:
                 raise GatewayError("A central demorou a enviar a resposta completa.")
-            block = reader(min(256 * 1024, MAX_RESPONSE + 1 - len(output)))
+            try:
+                block = reader(min(256 * 1024, MAX_RESPONSE + 1 - len(output)))
+            except (OSError, HTTPException) as exc:
+                raise GatewayError(
+                    "A conexão com a Central de Consultas foi interrompida; a resposta não foi utilizada."
+                ) from exc
             if not block:
                 break
             output.extend(block)
             if len(output) > MAX_RESPONSE:
                 raise GatewayError("A resposta da central excedeu o tamanho permitido.")
         length = response.headers.get("Content-Length")
-        if length is not None and int(length) != len(output):
-            raise GatewayError("A central retornou uma resposta incompleta.")
+        if length is not None:
+            try:
+                expected_length = int(length)
+            except (TypeError, ValueError) as exc:
+                raise GatewayError("A central retornou um tamanho de resposta inválido.") from exc
+            if expected_length != len(output):
+                raise GatewayError("A central retornou uma resposta incompleta.")
         try:
-            payload = json.loads(output)
+            payload = json.loads(output, parse_float=Decimal)
         except (UnicodeError, ValueError) as exc:
             raise GatewayError("A central retornou uma resposta inválida.") from exc
         if not isinstance(payload, dict):
@@ -261,7 +271,7 @@ def request_shared(
                 check=check,
             )
             failures = 0
-        except (GatewayError, OSError, ValueError) as exc:
+        except (GatewayError, OSError, HTTPException) as exc:
             failures += 1
             if failures >= 3:
                 raise ComexStatError(str(exc)) from exc
@@ -277,10 +287,17 @@ def request_shared(
         if status != 202:
             if status == 429 and payload.get("code") == "COMEX_RATE_LIMIT":
                 delay = payload.get("retry_after")
-                if type(delay) not in (int, float) or not math.isfinite(delay) or delay < 0:
+                if (
+                    type(delay) not in (int, float, Decimal)
+                    or not math.isfinite(delay)
+                    or delay < 0
+                ):
                     raise ComexStatError("A central retornou uma pausa inválida.")
                 raise ComexRateLimitError(
-                    delay, path, str(payload.get("error", "")), payload.get("observed_http_status")
+                    float(delay),
+                    path,
+                    str(payload.get("error", "")),
+                    payload.get("observed_http_status"),
                 )
             if connection_resolver is not None and payload.get("code") == "CENTRAL_STOPPED":
                 connection, ticket = None, None
@@ -301,12 +318,12 @@ def request_shared(
         delay = payload.get("poll_after", 1.0)
         if (
             isinstance(delay, bool)
-            or not isinstance(delay, (int, float))
+            or not isinstance(delay, (int, float, Decimal))
             or not math.isfinite(delay)
         ):
             raise ComexStatError("A central retornou um intervalo de consulta inválido.")
         notify(None, str(payload.get("message") or "Aguardando a fila compartilhada")[:200])
-        wait(max(0.2, min(3.0, delay)))
+        wait(float(max(0.2, min(3.0, delay))))
     raise ComexStatError(
         "A consulta permaneceu na central por mais de uma hora. Tente novamente após a pausa indicada pela fonte."
     )

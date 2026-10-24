@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from decimal import Decimal
 import unicodedata
 from typing import Any, Callable, Iterable, Sequence
 
@@ -96,7 +97,7 @@ def table_page(
 
         def sort_key(row: dict[str, Any]) -> tuple[int, Any]:
             value = row.get("_period") if sort == "Mês" else row.get(sort)
-            if isinstance(value, (int, float)) and not isinstance(value, bool):
+            if isinstance(value, (int, float, Decimal)) and not isinstance(value, bool):
                 return (0, value)
             return (1, search_key(value))
 

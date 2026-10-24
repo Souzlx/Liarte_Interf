@@ -31,18 +31,30 @@ class RequestLease:
     def release(self):
         if not self.active:
             return
-        self.active = False
-        try:
-            with self.owner.connect() as db:
-                db.execute(
-                    "UPDATE access SET owner='', lease_until=0, next_at=MAX(next_at, ?) "
-                    "WHERE id=1 AND owner=?",
-                    (self.owner.clock() + self.interval, self.token),
+        for attempt in range(3):
+            try:
+                with self.owner.connect() as db:
+                    db.execute(
+                        "UPDATE access SET owner='', lease_until=0, next_at=MAX(next_at, ?) "
+                        "WHERE id=1 AND owner=?",
+                        (self.owner.clock() + self.interval, self.token),
+                    )
+                # O commit também pode falhar. Mantenha o token recuperável até
+                # a transação terminar, inclusive para uma nova chamada posterior.
+                self.active = False
+                return
+            except sqlite3.Error as exc:
+                code = getattr(exc, "sqlite_errorcode", None)
+                busy = isinstance(exc, sqlite3.OperationalError) and (
+                    code & 0xFF in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)
+                    if code is not None
+                    else any(word in str(exc).lower() for word in ("locked", "busy"))
                 )
-        except sqlite3.Error as exc:
-            raise AccessError(
-                "Não foi possível liberar a fila local de consultas."
-            ) from exc
+                if not busy or attempt == 2:
+                    raise AccessError(
+                        "Não foi possível liberar a fila local de consultas."
+                    ) from exc
+                time.sleep(0.05 * (attempt + 1))
 
 
 class RequestCoordinator:

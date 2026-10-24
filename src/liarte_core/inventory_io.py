@@ -13,17 +13,28 @@ import math
 import os
 import tempfile
 import zipfile
-from dataclasses import asdict
+import zlib
+from dataclasses import fields
 from datetime import date, datetime
+from itertools import chain
 from pathlib import Path
 from threading import Event
 
-from .inventory import SCALE, Balance, Closing, InventoryData, Product, Sale, scaled
+from .inventory import SCALE, Balance, Closing, InventoryData, Product, Sale, _checked, scaled
 from .query import checkpoint
 
 FORMAT = "liarte.inventory/1"
 MAX_COMPRESSED = 512 * 1024 * 1024
 MAX_JSON = 180 * 1024 * 1024
+RECORD_LIMITS = {
+    "products": 100_000,
+    "balances": 200_000,
+    "closings": 2_000_000,
+    "sales": 2_000_000,
+}
+_FIELDS = {
+    cls: tuple(field.name for field in fields(cls)) for cls in (Product, Balance, Closing, Sale)
+}
 
 
 def _hash(path: Path, cancel: Event) -> str:
@@ -35,15 +46,19 @@ def _hash(path: Path, cancel: Event) -> str:
     return digest.hexdigest()
 
 
-def _text(value, label="campo", *, empty=False) -> str:
-    if (
-        not isinstance(value, str)
-        or len(value) > 1000
-        or "\0" in value
-        or not value.strip()
-        and not empty
-    ):
+def _text(value, label="campo", *, empty=False, max_length=1000) -> str:
+    if not isinstance(value, str) or len(value) > max_length or not value.strip() and not empty:
         raise ValueError(f"{label} ausente ou inválido na base.")
+    if any(
+        not (
+            c in "\t\n\r"
+            or " " <= c <= "\ud7ff"
+            or "\ue000" <= c <= "\ufffd"
+            or "\U00010000" <= c <= "\U0010ffff"
+        )
+        for c in value
+    ):
+        raise ValueError(f"{label} contém caractere inválido para XML/Excel na base.")
     return value.strip()
 
 
@@ -59,8 +74,8 @@ def _ratio(value) -> float | None:
     if (
         isinstance(value, bool)
         or not isinstance(value, (int, float))
-        or not math.isfinite(value)
         or abs(value) > 10**24
+        or not math.isfinite(value)
     ):
         raise ValueError("Indicador de giro ou dias inválido na fonte.")
     return float(value)
@@ -68,10 +83,13 @@ def _ratio(value) -> float | None:
 
 def validate_data(data: InventoryData, cancel: Event | None = None) -> InventoryData:
     cancel = cancel or Event()
+    checkpoint(cancel)
+    _check_counts(data)
     if not data.products or not data.balances:
         raise ValueError("A base não contém produtos e saldos atuais.")
     if (
-        not isinstance(data.as_of, date)
+        type(data.as_of) is not date
+        or not isinstance(data.source_hash, str)
         or len(data.source_hash) != 64
         or any(c not in "0123456789abcdef" for c in data.source_hash)
     ):
@@ -80,23 +98,23 @@ def validate_data(data: InventoryData, cancel: Event | None = None) -> Inventory
     codes = set()
     for p in data.products:
         checkpoint(cancel)
-        for label, value in asdict(p).items():
-            _text(value, label)
+        for label in _FIELDS[Product]:
+            _text(getattr(p, label), "Produto · " + label)
         if p.code in codes:
             raise ValueError(f"Código de produto duplicado: {p.code}")
         codes.add(p.code)
     seen = set()
-    for row in (*data.balances, *data.closings):
+    for row in chain(data.balances, data.closings):
         checkpoint(cancel)
-        for value in (row.product, row.branch, row.warehouse, row.unit):
-            _text(value)
+        for label in ("product", "branch", "warehouse", "unit"):
+            _text(getattr(row, label), "Posição · " + label)
         if row.product not in codes:
             raise ValueError(f"Produto sem cadastro: {row.product}")
         _integer(row.quantity)
         _integer(row.cost)
         key = (type(row).__name__, row.product, row.branch, row.warehouse, row.unit)
         if isinstance(row, Closing):
-            if len(row.period) != 7:
+            if not isinstance(row.period, str) or len(row.period) != 7:
                 raise ValueError("Mês de fechamento inválido.")
             if date.fromisoformat(row.period + "-01") > data.as_of:
                 raise ValueError("Fechamento posterior à data da base.")
@@ -109,9 +127,9 @@ def validate_data(data: InventoryData, cancel: Event | None = None) -> Inventory
     seen_sales = set()
     for sale in data.sales:
         checkpoint(cancel)
-        for value in (sale.product, sale.branch, sale.unit):
-            _text(value)
-        if sale.product not in codes or not isinstance(sale.day, date) or sale.day > data.as_of:
+        for label in ("product", "branch", "unit"):
+            _text(getattr(sale, label), "Venda · " + label)
+        if sale.product not in codes or type(sale.day) is not date or sale.day > data.as_of:
             raise ValueError("Venda sem produto cadastrado ou posterior à data da base.")
         _integer(sale.quantity)
         _integer(sale.cost)
@@ -121,13 +139,70 @@ def validate_data(data: InventoryData, cancel: Event | None = None) -> Inventory
         if key in seen_sales:
             raise ValueError("Vendas duplicadas no mesmo dia, produto, filial e unidade.")
         seen_sales.add(key)
-    for entries in (data.branches, data.warehouses):
-        if len({k for k, _ in entries}) != len(entries):
-            raise ValueError("Dimensão de local duplicada.")
-        for key, value in entries:
-            _text(key)
-            _text(value)
+    for label, entries in (("Filial", data.branches), ("Armazém", data.warehouses)):
+        if not isinstance(entries, (tuple, list)) or any(
+            not isinstance(row, (tuple, list)) or len(row) != 2 for row in _checked(entries, cancel)
+        ):
+            raise ValueError("Dimensão de local inválida na base.")
+        keys = set()
+        for key, value in _checked(entries, cancel):
+            _text(key, label + " · código")
+            _text(value, label + " · nome")
+            if key in keys:
+                raise ValueError("Dimensão de local duplicada.")
+            keys.add(key)
+    if not isinstance(data.notes, (tuple, list)):
+        raise ValueError("Notas inválidas na base.")
+    for note in _checked(data.notes, cancel):
+        _text(note, "Nota")
+    _check_json_capacity(data, cancel)
     return data
+
+
+def _check_counts(data):
+    for name, limit in RECORD_LIMITS.items():
+        values = data[name] if isinstance(data, dict) else getattr(data, name)
+        if not isinstance(values, (list, tuple)) or len(values) > limit:
+            raise ValueError("A base ultrapassa o limite de registros ou contém coleção inválida.")
+
+
+def _snapshot_chunks(data: InventoryData, cancel: Event):
+    """JSON canônico em fluxo: sem listas/dicionários adicionais por fato."""
+    encode = json.JSONEncoder(ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode
+    header = {
+        "format": FORMAT,
+        "as_of": data.as_of.isoformat(),
+        "source_name": data.source_name,
+        "source_hash": data.source_hash,
+    }
+    yield encode(header)[:-1]
+    for name in (*RECORD_LIMITS, "branches", "warehouses", "notes"):
+        yield "," + encode(name) + ":["
+        for index, row in enumerate(_checked(getattr(data, name), cancel)):
+            if index:
+                yield ","
+            if name in RECORD_LIMITS:
+                row = [getattr(row, field) for field in _FIELDS[type(row)]]
+                if name == "sales":
+                    row[3] = row[3].isoformat()
+            yield encode(row)
+        yield "]"
+    yield "}"
+
+
+def _encoded_snapshot(data: InventoryData, cancel: Event):
+    size = 0
+    for chunk in _snapshot_chunks(data, cancel):
+        body = chunk.encode("utf-8")
+        size += len(body)
+        if size > MAX_JSON:
+            raise ValueError("A base expandida ultrapassa o limite permitido.")
+        yield body
+
+
+def _check_json_capacity(data: InventoryData, cancel: Event):
+    for _ in _encoded_snapshot(data, cancel):
+        pass
 
 
 def read_snapshot(path: Path, cancel: Event | None = None) -> InventoryData:
@@ -137,12 +212,17 @@ def read_snapshot(path: Path, cancel: Event | None = None) -> InventoryData:
     checkpoint(cancel)
     try:
         with gzip.open(path, "rb") as stream:
-            body = stream.read(MAX_JSON + 1)
+            body = bytearray()
+            while block := stream.read(min(1024 * 1024, MAX_JSON + 1 - len(body))):
+                checkpoint(cancel)
+                body.extend(block)
+                if len(body) > MAX_JSON:
+                    break
         if len(body) > MAX_JSON:
             raise ValueError("A base expandida ultrapassa o limite permitido.")
         checkpoint(cancel)
         p = json.loads(body)
-        if p.get("format") != FORMAT:
+        if not isinstance(p, dict) or p.get("format") != FORMAT:
             raise ValueError("Formato de base de estoque não reconhecido.")
         allowed = {
             "format",
@@ -159,30 +239,42 @@ def read_snapshot(path: Path, cancel: Event | None = None) -> InventoryData:
         }
         if set(p) != allowed:
             raise ValueError("Estrutura de base incompatível.")
-        if any(
-            len(p[k]) > limit
-            for k, limit in (
-                ("products", 100_000),
-                ("balances", 200_000),
-                ("closings", 2_000_000),
-                ("sales", 2_000_000),
-            )
-        ):
-            raise ValueError("A base ultrapassa o limite de registros.")
+        _check_counts(p)
+
+        def records(name, arities):
+            values = p[name]
+            if not isinstance(values, list):
+                raise ValueError(f"Coleção {name} inválida na base.")
+            for row in _checked(values, cancel):
+                if not isinstance(row, list) or len(row) not in arities:
+                    raise ValueError(f"Registro {name} inválido na base.")
+                yield row
+
+        if not isinstance(p["notes"], list):
+            raise ValueError("Notas inválidas na base.")
         data = InventoryData(
             date.fromisoformat(p["as_of"]),
             p["source_name"],
             p["source_hash"],
-            tuple(Product(*r) for r in p["products"]),
-            tuple(Balance(*r) for r in p["balances"]),
-            tuple(Closing(*r) for r in p["closings"]),
-            tuple(Sale(*r[:3], date.fromisoformat(r[3]), *r[4:]) for r in p["sales"]),
-            tuple(tuple(r) for r in p["branches"]),
-            tuple(tuple(r) for r in p["warehouses"]),
+            tuple(Product(*r) for r in records("products", (5,))),
+            tuple(Balance(*r) for r in records("balances", (6,))),
+            tuple(Closing(*r) for r in records("closings", (9,))),
+            tuple(Sale(*r[:3], date.fromisoformat(r[3]), *r[4:]) for r in records("sales", (6, 7))),
+            tuple(tuple(r) for r in records("branches", (2,))),
+            tuple(tuple(r) for r in records("warehouses", (2,))),
             tuple(p["notes"]),
         )
         return validate_data(data, cancel)
-    except (OSError, EOFError, json.JSONDecodeError, TypeError, KeyError, AttributeError) as exc:
+    except (
+        OSError,
+        EOFError,
+        zlib.error,
+        json.JSONDecodeError,
+        TypeError,
+        KeyError,
+        AttributeError,
+        RecursionError,
+    ) as exc:
         raise ValueError(
             "Não foi possível ler esta base de estoque. Selecione um arquivo .liarte válido."
         ) from exc
@@ -192,28 +284,21 @@ def write_snapshot(data: InventoryData, path: Path, cancel: Event | None = None)
     """Publica atomicamente; a base anterior permanece íntegra em caso de falha."""
     cancel = cancel or Event()
     validate_data(data, cancel)
-    payload = {
-        "format": FORMAT,
-        "as_of": data.as_of.isoformat(),
-        "source_name": data.source_name,
-        "source_hash": data.source_hash,
-    }
-    for key in ("products", "balances", "closings", "sales"):
-        payload[key] = [list(asdict(r).values()) for r in getattr(data, key)]
-    for row in payload["sales"]:
-        row[3] = row[3].isoformat()
-    for key in ("branches", "warehouses", "notes"):
-        payload[key] = getattr(data, key)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, name = tempfile.mkstemp(prefix=".estoque-", suffix=".tmp", dir=path.parent)
     try:
         with os.fdopen(fd, "wb") as raw:
             with gzip.GzipFile(fileobj=raw, mode="wb", mtime=0) as stream:
-                stream.write(
-                    json.dumps(
-                        payload, ensure_ascii=False, allow_nan=False, separators=(",", ":")
-                    ).encode("utf-8")
-                )
+                pending = bytearray()
+                for chunk in _encoded_snapshot(data, cancel):
+                    pending.extend(chunk)
+                    if len(pending) >= 64 * 1024:
+                        checkpoint(cancel)
+                        stream.write(pending)
+                        pending.clear()
+                stream.write(pending)
+            if raw.tell() > MAX_COMPRESSED:
+                raise ValueError("A base ultrapassa o tamanho permitido.")
             raw.flush()
             os.fsync(raw.fileno())
         checkpoint(cancel)
@@ -269,6 +354,13 @@ def read_pbix(
                 if not flags.isin(("", "0", "0.0", "false", "*", "1", "1.0", "true")).all():
                     raise ValueError(f"Marcador de exclusão não reconhecido em {name}.")
                 df = df[flags.isin(("", "0", "0.0", "false"))]
+            capacity = {
+                "Dim_Produtos": "products",
+                "Fato_EstoqueAtual": "balances",
+                "Fact_Estoque": "closings",
+            }.get(name)
+            if capacity and len(df) > RECORD_LIMITS[capacity]:
+                raise ValueError("A base ultrapassa o limite de registros.")
             return df.loc[:, columns]
 
         stamp = table("Dim_Atualizacao", ["Data Atualizacao"])["Data Atualizacao"].tolist()
@@ -300,36 +392,45 @@ def read_pbix(
                 _text(d, empty=True) or "Sem tipo",
                 _text(e, empty=True) or "—",
             )
-            for a, b, c, d, e, _ in table("Dim_Produtos", pcols)
-            .fillna("")
-            .itertuples(index=False, name=None)
+            for a, b, c, d, e, _ in _checked(
+                table("Dim_Produtos", pcols).fillna("").itertuples(index=False, name=None), cancel
+            )
         )
         branches = tuple(
             (str(a).strip(), str(b).strip())
-            for a, b, _ in table("Dim_Filiais", ["CodFilial", "NomeFilial", "DELETED"]).itertuples(
-                index=False, name=None
+            for a, b, _ in _checked(
+                table("Dim_Filiais", ["CodFilial", "NomeFilial", "DELETED"]).itertuples(
+                    index=False, name=None
+                ),
+                cancel,
             )
         )
         warehouses = tuple(
             (str(a).strip(), str(b).strip())
-            for a, b, _ in table("Dim_Armazem", ["CodArmazem", "Descricao", "DELETED"]).itertuples(
-                index=False, name=None
+            for a, b, _ in _checked(
+                table("Dim_Armazem", ["CodArmazem", "Descricao", "DELETED"]).itertuples(
+                    index=False, name=None
+                ),
+                cancel,
             )
         )
         progress(25, "Conferindo saldos atuais")
         balances = []
-        for product, branch, warehouse, unit, qty, cost, _ in table(
-            "Fato_EstoqueAtual",
-            [
-                "Produto",
-                "Filial",
-                "Armazem",
-                "UnidadeMedida",
-                "SaldoFechamento",
-                "CustoTotal",
-                "DELETED",
-            ],
-        ).itertuples(index=False, name=None):
+        for product, branch, warehouse, unit, qty, cost, _ in _checked(
+            table(
+                "Fato_EstoqueAtual",
+                [
+                    "Produto",
+                    "Filial",
+                    "Armazem",
+                    "UnidadeMedida",
+                    "SaldoFechamento",
+                    "CustoTotal",
+                    "DELETED",
+                ],
+            ).itertuples(index=False, name=None),
+            cancel,
+        ):
             balances.append(
                 Balance(
                     _text(product),
@@ -391,16 +492,22 @@ def read_pbix(
                 checkpoint(cancel)
             key = (_text(product), _text(branch), _text(unit), day.date())
             total = daily.setdefault(key, [0, 0, False])
+            if len(daily) > RECORD_LIMITS["sales"]:
+                raise ValueError("A base ultrapassa o limite de registros.")
             quantity = scaled(qty, SCALE)
             total[0] += quantity
             total[1] += scaled(cost, 100)
             total[2] = total[2] or quantity > 0
-        sales = tuple(Sale(*key, *values) for key, values in sorted(daily.items()))
+        sales = tuple(
+            Sale(*key, *values) for key, values in _checked(sorted(daily.items()), cancel)
+        )
         checkpoint(cancel)
         # Chaves antigas sem dimensão não podem desaparecer dos saldos/histórico.
         # Preservar valores e sinalizar o cadastro ausente, sem inventar descrição.
         codes = {p.code for p in products}
-        missing = {r.product for r in (*balances, *closings, *sales)} - codes
+        missing = {r.product for r in _checked(chain(balances, closings, sales), cancel)} - codes
+        if len(products) + len(missing) > RECORD_LIMITS["products"]:
+            raise ValueError("A base ultrapassa o limite de registros.")
         products += tuple(
             Product(code, "Cadastro indisponível · " + code, "Sem cadastro", "Sem cadastro", "—")
             for code in sorted(missing)

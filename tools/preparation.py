@@ -138,7 +138,10 @@ def probe_fingerprint(interpreter: Path, root: Path) -> str:
             path
             for path in (root / name).rglob("*")
             if path.is_file()
-            and path.suffix.lower() in (".py", ".qml", ".json", ".png", ".ico")
+            and (
+                path.suffix.lower() in (".py", ".qml", ".json", ".png", ".ico", ".liarte")
+                or path.name == "qmldir"
+            )
             and "__pycache__" not in path.parts
         )
     for path in sorted(paths):

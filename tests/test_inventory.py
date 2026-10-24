@@ -664,11 +664,11 @@ class InventoryUiTests(unittest.TestCase):
         entered, release = Event(), Event()
         original = analyze_inventory
 
-        def delayed(*args):
+        def delayed(*args, **kwargs):
             entered.set()
             if not release.wait(5):
                 raise RuntimeError("Teste não liberou a tarefa")
-            return original(*args)
+            return original(*args, **kwargs)
 
         try:
             with patch("liarte_desktop.inventory.analyze_inventory", side_effect=delayed):
@@ -877,11 +877,11 @@ class InventoryUiTests(unittest.TestCase):
         entered, release = Event(), Event()
         original = analyze_inventory
 
-        def delayed(*args):
+        def delayed(*args, **kwargs):
             entered.set()
             if not release.wait(5):
                 raise RuntimeError("Teste não liberou a tarefa")
-            return original(*args)
+            return original(*args, **kwargs)
 
         try:
             with patch("liarte_desktop.inventory.analyze_inventory", side_effect=delayed):

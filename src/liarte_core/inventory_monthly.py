@@ -13,12 +13,14 @@ from bisect import bisect_right
 from collections import defaultdict
 from datetime import date
 from decimal import Decimal
+from threading import Event
 
 from .inventory import (
     SCALE,
     InventoryData,
     StockAnalysis,
     StockSelection,
+    _checked,
     analyze_inventory,
     folded,
     money,
@@ -26,6 +28,7 @@ from .inventory import (
     month_range,
     number,
 )
+from .query import checkpoint
 
 
 def _label(period: str) -> str:
@@ -59,6 +62,8 @@ def analyze_monthly_inventory(
     data: InventoryData,
     selected: StockSelection,
     analysis: StockAnalysis | None = None,
+    *,
+    cancel: Event | None = None,
 ) -> tuple[dict, ...]:
     """Retorna meses selecionados e rankings completos, sem truncar exportações.
 
@@ -67,15 +72,21 @@ def analyze_monthly_inventory(
     Vendas são líquidas por produto/filial/unidade; não possuem armazém e ficam
     indisponíveis quando esse filtro é aplicado. Não se trata de faturamento.
     """
+    cancel = cancel if cancel is not None else Event()
+
+    def checked(values):
+        return _checked(values, cancel)
+
+    checkpoint(cancel)
     periods = month_range(selected.start, selected.end)
     period_set = set(periods)
     if date.fromisoformat(selected.start + "-01") > data.as_of:
         raise ValueError("O período começa depois da data da base.")
-    products = {p.code: p for p in data.products}
+    products = {p.code: p for p in checked(data.products)}
     terms = folded(selected.search).split()
     permitted = {
         p.code
-        for p in data.products
+        for p in checked(data.products)
         if (not selected.product or p.code == selected.product)
         and (not selected.group or p.group == selected.group)
         and (not selected.kind or p.kind == selected.kind)
@@ -84,9 +95,11 @@ def analyze_monthly_inventory(
     derived = bool(selected.abc or selected.activity or selected.balance)
     position_keys = sale_keys = None
     if derived:
-        analysis = analysis if analysis is not None else analyze_inventory(data, selected)
-        position_keys = {_position(r.balance) for r in analysis.rows}
-        sale_keys = {_sale_key(r.balance) for r in analysis.rows}
+        analysis = (
+            analysis if analysis is not None else analyze_inventory(data, selected, cancel=cancel)
+        )
+        position_keys = {_position(r.balance) for r in checked(analysis.rows)}
+        sale_keys = {_sale_key(r.balance) for r in checked(analysis.rows)}
 
     def primary(row):
         return (
@@ -97,7 +110,7 @@ def analyze_monthly_inventory(
 
     closings = defaultdict(dict)
     units = set()
-    for closing in data.closings:
+    for closing in checked(data.closings):
         if (
             primary(closing)
             and (not selected.warehouse or closing.warehouse == selected.warehouse)
@@ -108,7 +121,7 @@ def analyze_monthly_inventory(
                 closings[closing.period][_position(closing)] = closing
     # Include a unit with current positions but no monthly closure/sale, so the
     # UI can communicate missing data instead of silently hiding the selection.
-    for balance in data.balances:
+    for balance in checked(data.balances):
         if (
             primary(balance)
             and (not selected.warehouse or balance.warehouse == selected.warehouse)
@@ -121,7 +134,7 @@ def analyze_monthly_inventory(
     sales = defaultdict(lambda: defaultdict(int))
     sale_dates = defaultdict(list)
     sale_universe = set()
-    for sale in data.sales:
+    for sale in checked(data.sales):
         if sale.day > data.as_of or not primary(sale):
             continue
         key = _sale_key(sale)
@@ -135,13 +148,21 @@ def analyze_monthly_inventory(
             period = sale.day.strftime("%Y-%m")
             if period in period_set:
                 sales[period][key] += sale.quantity
-    for days in sale_dates.values():
+    for days in checked(sale_dates.values()):
         days.sort()
     units = sorted(units)
-    sales_begin = min((s.day for s in data.sales if s.day <= data.as_of), default=None)
+    sales_begin = min((s.day for s in checked(data.sales) if s.day <= data.as_of), default=None)
+    branches = sorted({key[1] for key in checked(sale_universe)})
+    sales_scope = (
+        "Vendas indisponíveis por armazém"
+        if selected.warehouse
+        else "Vendas das filiais " + ", ".join(branches) + " · sem alocação por armazém"
+        if branches
+        else "Sem vendas registradas no recorte"
+    )
 
     result = []
-    for index, period in enumerate(periods):
+    for index, period in enumerate(checked(periods)):
         first = date.fromisoformat(period + "-01")
         end = month_end(period)
         cutoff = min(end, data.as_of)
@@ -149,55 +170,82 @@ def analyze_monthly_inventory(
         previous = result[-1] if result else None
         current = closings.get(period, {})
         prior = closings.get(previous_period, {}) if previous_period else {}
-        stock_cost = sum(c.cost for c in current.values()) if current else None
+        stock_cost = sum(c.cost for c in checked(current.values())) if current else None
         stock_partial = bool(current and end > data.as_of)
         stock_quantity = {unit: None for unit in units}
-        for closing in current.values():
+        for closing in checked(current.values()):
             stock_quantity[closing.unit] = (stock_quantity[closing.unit] or 0) + closing.quantity
-        scopes = sorted({(c.branch, c.warehouse) for c in current.values()})
+        scopes = sorted({(c.branch, c.warehouse) for c in checked(current.values())})
         scope = (
             "; ".join(f"Filial {branch} · arm. {warehouse}" for branch, warehouse in scopes)
             or "Sem fechamento neste mês e recorte"
         )
-        positive = [c for c in current.values() if c.quantity > 0]
+        positive = [c for c in checked(current.values()) if c.quantity > 0]
         valid_giro = [
             c.turnover
-            for c in positive
+            for c in checked(positive)
             if c.turnover is not None and math.isfinite(c.turnover) and c.turnover >= 0
         ]
         invalid_giro = sum(
             c.turnover is not None and (not math.isfinite(c.turnover) or c.turnover < 0)
-            for c in positive
+            for c in checked(positive)
         )
-        low_turnover = [
-            {
+        # O mesmo fato serve à exportação e ao ranking. Compartilhar o registro
+        # evita manter outra cópia de todas as chaves e dados de fechamento.
+        stock_rows = []
+        by_position = {}
+        for _, c in checked(sorted(checked(current.items()))):
+            last_sale = _last_sale(sale_dates, _sale_key(c), cutoff)
+            row = {
                 "code": c.product,
                 "name": products[c.product].name,
-                "value": c.turnover,
-                "display": number(c.turnover, 2) + " x/mês",
-                "detail": "Giro da fonte · filial "
-                + c.branch
-                + " · arm. "
-                + c.warehouse
-                + " · saldo "
-                + _quantity(c.quantity, c.unit)
-                + " · "
-                + money(c.cost),
                 "branch": c.branch,
                 "warehouse": c.warehouse,
                 "unit": c.unit,
                 "quantity": c.quantity,
                 "cost": c.cost,
+                "turnover": c.turnover,
+                "days": c.days,
+                "lastSale": last_sale.isoformat() if last_sale else "",
+                "daysSinceSale": (cutoff - last_sale).days if last_sale else None,
+                "lastSaleScope": "filial",
             }
-            for c in sorted(
+            stock_rows.append(row)
+            by_position[_position(c)] = row
+        low_turnover = []
+        for c in checked(
+            sorted(
                 (
                     c
-                    for c in positive
+                    for c in checked(positive)
                     if c.turnover is not None and math.isfinite(c.turnover) and c.turnover >= 0
                 ),
                 key=lambda c: (c.turnover, -c.cost, c.product, c.branch, c.warehouse, c.unit),
             )
-        ]
+        ):
+            row = by_position[_position(c)]
+            row.update(
+                {
+                    "code": c.product,
+                    "name": products[c.product].name,
+                    "value": c.turnover,
+                    "display": number(c.turnover, 2) + " x/mês",
+                    "detail": "Giro da fonte · filial "
+                    + c.branch
+                    + " · arm. "
+                    + c.warehouse
+                    + " · saldo "
+                    + _quantity(c.quantity, c.unit)
+                    + " · "
+                    + money(c.cost),
+                    "branch": c.branch,
+                    "warehouse": c.warehouse,
+                    "unit": c.unit,
+                    "quantity": c.quantity,
+                    "cost": c.cost,
+                }
+            )
+            low_turnover.append(row)
         observed = (
             not selected.warehouse
             and sales_begin is not None
@@ -208,17 +256,8 @@ def analyze_monthly_inventory(
         monthly_sales = sales.get(period, {}) if observed else {}
         sales_quantity = {unit: 0 if observed else None for unit in units}
         if observed:
-            for (_, _, unit), qty in monthly_sales.items():
+            for (_, _, unit), qty in checked(monthly_sales.items()):
                 sales_quantity[unit] += qty
-        branches = sorted({key[1] for key in sale_universe})
-        sales_scope = (
-            "Vendas indisponíveis por armazém"
-            if selected.warehouse
-            else "Vendas das filiais " + ", ".join(branches) + " · sem alocação por armazém"
-            if branches
-            else "Sem vendas registradas no recorte"
-        )
-
         notices = [
             "Fechamentos e vendas podem cobrir locais diferentes. Tempo sem venda não é idade do lote."
         ]
@@ -240,18 +279,23 @@ def analyze_monthly_inventory(
         sellers = {unit: [] for unit in units}
         if observed:
             grouped_sales = defaultdict(int)
-            for (code, _, unit), qty in monthly_sales.items():
+            for (code, _, unit), qty in checked(monthly_sales.items()):
                 grouped_sales[code, unit] += qty
             for unit in units:
                 positive_sales = sorted(
                     (
                         (code, qty)
-                        for (code, um), qty in grouped_sales.items()
+                        for (code, um), qty in checked(grouped_sales.items())
                         if um == unit and qty > 0
                     ),
                     key=lambda item: (-item[1], item[0]),
                 )
-                denominator = sum(qty for _, qty in positive_sales)
+                denominator = sum(qty for _, qty in checked(positive_sales))
+                seller_detail = (
+                    "Quantidade líquida vendida · "
+                    + _label(period)
+                    + "; participação entre produtos com quantidade líquida positiva na mesma unidade"
+                )
                 sellers[unit] = [
                     {
                         "code": code,
@@ -260,20 +304,18 @@ def analyze_monthly_inventory(
                         "display": _quantity(qty, unit),
                         "share": number(100 * qty / denominator, 1) + "%",
                         "shareValue": 100 * qty / denominator,
-                        "detail": "Quantidade líquida vendida · "
-                        + _label(period)
-                        + "; participação entre produtos com quantidade líquida positiva na mesma unidade",
+                        "detail": seller_detail,
                     }
-                    for code, qty in positive_sales
+                    for code, qty in checked(positive_sales)
                 ]
 
         slow_groups = defaultdict(lambda: [0, 0])
-        for closing in positive:
+        for closing in checked(positive):
             pair = slow_groups[_sale_key(closing)]
             pair[0] += closing.quantity
             pair[1] += closing.cost
         slow = []
-        for (code, branch, unit), (qty, cost) in slow_groups.items():
+        for (code, branch, unit), (qty, cost) in checked(slow_groups.items()):
             last_sale = _last_sale(sale_dates, (code, branch, unit), cutoff)
             elapsed = (cutoff - last_sale).days if last_sale else None
             slow.append(
@@ -325,13 +367,13 @@ def analyze_monthly_inventory(
             added = current.keys() - prior.keys()
             missing = prior.keys() - current.keys()
             new_count, missing_count = len(added), len(missing)
-            new_cost = sum(current[key].cost for key in added)
-            missing_cost = sum(prior[key].cost for key in missing)
-            stock_change = stock_cost - sum(c.cost for c in prior.values())
+            new_cost = sum(current[key].cost for key in checked(added))
+            missing_cost = sum(prior[key].cost for key in checked(missing))
+            stock_change = stock_cost - sum(c.cost for c in checked(prior.values()))
             by_product = defaultdict(int)
-            for key in shared:
+            for key in checked(shared):
                 by_product[key[0]] += current[key].cost - prior[key].cost
-            matched_change = sum(by_product.values())
+            matched_change = sum(checked(by_product.values()))
             changes = [
                 {
                     "code": code,
@@ -340,8 +382,8 @@ def analyze_monthly_inventory(
                     "display": _signed_money(delta),
                     "detail": "Variação a custo em posições presentes nos dois meses",
                 }
-                for code, delta in sorted(
-                    by_product.items(), key=lambda item: (-abs(item[1]), item[0])
+                for code, delta in checked(
+                    sorted(checked(by_product.items()), key=lambda item: (-abs(item[1]), item[0]))
                 )
                 if delta
             ]
@@ -371,7 +413,7 @@ def analyze_monthly_inventory(
         if comparable_sales:
             previous_sales = sales.get(previous_period, {})
             product_changes = defaultdict(int)
-            for code, branch, unit in monthly_sales.keys() | previous_sales.keys():
+            for code, branch, unit in checked(monthly_sales.keys() | previous_sales.keys()):
                 key = (code, branch, unit)
                 product_changes[code, unit] += monthly_sales.get(key, 0) - previous_sales.get(
                     key, 0
@@ -386,8 +428,11 @@ def analyze_monthly_inventory(
                         "display": _quantity(delta, unit, signed=True),
                         "detail": "Variação líquida vendida vs. " + _label(previous_period),
                     }
-                    for (code, um), delta in sorted(
-                        product_changes.items(), key=lambda item: (-abs(item[1]), item[0])
+                    for (code, um), delta in checked(
+                        sorted(
+                            checked(product_changes.items()),
+                            key=lambda item: (-abs(item[1]), item[0]),
+                        )
                     )
                     if um == unit and delta
                 ]
@@ -420,7 +465,7 @@ def analyze_monthly_inventory(
                 "turnover": statistics.median(valid_giro) if valid_giro else None,
                 "turnoverCount": len(valid_giro),
                 "turnoverInvalidCount": invalid_giro,
-                "productCount": len({c.product for c in positive}) if current else None,
+                "productCount": len({c.product for c in checked(positive)}) if current else None,
                 "stockChange": stock_change,
                 "matchedStockChange": matched_change,
                 "newPositionCount": new_count,
@@ -435,24 +480,7 @@ def analyze_monthly_inventory(
                 "salesChange": sales_change,
                 "comparison": comparison,
                 "salesComparison": sales_comparison,
-                "stockRows": [
-                    {
-                        "code": c.product,
-                        "name": products[c.product].name,
-                        "branch": c.branch,
-                        "warehouse": c.warehouse,
-                        "unit": c.unit,
-                        "quantity": c.quantity,
-                        "cost": c.cost,
-                        "turnover": c.turnover,
-                        "days": c.days,
-                        "lastSale": last_sale.isoformat() if last_sale else "",
-                        "daysSinceSale": (cutoff - last_sale).days if last_sale else None,
-                        "lastSaleScope": "filial",
-                    }
-                    for _, c in sorted(current.items())
-                    for last_sale in [_last_sale(sale_dates, _sale_key(c), cutoff)]
-                ],
+                "stockRows": stock_rows,
                 "saleRows": [
                     {
                         "code": code,
@@ -461,8 +489,9 @@ def analyze_monthly_inventory(
                         "unit": unit,
                         "quantity": qty,
                     }
-                    for (code, branch, unit), qty in sorted(monthly_sales.items())
+                    for (code, branch, unit), qty in checked(sorted(checked(monthly_sales.items())))
                 ],
             }
         )
+    checkpoint(cancel)
     return tuple(result)

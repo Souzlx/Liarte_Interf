@@ -7,6 +7,8 @@ import math
 import tempfile
 from dataclasses import asdict
 from datetime import date
+from decimal import Decimal
+import zipfile
 from pathlib import Path
 from threading import Event
 
@@ -33,6 +35,67 @@ HEADERS = (
 )
 
 
+class _ExactText(str):
+    """Decimal text used only beyond Excel's 15 significant numeric digits."""
+
+
+def _append_values(sheet, values, row):
+    # openpyxl converts str subclasses to plain str. Mark exact values before
+    # binding them, so their warning survives the normal formatting pass.
+    from openpyxl.comments import Comment
+    from .inventory_io import _text
+
+    for index, value in enumerate(values, 1):
+        if isinstance(value, str):
+            _text(value, f"{sheet.title}!linha {row}, coluna {index}", empty=True, max_length=32767)
+    sheet.append(values)
+    for index, value in enumerate(values, 1):
+        if isinstance(value, _ExactText):
+            sheet.cell(row, index).comment = Comment(
+                "Valor decimal exato em texto: excede os 15 dígitos significativos "
+                "do Excel. Unidade conforme o cabeçalho.",
+                "LIARTE",
+            )
+
+
+def _excel_scaled(value, scale):
+    if value is None:
+        return None
+    places = len(str(scale)) - 1
+    exact = Decimal((int(value < 0), tuple(map(int, str(abs(value)))), -places))
+    significant = len(str(abs(value)).rstrip("0"))
+    if significant > 15:
+        return _ExactText(format(exact, "f"))
+    return float(exact)
+
+
+def _validate_staged_workbook(path, cancel):
+    from openpyxl import load_workbook
+    from liarte_engine.powerbi_source import validate_xlsx_container, read_shared_strings, _rows
+
+    def check():
+        checkpoint(cancel)
+
+    with zipfile.ZipFile(path) as archive:
+        sheets = validate_xlsx_container(archive, check)
+        strings = read_shared_strings(archive, check)
+        for part in sheets.values():
+            for _ in _rows(archive, part, strings, check, 25, allow_formulas=True):
+                pass
+    check()
+    # Read-only reopen also checks Excel's workbook/style reader contract. XML
+    # rows were already checked above without trusting dense sheet dimensions.
+    reopened = load_workbook(path, read_only=True, data_only=False)
+    try:
+        if reopened.sheetnames != list(sheets):
+            raise ValueError("As abas do Excel salvo divergem das abas validadas.")
+        for sheet in reopened:
+            check()
+            next(sheet.iter_rows(min_row=1, max_row=1, max_col=25, values_only=True), None)
+    finally:
+        reopened.close()
+
+
 def _append_monthly_sheets(workbook, months, cancel):
     """Exporta todas as linhas mensais, sem limitar às classificações da tela.
 
@@ -55,17 +118,19 @@ def _append_monthly_sheets(workbook, months, cancel):
             title = self.title if self.part == 1 else self.title + " " + str(self.part)
             self.sheet = workbook.create_sheet(title)
             self.sheet.append(self.headers)
+            self.row_count = 1
             layouts[title] = self.widths
 
         def append(self, values, formats=()):
             checkpoint(cancel)
             # A base aceita até dois milhões de fatos. Dividir antes do limite
             # do XLSX conserva todas as linhas, inclusive nas bases maiores.
-            if self.sheet.max_row >= 1_048_576:
+            if self.row_count >= 1_048_576:
                 self.new_sheet()
-            self.sheet.append(values)
+            self.row_count += 1
+            _append_values(self.sheet, values, self.row_count)
             for column, fmt in formats:
-                self.sheet.cell(self.sheet.max_row, column).number_format = fmt
+                self.sheet.cell(self.row_count, column).number_format = fmt
 
     summary = Table(
         "Análise mensal",
@@ -162,15 +227,15 @@ def _append_monthly_sheets(workbook, months, cancel):
                 period,
                 "Resumo mensal",
                 None,
-                stock_cost / 100 if stock_cost is not None else None,
+                _excel_scaled(stock_cost, 100),
                 None,
                 None,
                 month["turnover"],
                 month["turnoverCount"],
                 month["turnoverInvalidCount"],
                 month["productCount"],
-                matched / 100 if matched is not None else None,
-                total_change / 100 if total_change is not None else None,
+                _excel_scaled(matched, 100),
+                _excel_scaled(total_change, 100),
                 None,
                 "Sim" if month["partial"] else "Não",
                 month["newPositionCount"],
@@ -182,8 +247,8 @@ def _append_monthly_sheets(workbook, months, cancel):
                 month["notice"],
                 "Sim" if month["stockPartial"] else "Não",
                 "Sim" if month["salesObserved"] else "Não",
-                new_cost / 100 if new_cost is not None else None,
-                missing_cost / 100 if missing_cost is not None else None,
+                _excel_scaled(new_cost, 100),
+                _excel_scaled(missing_cost, 100),
             ],
             (
                 (4, money_format),
@@ -205,15 +270,15 @@ def _append_monthly_sheets(workbook, months, cancel):
                     "Quantidade por unidade",
                     unit,
                     None,
-                    quantity / SCALE if quantity is not None else None,
-                    sold / SCALE if sold is not None else None,
+                    _excel_scaled(quantity, SCALE),
+                    _excel_scaled(sold, SCALE),
                     None,
                     None,
                     None,
                     None,
                     None,
                     None,
-                    sales_change / SCALE if sales_change is not None else None,
+                    _excel_scaled(sales_change, SCALE),
                 ],
                 ((5, quantity_format), (6, quantity_format), (13, quantity_format)),
             )
@@ -241,7 +306,7 @@ def _append_monthly_sheets(workbook, months, cancel):
                     None,
                     item["code"],
                     item["name"],
-                    item["value"] / 100,
+                    _excel_scaled(item["value"], 100),
                     item["detail"],
                 ],
                 ((7, money_format),),
@@ -256,7 +321,7 @@ def _append_monthly_sheets(workbook, months, cancel):
                         unit,
                         item["code"],
                         item["name"],
-                        item["value"] / SCALE,
+                        _excel_scaled(item["value"], SCALE),
                         item["detail"],
                     ],
                     ((7, quantity_format),),
@@ -274,9 +339,9 @@ def _append_monthly_sheets(workbook, months, cancel):
                     item["branch"],
                     item["warehouse"],
                     item["unit"],
-                    item["quantity"] / SCALE,
+                    _excel_scaled(item["quantity"], SCALE),
                     None,
-                    item["cost"] / 100,
+                    _excel_scaled(item["cost"], 100),
                     item["turnover"],
                     item["days"],
                     date.fromisoformat(last_sale) if last_sale else None,
@@ -303,7 +368,7 @@ def _append_monthly_sheets(workbook, months, cancel):
                     None,
                     item["unit"],
                     None,
-                    item["quantity"] / SCALE,
+                    _excel_scaled(item["quantity"], SCALE),
                     None,
                     None,
                     None,
@@ -328,11 +393,12 @@ def export_inventory(
 ):
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from .inventory_io import _text
     from openpyxl.utils import get_column_letter
     from .inventory_monthly import analyze_monthly_inventory
 
     if monthly is None:
-        monthly = analyze_monthly_inventory(data, selection, analysis=analysis)
+        monthly = analyze_monthly_inventory(data, selection, analysis=analysis, cancel=cancel)
     checkpoint(cancel)
 
     workbook = Workbook()
@@ -341,10 +407,12 @@ def export_inventory(
     sheet.append(["LIARTE · Estoque · Base " + data.as_of.strftime("%d/%m/%Y")])
     sheet.append(["Saldos atuais; período de vendas " + selection.start + " a " + selection.end])
     sheet.append(HEADERS)
-    for row in analysis.rows:
+    stock_row_count = 3
+    for n, row in enumerate(analysis.rows, start=4):
         checkpoint(cancel)
         b = row.balance
-        sheet.append(
+        _append_values(
+            sheet,
             [
                 b.product,
                 row.name,
@@ -352,8 +420,8 @@ def export_inventory(
                 b.branch,
                 b.warehouse,
                 b.unit,
-                b.quantity / SCALE,
-                b.cost / 100,
+                _excel_scaled(b.quantity, SCALE),
+                _excel_scaled(b.cost, 100),
                 row.abc,
                 row.last_sale,
                 row.days_since_sale,
@@ -362,9 +430,10 @@ def export_inventory(
                 row.source_period or None,
                 row.coverage,
                 row.cv,
-            ]
+            ],
+            n,
         )
-        n = sheet.max_row
+        stock_row_count = n
         for col in (7,):
             sheet.cell(n, col).number_format = "#,##0.000;[Red](#,##0.000)"
         sheet.cell(n, 8).number_format = '"R$" #,##0.00;[Red]("R$" #,##0.00)'
@@ -373,21 +442,24 @@ def export_inventory(
             sheet.cell(n, col).number_format = "0.00"
         sheet.cell(n, 16).number_format = "0.0%"
     sheet.freeze_panes = "C4"
-    sheet.auto_filter.ref = f"A3:P{max(3, sheet.max_row)}"
+    sheet.auto_filter.ref = f"A3:P{stock_row_count}"
     widths = (16, 50, 26, 12, 10, 9, 19, 22, 9, 15, 19, 21, 16, 15, 23, 23)
     for i, width in enumerate(widths, 1):
         sheet.column_dimensions[get_column_letter(i)].width = width
     history = workbook.create_sheet("Fechamentos")
     history.append(["Mês", "Custo (R$)", "Abrangência"])
-    for point in analysis.trend:
-        history.append(
+    for n, point in enumerate(analysis.trend, start=2):
+        checkpoint(cancel)
+        _append_values(
+            history,
             [
                 point["period"],
-                point["raw"] / 100 if point["raw"] is not None else None,
+                _excel_scaled(point["raw"], 100),
                 analysis.historical_scope,
-            ]
+            ],
+            n,
         )
-        history.cell(history.max_row, 2).number_format = '"R$" #,##0.00'
+        history.cell(n, 2).number_format = '"R$" #,##0.00'
     sales = workbook.create_sheet("Vendas por filial")
     sales.append(
         [
@@ -398,16 +470,19 @@ def export_inventory(
             "Mês parcial",
         ]
     )
-    for point in analysis.sales_months:
-        sales.append(
+    for n, point in enumerate(analysis.sales_months, start=2):
+        checkpoint(cancel)
+        _append_values(
+            sales,
             [
                 point["period"],
                 point["unit"],
-                point["quantity"] / SCALE if point["quantity"] is not None else None,
+                _excel_scaled(point["quantity"], SCALE),
                 "Sim" if point["partial"] else "Não",
-            ]
+            ],
+            n,
         )
-        sales.cell(sales.max_row, 3).number_format = "#,##0.000"
+        sales.cell(n, 3).number_format = "#,##0.000"
     monthly_layouts = _append_monthly_sheets(workbook, monthly, cancel)
     rules = workbook.create_sheet("Leitura dos indicadores")
     rules.append(["Indicador", "Definição"])
@@ -496,10 +571,22 @@ def export_inventory(
             "por produto/filial/unidade. Dias sem venda não medem idade física ou obsolescência. "
             "Consumo interno e histórico de entradas/lotes não estão disponíveis nesta base.",
         ),
+        (
+            "Precisão numérica do Excel",
+            "Valores com mais de 15 dígitos significativos são texto decimal exato, "
+            "identificado por comentário na célula. As unidades continuam as do cabeçalho; "
+            "essas células textuais não entram nas somas automáticas do Excel. "
+            "Demais quantidades e valores monetários permanecem numéricos.",
+        ),
         ("Recorte", "; ".join(f"{k}={v}" for k, v in asdict(selection).items() if v)),
     ):
         rules.append(entry)
     edge = Side(style="thin", color="E3E9EF")
+    alignment = Alignment(vertical="center", wrap_text=True)
+    normal_font = Font(name="Calibri", size=11, color="20334A")
+    header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+    border = Border(bottom=edge)
+    header_fill = PatternFill("solid", fgColor="103F70")
     for ws in workbook:
         header_row = 3 if ws is sheet else 1
         if ws is not sheet:
@@ -515,13 +602,16 @@ def export_inventory(
             checkpoint(cancel)
             for cell in row:
                 if isinstance(cell.value, str):
+                    _text(cell.value, f"{ws.title}!{cell.coordinate}", empty=True, max_length=32767)
+                    if cell.comment is not None and cell.comment.author == "LIARTE":
+                        cell.number_format = "@"
                     cell.data_type = "s"  # Não interpretar descrições como fórmulas.
-                cell.alignment = Alignment(vertical="center", wrap_text=True)
-                cell.font = Font(name="Calibri", size=11, color="20334A")
-                cell.border = Border(bottom=edge)
+                cell.alignment = alignment
+                cell.font = normal_font
+                cell.border = border
                 if cell.row == header_row:
-                    cell.fill = PatternFill("solid", fgColor="103F70")
-                    cell.font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+                    cell.fill = header_fill
+                    cell.font = header_font
             ws.row_dimensions[row[0].row].height = (
                 34
                 if ws is sheet
@@ -538,6 +628,8 @@ def export_inventory(
     os.close(fd)
     try:
         workbook.save(name)
+        checkpoint(cancel)
+        _validate_staged_workbook(Path(name), cancel)
         checkpoint(cancel)
         os.replace(name, path)
     finally:

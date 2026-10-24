@@ -14,7 +14,27 @@ FocusScope {
     property bool advanced: false
     readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible || monthlySection.modalOpen
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
-    readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 ? "products" : scroll.contentY >= monthlySection.y - 80 ? "monthly" : "overview"
+    readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 || scroll.contentHeight > scroll.height && scroll.atYEnd ? "products" : scroll.contentY >= monthlySection.y - 80 ? "monthly" : "overview"
+    property var lastFocusedControl: null
+
+    function visibleControl(item) {
+        if (!item || !item.visible || !item.enabled || item.width <= 0 || item.height <= 0)
+            return false;
+        const position = item.mapToItem(scroll, 0, 0);
+        return position.x >= -1 && position.x + item.width <= scroll.width + 1 && position.y >= -1 && position.y + item.height <= scroll.height + 1;
+    }
+    function firstVisibleControl(parentItem) {
+        for (const item of parentItem.children) {
+            if (!item.visible || !item.enabled)
+                continue;
+            if (item.activeFocusOnTab && visibleControl(item))
+                return item;
+            const child = firstVisibleControl(item);
+            if (child)
+                return child;
+        }
+        return null;
+    }
     function navigate(section) {
         const maximum = Math.max(0, scroll.contentHeight - scroll.height);
         const destination = section === "products" ? Math.min(maximum, positionsSection.y - 18) : section === "monthly" ? Math.min(maximum, monthlySection.y - 18) : 0;
@@ -28,7 +48,25 @@ FocusScope {
             stockTable.forceActiveFocus();
     }
     function restoreFocus() {
-        state.loaded ? stockSearch.focusSearch() : openBase.forceActiveFocus();
+        const item = visibleControl(lastFocusedControl) ? lastFocusedControl : firstVisibleControl(content);
+        if (item)
+            item.forceActiveFocus(Qt.TabFocusReason);
+        else
+            page.forceActiveFocus();
+    }
+    Connections {
+        target: page.hostWindow
+        function onActiveFocusItemChanged() {
+            if (!page.visible || page.modalOpen)
+                return;
+            const item = page.hostWindow.activeFocusItem;
+            for (let ancestor = item; ancestor; ancestor = ancestor.parent) {
+                if (ancestor === content) {
+                    page.lastFocusedControl = item;
+                    return;
+                }
+            }
+        }
     }
     Shortcut {
         sequence: "Ctrl+F"
@@ -878,80 +916,86 @@ FocusScope {
         height: Math.min(680, page.hostWindow.height - 36)
         modal: true
         title: "Detalhe do produto"
-        ScrollView {
+        ColumnLayout {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            clip: true
-            contentWidth: availableWidth
-            ColumnLayout {
-                width: parent.width
-                spacing: 16
-                Text {
-                    Layout.fillWidth: true
-                    text: page.detail.title || ""
-                    color: Ui.Theme.text
-                    font.pixelSize: 17
-                    font.weight: Font.DemiBold
-                    wrapMode: Text.WordWrap
-                    textFormat: Text.PlainText
+            spacing: 16
+            Text {
+                Layout.fillWidth: true
+                text: page.detail.title || ""
+                color: Ui.Theme.text
+                font.pixelSize: 17
+                font.weight: Font.DemiBold
+                wrapMode: Text.WordWrap
+                textFormat: Text.PlainText
+            }
+            Text {
+                text: page.detail.location || ""
+                color: Ui.Theme.muted
+                font.pixelSize: 12
+                textFormat: Text.PlainText
+            }
+            Ui.ActionButton {
+                text: "Analisar este produto"
+                iconName: "filter"
+                onClicked: {
+                    inventory.setFilter("product", page.detail.code);
+                    stockDetail.close();
                 }
-                Text {
-                    text: page.detail.location || ""
-                    color: Ui.Theme.muted
-                    font.pixelSize: 12
-                    textFormat: Text.PlainText
-                }
-                Ui.ActionButton {
-                    text: "Analisar este produto"
-                    iconName: "filter"
-                    onClicked: {
-                        inventory.setFilter("product", page.detail.code);
-                        stockDetail.close();
+            }
+            Ui.AppCombo {
+                id: detailMeasure
+                objectName: "stockDetailMeasure"
+                Layout.fillWidth: true
+                model: [
+                    {
+                        value: "sales",
+                        label: "Vendas da filial"
+                    },
+                    {
+                        value: "giro",
+                        label: "Giro da fonte"
+                    },
+                    {
+                        value: "quantity",
+                        label: "Quantidade no fechamento"
+                    },
+                    {
+                        value: "cost",
+                        label: "Custo no fechamento"
                     }
-                }
-                Ui.AppCombo {
-                    id: detailMeasure
-                    objectName: "stockDetailMeasure"
-                    Layout.fillWidth: true
-                    model: [
-                        {
-                            value: "sales",
-                            label: "Vendas da filial"
-                        },
-                        {
-                            value: "giro",
-                            label: "Giro da fonte"
-                        },
-                        {
-                            value: "quantity",
-                            label: "Quantidade no fechamento"
-                        },
-                        {
-                            value: "cost",
-                            label: "Custo no fechamento"
-                        }
-                    ]
-                    Accessible.name: "Indicador mensal do produto"
-                }
-                Text {
-                    Layout.fillWidth: true
-                    text: stockDetail.seriesTitle + " · " + stockDetail.seriesUnit
-                    textFormat: Text.PlainText
-                    color: Ui.Theme.muted
-                    font.pixelSize: 11
-                }
+                ]
+                Accessible.name: "Indicador mensal do produto"
+            }
+            Text {
+                Layout.fillWidth: true
+                text: stockDetail.seriesTitle + " · " + stockDetail.seriesUnit
+                textFormat: Text.PlainText
+                color: Ui.Theme.muted
+                font.pixelSize: 11
+            }
+            ColumnLayout {
+                id: detailChartGroup
+                Layout.fillWidth: true
+                spacing: 12
                 Ui.StockPlot {
                     id: detailTrend
+                    objectName: "stockDetailTrend"
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 200
+                    Layout.preferredHeight: Math.max(110, Math.min(200, stockDetail.bodyViewportHeight - detailTrendReadout.implicitHeight - detailChartGroup.spacing))
                     points: stockDetail.series || []
                     unit: stockDetail.seriesUnit
                     precision: 2
                     mode: stockDetail.measure === "sales" ? "column" : "line"
                     movingAverage: false
                     seriesName: stockDetail.seriesTitle
+                    onActiveFocusChanged: if (activeFocus)
+                        Qt.callLater(() => stockDetail.reveal(detailChartGroup))
+                    onReadoutChanged: if (activeFocus)
+                        Qt.callLater(() => stockDetail.reveal(detailChartGroup))
                 }
                 Text {
+                    id: detailTrendReadout
+                    objectName: "stockDetailTrendReadout"
                     Layout.fillWidth: true
                     text: detailTrend.readout || "Selecione um mês com o cursor ou as setas. Vendas pertencem à filial; fechamentos e giro pertencem à posição."
                     textFormat: Text.PlainText
@@ -959,39 +1003,40 @@ FocusScope {
                     font.pixelSize: 11
                     wrapMode: Text.WordWrap
                 }
-                Repeater {
-                    model: [["Saldo atual", "balance"], ["Custo atual", "cost"], ["Última venda", "lastSale"], ["Vendas no período", "sold"], ["Cobertura por vendas · filial", "coverage"], ["Média mensal de vendas", "mean"], ["Desvio padrão mensal", "std"], ["Variação da demanda · CV", "cv"], ["Giro mensal · fonte", "turnover"], ["Fechamento do giro", "sourcePeriod"]]
-                    RowLayout {
-                        required property var modelData
+            }
+            Repeater {
+                model: [["Saldo atual", "balance"], ["Custo atual", "cost"], ["Última venda", "lastSale"], ["Vendas no período", "sold"], ["Cobertura por vendas · filial", "coverage"], ["Média mensal de vendas", "mean"], ["Desvio padrão mensal", "std"], ["Variação da demanda · CV", "cv"], ["Giro mensal · fonte", "turnover"], ["Fechamento do giro", "sourcePeriod"]]
+                RowLayout {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    Text {
                         Layout.fillWidth: true
-                        Text {
-                            Layout.fillWidth: true
-                            text: modelData[0]
-                            color: Ui.Theme.muted
-                            font.pixelSize: 12
-                            wrapMode: Text.WordWrap
-                        }
-                        Text {
-                            Layout.maximumWidth: page.hostWindow.width < 650 ? 155 : 270
-                            text: page.detail[modelData[1]] || "—"
-                            color: Ui.Theme.text
-                            font.pixelSize: 12
-                            font.weight: Font.DemiBold
-                            wrapMode: Text.WordWrap
-                            textFormat: Text.PlainText
-                        }
+                        text: modelData[0]
+                        color: Ui.Theme.muted
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                    }
+                    Text {
+                        Layout.maximumWidth: page.hostWindow.width < 650 ? 155 : 270
+                        text: page.detail[modelData[1]] || "—"
+                        color: Ui.Theme.text
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        wrapMode: Text.WordWrap
+                        textFormat: Text.PlainText
                     }
                 }
-                Text {
-                    Layout.fillWidth: true
-                    text: "Estatística: " + (page.detail.months || 0) + " meses completos, incluindo meses sem venda. Cobertura usa todas as posições da filial e não representa consumo interno."
-                    color: Ui.Theme.muted
-                    font.pixelSize: 11
-                    wrapMode: Text.WordWrap
-                }
+            }
+            Text {
+                Layout.fillWidth: true
+                text: "Estatística: " + (page.detail.months || 0) + " meses completos, incluindo meses sem venda. Cobertura usa todas as posições da filial e não representa consumo interno."
+                color: Ui.Theme.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
             }
         }
     }
+
     Ui.AppDialog {
         id: stockMethodology
         parent: Overlay.overlay

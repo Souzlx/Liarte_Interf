@@ -21,6 +21,7 @@ Dependência:
 from __future__ import annotations
 
 import argparse
+from http.client import HTTPException
 import json
 import math
 import os
@@ -42,7 +43,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
 
-from .liarte_dados import IncrementalCache, create_manifest
+from .liarte_dados import IncrementalCache, create_manifest, json_bytes
 from .numeric import from_units, published_units, sum_published
 from .comex_access import AccessError, RequestCoordinator
 
@@ -609,11 +610,15 @@ class ComexStatClient:
 
     def _wait(self, seconds):
         self._check_cancel()
-        if self.cancel_wait is None:
-            time.sleep(seconds)
-        else:
-            self.cancel_wait(seconds)
-        self._check_cancel()
+        deadline = time.monotonic() + seconds
+        while (remaining := deadline - time.monotonic()) > 0:
+            interval = min(0.25, remaining)
+            if self.cancel_wait is None:
+                time.sleep(interval)
+            elif self.cancel_wait(interval):
+                self._check_cancel()
+                return
+            self._check_cancel()
 
     def _notify(self, fraction: float | None, message: str) -> None:
         self._check_cancel()
@@ -779,25 +784,27 @@ class ComexStatClient:
                     else nullcontext()
                 )
                 with lease as access:
-                    request_data = (
-                        json.dumps(json_body, ensure_ascii=False).encode("utf-8")
-                        if json_body is not None
-                        else None
-                    )
+                    request_data = json_bytes(json_body) if json_body is not None else None
                     request = urllib.request.Request(
                         url, data=request_data, headers=self.headers, method=method
                     )
                     try:
-                        status, headers, response_text = self._read_response(request)
-                    except urllib.error.HTTPError as exc:
-                        status, headers = exc.code, exc.headers or {}
                         try:
-                            response_text = exc.read(4096).decode(
-                                "utf-8", errors="replace"
-                            )
-                        finally:
-                            exc.close()
-                    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                            status, headers, response_text = self._read_response(request)
+                        except urllib.error.HTTPError as exc:
+                            status, headers = exc.code, exc.headers or {}
+                            try:
+                                try:
+                                    response_text = exc.read(4096).decode("utf-8", errors="replace")
+                                except (OSError, HTTPException):
+                                    # Mesmo sem corpo completo, o prazo oficial
+                                    # recebido nos cabeçalhos continua obrigatório.
+                                    if status not in {429, 503} and not headers.get("Retry-After"):
+                                        raise
+                                    response_text = ""
+                            finally:
+                                exc.close()
+                    except (urllib.error.URLError, TimeoutError, OSError, HTTPException) as exc:
                         last_error = exc
                         if attempt < self.max_attempts:
                             retry_delay = min(60.0, 2.0**attempt)
@@ -809,7 +816,7 @@ class ComexStatClient:
                         payload = None
                         if 200 <= status < 300:
                             try:
-                                payload = json.loads(response_text)
+                                payload = json.loads(response_text, parse_float=Decimal)
                             except json.JSONDecodeError as exc:
                                 raise ComexStatError(
                                     "A API retornou uma resposta que não é JSON."
@@ -870,7 +877,7 @@ class ComexStatClient:
                         else:
                             if payload.get("success") is False or payload.get("error"):
                                 raise ComexStatError(
-                                    f"Consulta recusada pela API: {json.dumps(payload, ensure_ascii=False)[:1200]}"
+                                    f"Consulta recusada pela API: {json_bytes(payload).decode('utf-8')[:1200]}"
                                 )
                             return payload
             except AccessError as exc:
@@ -2867,23 +2874,12 @@ def run(args: argparse.Namespace) -> Path:
         if args.sem_municipios:
             municipal_rows = []
         else:
-            try:
-                municipal_rows = client.query_municipal_imports(
-                    ncms=ncms,
-                    start_period=start_period,
-                    end_period=end_period,
-                    chunk_size=args.lote_sh4,
-                )
-            except Exception as exc:
-                municipal_rows = []
-                municipal_status = "unavailable"
-                print(
-                    "Aviso: os Dados Gerais serão preservados, mas o módulo "
-                    "municipal ficou indisponível nesta tentativa "
-                    f"({type(exc).__name__}: {exc}).",
-                    file=sys.stderr,
-                    flush=True,
-                )
+            municipal_rows = client.query_municipal_imports(
+                ncms=ncms,
+                start_period=start_period,
+                end_period=end_period,
+                chunk_size=args.lote_sh4,
+            )
     finally:
         client.close()
 
