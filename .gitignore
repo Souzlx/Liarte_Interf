@@ -1,0 +1,39 @@
+# Python gerado localmente
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+.venv/
+venv/
+env/
+/.liarte-desktop-env/
+/.liarte-desktop-env.anterior-*/
+
+# Caches e resultados de ferramentas
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Saídas e temporários da preparação/compilação
+/build/
+/dist/
+/instalador/
+/release_assets/
+/release_bundle/
+/logs/
+/.release-recovery-*/
+/ambiente-verificado.json
+/validacao-qt.json
+/preparacao.lock
+/preparacao-desktop.log
+
+# Estado local de editores e do sistema operacional
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
