@@ -118,7 +118,9 @@ class AuditQmlTests(unittest.TestCase):
                 APP.processEvents()
                 self.assertEqual(workspace.property("activeSection"), "products")
                 QMetaObject.invokeMethod(
-                    workspace, "navigate", Qt.ConnectionType.DirectConnection,
+                    workspace,
+                    "navigate",
+                    Qt.ConnectionType.DirectConnection,
                     Q_ARG("QVariant", "products"),
                 )
                 APP.processEvents()

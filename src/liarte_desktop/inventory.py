@@ -1014,8 +1014,13 @@ class InventoryController(QObject):
 
     @Slot()
     def _finished(self):
-        if self._thread is None:
+        thread = self._thread
+        if thread is None:
             return
+        # QThread.finished is emitted before native/TLS cleanup has necessarily
+        # completed. Join before releasing the QObject tree or reporting a safe
+        # shutdown; a queued signal alone does not establish that boundary.
+        thread.wait()
         self._discard_staged_cache()
         self._thread = self._worker = None
         self._task = ""

@@ -8,7 +8,7 @@ from threading import Event
 import unittest
 from unittest.mock import patch
 
-from PySide6.QtCore import QObject, QThread, QTimer, QUrl
+from PySide6.QtCore import QObject, Qt, QThread, QTimer, QUrl
 from PySide6.QtTest import QSignalSpy
 
 from liarte_core.inventory import Balance, Closing, Product, SCALE, Sale, analyze_inventory
@@ -270,6 +270,7 @@ class InventoryDesktopAuditTests(unittest.TestCase):
 
     def test_application_shutdown_helper_drives_qt_until_worker_finished(self):
         entered, release = Event(), Event()
+        native_cleanup = Event()
 
         def blocked(cancel, progress):
             entered.set()
@@ -278,13 +279,26 @@ class InventoryDesktopAuditTests(unittest.TestCase):
 
         self.c._start(blocked, "load")
         self.assertTrue(pump(entered.is_set))
+        thread = self.c._thread
+
+        def finishing_native_thread():
+            # A direct finished callback still executes on the native worker.
+            # Model a thread-local destructor that outlives queued notification.
+            Event().wait(0.05)
+            native_cleanup.set()
+
+        thread.finished.connect(finishing_native_thread, Qt.ConnectionType.DirectConnection)
         original = self.c.shutdown
         QTimer.singleShot(20, release.set)
         try:
             with patch.object(self.c, "shutdown", side_effect=lambda **kwargs: original(wait_ms=0)):
                 _finish_inventory_shutdown(self.c)
+            self.assertTrue(
+                native_cleanup.is_set(), "Shutdown returned before the native thread joined"
+            )
             self.assertTrue(self.c._shutdown_complete)
             self.assertIsNone(self.c._thread)
         finally:
             release.set()
+            native_cleanup.wait(1)
             self.c.shutdown()

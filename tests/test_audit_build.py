@@ -68,7 +68,8 @@ class BuildAuditTests(unittest.TestCase):
                 prepare_release.prepare_release(self.bundle, self.output)
         backups = list(self.output.glob(".release-recovery-*"))
         self.assertEqual(len(backups), 1)
-        self.assertIn(str(backups[0]), str(error.exception))
+        reported = Path(str(error.exception).rsplit(" em ", 1)[1])
+        self.assertTrue(reported.samefile(backups[0]))
         self.assertEqual({path.name: path.read_bytes() for path in backups[0].iterdir()}, previous)
         self.assertEqual(checksum.read_bytes(), previous[checksum.name])
 
