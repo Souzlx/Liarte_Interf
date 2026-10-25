@@ -34,8 +34,12 @@ Em um ambiente de desenvolvimento já preparado:
 python -m venv .venv
 # Ative .venv no seu terminal antes dos próximos comandos.
 python -m pip install -r requirements.txt
-python iniciar.py
+python iniciar.py --profile-dir .liarte-dev-profile --demo
 ```
+
+`--profile-dir` cria um perfil de desenvolvimento separado, com preferências, dados, Estoque, backups, relatórios e logs próprios. A janela fica marcada como **Desenvolvimento**. Um perfil novo começa vazio, sem copiar preferências ou bases da instalação de uso; a pasta `.liarte-dev-profile` é ignorada pelo Git. O modo `--demo` utiliza consultas sintéticas e permite testar a persistência nesse perfil.
+
+Sem `--profile-dir`, os caminhos da instalação continuam sendo usados. Para uma primeira abertura sem gravar preferências nem cache de Estoque, use `iniciar.py --demo --no-settings`; os logs desse comando ainda usam o perfil normal. Não combine `--profile-dir` com `--data-dir`: essa combinação é recusada para impedir que dados saiam do perfil escolhido. Veja o [guia Windows](docs/DESENVOLVIMENTO_LOCAL_WINDOWS.md) para os comandos completos.
 
 `iniciar.py` configura o acesso a `src/`. Bibliotecas, scripts e integrações devem importar os pacotes `liarte_core`, `liarte_desktop` e `liarte_engine`, por instalação do projeto ou com `src/` no `PYTHONPATH`.
 

@@ -46,7 +46,7 @@ def _check(result, operation):
         raise OSError(f"{operation}: HRESULT 0x{result & 0xFFFFFFFF:08X}.")
 
 
-def set_process_identity():
+def set_process_identity(app_id=APP_USER_MODEL_ID):
     """Chamar antes de QGuiApplication, inclusive na entrada instalada por pip."""
     if sys.platform != "win32":
         return False
@@ -54,7 +54,7 @@ def set_process_identity():
         function = ctypes.WinDLL("shell32", winmode=0x800).SetCurrentProcessExplicitAppUserModelID
         function.argtypes = [ctypes.c_wchar_p]
         function.restype = HRESULT
-        _check(function(APP_USER_MODEL_ID), "Identificação do aplicativo")
+        _check(function(app_id), "Identificação do aplicativo")
         return True
     except OSError:
         LOGGER.warning(

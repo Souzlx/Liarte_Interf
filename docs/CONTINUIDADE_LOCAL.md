@@ -14,7 +14,7 @@ Resumo para uma sessão local do Codex. Os arquivos deste guia são contexto de 
 ## Fontes e referências
 
 - `src/liarte_core`: domínio, cálculos, consultas e IO. `inventory_backup.py` contém o histórico de bases.
-- `src/liarte_desktop`: controladores Qt e QML. `inventory.py` coordena publicação e restauração; `qml/InventoryWorkspace.qml` contém a ação Restaurar.
+- `src/liarte_desktop`: controladores Qt e QML. `inventory.py` coordena publicação e restauração; `qml/InventoryWorkspace.qml` contém a ação Restaurar. `runtime_profile.py` define os caminhos do perfil de execução.
 - `src/liarte_engine`: documentos e compatibilidade com os fluxos anteriores.
 - `verificar.py`: registro explícito da suíte. Registrar novas classes de teste quando necessário.
 - `tools/build_windows.py`: suíte, PyInstaller e autoteste nativo do portátil.
@@ -32,13 +32,17 @@ No Estoque, saldo atual e histórico mensal são universos distintos. Quantidade
 
 Backups são criados antes de substituir uma base local válida. A restauração valida integridade e conteúdo e preserva a base atual válida antes da troca. Retenção alvo: dez cópias, com limpeza posterior à publicação e falhas de manutenção preservando os arquivos. Cancelamento/erro antes da publicação mantém a base anterior. O guard de alteração concorrente do cache usa fingerprint de arquivo e não equivale a uma transação entre processos.
 
-A execução dos fontes utiliza o mesmo nome de aplicativo e os mesmos caminhos de perfil da instalação por padrão. Para a primeira abertura, usar `iniciar.py --demo --no-settings`. Isso evita gravações de preferências e cache de Estoque, mas os logs continuam compartilhados. `--data-dir` não isola o perfil inteiro. Um perfil completo separado é a primeira melhoria recomendada para desenvolver persistência local com segurança.
+A execução sem `--profile-dir` mantém os caminhos e o comportamento da instalação. Para uma primeira abertura sem persistência de preferências ou Estoque, usar `iniciar.py --demo --no-settings`; os logs desse comando continuam compartilhados. `--data-dir` altera apenas o diretório do cliente Comex e não isola o perfil inteiro.
+
+Para desenvolver persistência, usar `iniciar.py --profile-dir .liarte-dev-profile --demo`. O perfil mantém `settings.ini`, dados Comex, cache de Estoque e seus backups, relatórios, configuração da central e logs na pasta escolhida. Um perfil novo começa vazio, sem migrar preferências antigas nem carregar a base da instalação. A janela é identificada como Desenvolvimento e a execução não usa o mutex nem os atalhos da instalação diária. A pasta `.liarte-dev-profile` é ignorada pelo Git.
+
+`--profile-dir` e `--data-dir` juntos são recusados. `--no-settings` continua prevalecendo: se acrescentado ao perfil de desenvolvimento, desativa preferências e cache persistente de Estoque, enquanto os logs ficam no perfil escolhido. Não use o diretório da instalação ou do perfil diário como pasta de desenvolvimento.
 
 Mantenha os testes de janela compacta e fontes largas. A primeira execução Windows da prévia encontrou a ação Restaurar fora da área visível; o cabeçalho agora distribui os botões em duas linhas. O ensaio do Setup também cobre o retorno de um único atalho pelo PowerShell.
 
 ## Próximo trabalho
 
-O pedido atual é preparar e continuar o desenvolvimento local. Começar conferindo pasta/branch/alterações existentes, Python 3.12 x64 e `.venv`, abrir a demonstração e validar a suíte. Evitar trabalhar na pasta onde o Setup instalou o programa.
+A preparação local com `.venv`, demonstração e suíte offline foi realizada após a validação da instalação pelo usuário. Para continuar, conferir pasta, branch e alterações existentes, usar uma branch de desenvolvimento e abrir o perfil separado. Validar as mudanças com dados sintéticos, a suíte registrada e a conferência de que a instalação e os dados de uso permanecem intactos antes de enviar o PR ao GitHub. Evitar trabalhar na pasta onde o Setup instalou o programa.
 
 Alertas configuráveis de estoque foram sugeridos como evolução futura, mas ainda não foram implementados nem definidos pelo usuário. A confirmação da instalação não deve ser interpretada, isoladamente, como pedido para publicar outra versão estável ou criar novos indicadores.
 

@@ -8,6 +8,7 @@ venv/
 env/
 /.liarte-desktop-env/
 /.liarte-desktop-env.anterior-*/
+/.liarte-dev-profile/
 
 # Caches e resultados de ferramentas
 .pytest_cache/

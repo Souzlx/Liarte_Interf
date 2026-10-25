@@ -57,7 +57,21 @@ Essa combinação usa demonstração sintética para Importações, evita a grav
 
 `--demo` sozinho não oferece esse isolamento de preferências e cache. `--data-dir` altera apenas o diretório do cliente Comex e também não cria um perfil completo separado.
 
-Os logs ainda utilizam a pasta normal de diagnóstico do aplicativo. Portanto, este comando não equivale a um perfil totalmente isolado. Para desenvolver e testar persistência, backup ou preferências com dados locais, a primeira mudança recomendada é acrescentar um perfil de desenvolvimento separado para cache, configurações e logs.
+Os logs desse primeiro comando ainda utilizam a pasta normal de diagnóstico do aplicativo. Portanto, `--demo --no-settings` não equivale a um perfil completo separado.
+
+### Desenvolver com persistência em um perfil separado
+
+Depois da primeira conferência, abra a demonstração com um perfil próprio:
+
+```powershell
+.\.venv\Scripts\python.exe iniciar.py --profile-dir .liarte-dev-profile --demo
+```
+
+A pasta pode ser informada por caminho relativo ao terminal ou absoluto. A janela fica marcada como **Desenvolvimento**. O perfil guarda suas preferências em `settings.ini`, dados Comex em `dados/`, Estoque em `estoque/base.liarte` e seus backups em `estoque/backups/`, além de logs, pasta padrão de relatórios e configuração da central na mesma pasta de perfil. A pasta `.liarte-dev-profile` no projeto é ignorada pelo Git; não envie seus dados ao repositório.
+
+Um perfil novo começa vazio e não migra preferências antigas, caches ou bases da instalação. O modo `--demo` mantém as consultas sintéticas. Para testar Estoque e restauração, carregue uma cópia de uma base sintética nesse perfil e mantenha os arquivos originais preservados. A execução de desenvolvimento também evita o mutex e os atalhos da instalação de uso diário.
+
+`--profile-dir` não pode ser combinado com `--data-dir`; o programa recusa a combinação para manter os dados dentro do perfil. Se acrescentar `--no-settings`, as preferências e o cache persistente de Estoque serão desativados, e o histórico de backups ficará indisponível; os logs continuarão no perfil escolhido. Não escolha a pasta da instalação nem seu perfil diário como diretório de desenvolvimento.
 
 Para executar a suíte offline:
 
@@ -66,6 +80,16 @@ Para executar a suíte offline:
 ```
 
 O comando executa testes Qt e de domínio com dados sintéticos; não consulta o Comex Stat real. Para avaliar a aparência no seu monitor, utilize também a janela aberta no Windows, além dos resultados automatizados.
+
+Os testes HTTPS locais precisam do executável `openssl` no `PATH`. Se a suíte indicar que essa classe foi ignorada e o Git para Windows estiver instalado no caminho padrão, você pode disponibilizar o OpenSSL já existente somente nesse terminal:
+
+```powershell
+$env:PATH = 'C:\Program Files\Git\ucrt64\bin;' + $env:PATH
+$env:OPENSSL_CONF = 'C:\Program Files\Git\usr\ssl\openssl.cnf'
+.\.venv\Scripts\python.exe verificar.py --headless --volume
+```
+
+Confira esses caminhos se o Git estiver em outro local. Não é necessário alterar o `PATH` global. Testes exclusivos de POSIX ou que exigem privilégios de symlink podem ser ignorados no Windows conforme as condições registradas pela suíte.
 
 ## 5. Retomar a conversa no Codex local
 
@@ -77,11 +101,12 @@ Cole esta mensagem inicial:
 Estamos continuando o projeto Souzlx/Liarte_Interf no meu Windows.
 Leia README.md, docs/CONTINUIDADE_LOCAL.md e docs/DESENVOLVIMENTO_LOCAL_WINDOWS.md.
 A instalação 5.3.1-rc.1 foi validada por mim. Estou na branch desenvolvimento-local.
-Primeiro confira git status e o ambiente .venv, prepare as dependências se necessário,
-abra com --demo --no-settings e execute os testes apropriados.
+Primeiro confira git status e o ambiente .venv e prepare as dependências se necessário.
+Use iniciar.py --profile-dir .liarte-dev-profile --demo para desenvolver com persistência
+separada, e execute os testes apropriados.
 Preserve minhas alterações locais, a instalação de uso diário e os arquivos de origem.
-Para testar persistência, prepare um perfil de desenvolvimento separado antes de
-usar cache, preferências ou backups reais.
+Valide a persistência com dados sintéticos no perfil de desenvolvimento e confira
+que os arquivos do perfil de uso não foram alterados.
 ```
 
 O resumo no repositório fornece à nova sessão o estado do trabalho sem depender de transferência automática deste histórico de chat. Depois dessa preparação, novas alterações podem ser desenvolvidas e observadas diretamente no Windows.

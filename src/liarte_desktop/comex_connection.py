@@ -21,9 +21,10 @@ class ComexConnectionController(QObject):
     changed = Signal()
     tested = Signal(bool, str)
 
-    def __init__(self, provider, controller, parent=None):
+    def __init__(self, provider, controller, parent=None, *, profile=None):
         super().__init__(parent)
         self.provider, self.controller = provider, controller
+        self._profile = profile
         directory = getattr(provider, "directory", None)
         self.path = (
             Path(directory) / "conexao_comex.json"
@@ -151,6 +152,8 @@ class ComexConnectionController(QObject):
             return
         executable = Path(sys.executable)
         arguments = ["--central-comex"]
+        if self._profile is not None and self._profile.development:
+            arguments.extend(["--profile-dir", str(self._profile.root)])
         if not getattr(sys, "frozen", False):
             arguments.insert(0, str(Path(__file__).resolve().parents[2] / "iniciar.py"))
             if sys.platform == "win32" and executable.with_name("pythonw.exe").is_file():

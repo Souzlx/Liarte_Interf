@@ -22,6 +22,7 @@ class PlatformController(QObject):
         *,
         initial_module: str | None = None,
         parent=None,
+        development=False,
     ):
         super().__init__(parent)
         if any(
@@ -29,6 +30,8 @@ class PlatformController(QObject):
         ):
             raise ValueError("Módulo disponível sem página registrada na composição do aplicativo")
         self.registry = registry
+        self._development = development
+        self._app_title = APP_TITLE + " [Desenvolvimento]" if development else APP_TITLE
         self.preferences = preferences
         self._active = "home"
         stored = preferences.text("platform/startupPage", "home")
@@ -44,6 +47,10 @@ class PlatformController(QObject):
     def _valid_page(self, key: str) -> bool:
         return key == "home" or self.registry.can_open(key)
 
+    @Property(bool, constant=True)
+    def development(self):
+        return self._development
+
     @Property(str, notify=navigationChanged)
     def activeModule(self):
         return self._active
@@ -54,7 +61,7 @@ class PlatformController(QObject):
 
     @Property(str, notify=navigationChanged)
     def windowTitle(self):
-        return APP_TITLE if self._active == "home" else APP_TITLE + " " + self.activeTitle
+        return self._app_title if self._active == "home" else self._app_title + " " + self.activeTitle
 
     @Property("QVariantList", constant=True)
     def modules(self):
