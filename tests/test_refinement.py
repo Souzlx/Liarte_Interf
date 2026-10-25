@@ -136,8 +136,19 @@ class InstallationTests(unittest.TestCase):
                             "status": "ok",
                             "version": smoke_version or __version__,
                             "qml_warnings": [],
+                            "platform": "win32",
+                            "frozen": True,
                         }
                     )
+                )
+                executable = smoke.parent / "LIARTE_Desktop.exe"
+                synthetic_pe(executable)
+                (smoke.parent / "CHECKSUMS_SHA256.txt").write_text(
+                    "".join(
+                        hashlib.sha256(path.read_bytes()).hexdigest() + "  " + path.name + "\n"
+                        for path in (smoke, executable)
+                    ),
+                    encoding="utf-8",
                 )
             else:
                 if fail:
@@ -156,7 +167,7 @@ class InstallationTests(unittest.TestCase):
             ),
             patch.object(build_installer.subprocess, "run", side_effect=run),
         ):
-            build_installer.main()
+            build_installer.main([])
         return output, calls
 
     def test_installer_is_published_for_current_version_from_fresh_staging(self):

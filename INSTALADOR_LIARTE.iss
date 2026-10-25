@@ -1,5 +1,8 @@
 ﻿#ifndef AppVersion
-  #define AppVersion "5.3.0"
+  #define AppVersion "5.3.1-rc.1"
+#endif
+#ifndef BundleDir
+  #define BundleDir "dist\LIARTE_Desktop"
 #endif
 #if VER < EncodeVer(6,3,0)
   #error Utilize Inno Setup 6.3 ou superior para compilar o instalador LIARTE.
@@ -36,7 +39,7 @@ RestartApplications=no
 AppMutex=Local\LIARTE.Desktop.Running
 SetupMutex=Local\LIARTE.Desktop.Setup
 SetupLogging=yes
-VersionInfoVersion=5.3.0.13
+VersionInfoVersion=5.3.1.1
 Uninstallable=yes
 
 [Languages]
@@ -49,7 +52,7 @@ brazilianportuguese.FinishedHeadingLabel=Liarte está pronto
 brazilianportuguese.FinishedLabelNoIcons=Você já pode abrir o aplicativo pelos atalhos na Área de Trabalho e no menu Iniciar.
 
 [Files]
-Source: "dist\LIARTE_Desktop\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#BundleDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autodesktop}\LIARTE Desktop"; Filename: "{app}\LIARTE_Desktop.exe"; WorkingDir: "{app}"; IconFilename: "{app}\LIARTE_Desktop.exe"; AppUserModelID: "LIARTE.Desktop"
@@ -67,16 +70,21 @@ begin
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  PurgeData: Boolean;
 begin
   if CurUninstallStep = usPostUninstall then
   begin
-    if not UninstallSilent then
+    { Silent uninstall preserves the profile unless the caller explicitly opts in. }
+    PurgeData := ExpandConstant('{param:PURGEDATA|0}') = '1';
+    if (not PurgeData) and (not UninstallSilent) then
     begin
-      if MsgBox('O aplicativo foi removido. Deseja também apagar o cache, os diagnósticos e as preferências deste aplicativo?' + #13#10 + #13#10 + 'Se escolher Não, esses dados serão preservados. Os relatórios exportados serão mantidos em ambas as opções.', mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then
-      begin
-        DelTree(ExpandConstant('{localappdata}\LIARTE\LIARTE Desktop'), True, True, True);
-        RegDeleteKeyIncludingSubkeys(HKCU, 'Software\LIARTE\LIARTE Desktop');
-      end;
+      PurgeData := MsgBox('O aplicativo foi removido. Deseja também apagar as bases, os backups, o cache, os diagnósticos e as preferências deste aplicativo?' + #13#10 + #13#10 + 'Se escolher Não, esses dados serão preservados. Arquivos exportados fora da pasta de dados do aplicativo serão mantidos.', mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES;
+    end;
+    if PurgeData then
+    begin
+      DelTree(ExpandConstant('{localappdata}\LIARTE\LIARTE Desktop'), True, True, True);
+      RegDeleteKeyIncludingSubkeys(HKCU, 'Software\LIARTE\LIARTE Desktop');
     end;
   end;
 end;

@@ -84,9 +84,21 @@ def main():
     )
     from tests.test_audit_desktop import InventoryDesktopAuditTests
     from tests.test_audit_qml import AuditQmlTests
+    from tests.test_inventory_backup import InventoryBackupTests
+    from tests.test_inventory_backup_ui import InventoryBackupUiTests
+    from tests.test_inventory_backup_qml import InventoryBackupQmlTests
+    from tests.test_inventory_backup_smoke import InventoryBackupSmokeTests
+    from tests.test_installer_package import InstallerPackageTests
+    from tests.test_installer_smoke_contract import InstallerSmokeContractTests
 
     suite = unittest.TestSuite()
     for case in (
+        InventoryBackupTests,
+        InventoryBackupUiTests,
+        InventoryBackupQmlTests,
+        InventoryBackupSmokeTests,
+        InstallerPackageTests,
+        InstallerSmokeContractTests,
         BuildAuditTests,
         AuditStockCoreTests,
         ProcessPauseTests,

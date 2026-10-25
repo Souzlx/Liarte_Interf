@@ -218,6 +218,63 @@ def configure_log() -> Path:
     return path
 
 
+def _smoke_inventory_backups(directory: Path) -> bool:
+    """Exercise packaged stock backup/restore using a fresh synthetic directory."""
+    from dataclasses import replace
+    from datetime import date
+    import hashlib
+
+    from liarte_core.inventory import SCALE, Balance, InventoryData, Product
+    from liarte_core.inventory_backup import backup_previous, list_backups, load_backup
+    from liarte_core.inventory_io import read_snapshot, write_snapshot
+
+    # A caller must supply a new scratch directory. Never reuse a profile path
+    # or silently overwrite files left by another operation.
+    directory.mkdir(parents=True, exist_ok=False)
+    cache, staged = directory / "base.liarte", directory / "nova.liarte"
+    original = InventoryData(
+        date(2026, 1, 31),
+        "Autoteste sintético A",
+        "a" * 64,
+        (Product("AUTOTESTE1", "Produto sintético", "Teste", "MP", "UN"),),
+        (Balance("AUTOTESTE1", "01", "01", "UN", SCALE, 100),),
+        (),
+        (),
+    )
+    replacement = replace(
+        original,
+        as_of=date(2026, 2, 28),
+        source_name="Autoteste sintético B",
+        source_hash="b" * 64,
+        balances=(Balance("AUTOTESTE1", "01", "01", "UN", 2 * SCALE, 250),),
+    )
+    write_snapshot(original, cache)
+    original_sha = hashlib.sha256(cache.read_bytes()).hexdigest()
+    write_snapshot(replacement, staged)
+    previous = backup_previous(cache, staged)
+    if previous is None or previous.sha256 != original_sha:
+        return False
+    os.replace(staged, cache)
+    if read_snapshot(cache) != replacement:
+        return False
+    replacement_sha = hashlib.sha256(cache.read_bytes()).hexdigest()
+
+    restored = load_backup(cache, previous.id)
+    if restored != original:
+        return False
+    write_snapshot(restored, staged)
+    current = backup_previous(cache, staged)
+    if current is None or current.sha256 != replacement_sha:
+        return False
+    os.replace(staged, cache)
+    copies = list_backups(cache)
+    return (
+        read_snapshot(cache) == original
+        and {copy.id for copy in copies} == {previous.id, current.id}
+        and load_backup(cache, current.id) == replacement
+    )
+
+
 def smoke_check(app: QGuiApplication, bundle: ApplicationBundle, output: Path):
     """Autoteste do mesmo aplicativo após congelamento, antes de publicá-lo."""
     deadline = time.monotonic() + 25
@@ -270,6 +327,13 @@ def smoke_check(app: QGuiApplication, bundle: ApplicationBundle, output: Path):
 
                 document_checks = verify_document_resources()
                 ok = document_checks.get("pdf") == "ok"
+                from tempfile import TemporaryDirectory
+
+                document_checks["inventory_backups"] = "failed"
+                with TemporaryDirectory(prefix="liarte-autoteste-estoque-") as scratch:
+                    if _smoke_inventory_backups(Path(scratch) / "base-sintetica"):
+                        document_checks["inventory_backups"] = "ok"
+                ok = ok and document_checks["inventory_backups"] == "ok"
                 from liarte_engine.secure_http import verify_transport
 
                 transport_checks = verify_transport()

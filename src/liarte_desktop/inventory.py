@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import logging
 import os
+import stat
 from collections import defaultdict
 from dataclasses import dataclass, replace
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from itertools import chain
 from pathlib import Path
@@ -42,6 +43,12 @@ from liarte_core.inventory_monthly import analyze_monthly_inventory
 from liarte_core.inventory_assets import verify_bundled_inventory
 from liarte_core.inventory_search import ProductSearch
 from liarte_core.inventory_io import load_inventory, write_snapshot
+from liarte_core.inventory_backup import (
+    backup_previous,
+    list_backups,
+    load_backup,
+    prune_backups,
+)
 from liarte_core.query import Cancelled, checkpoint
 
 LOGGER = logging.getLogger("liarte.desktop")
@@ -86,6 +93,43 @@ def _checked(values, cancel):
         yield value
     if cancel is not None:
         checkpoint(cancel)
+
+
+def _cache_fingerprint(path):
+    """Cheap optimistic publication check; no file content is read on the GUI."""
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return None
+    if not stat.S_ISREG(info.st_mode):
+        raise ValueError("A base local deve ser um arquivo regular.")
+    return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+
+def _backup_items(cache, cancel):
+    """Prepare bounded labels off the GUI; paths and hashes stay internal."""
+    return tuple(
+        {
+            "id": entry.id,
+            "savedAt": datetime.fromisoformat(entry.created_at)
+            .astimezone()
+            .strftime("%d/%m/%Y %H:%M"),
+            "asOf": date.fromisoformat(entry.as_of).strftime("%d/%m/%Y"),
+            "source": entry.source_name,
+            "products": entry.products,
+        }
+        for entry in list_backups(cache, cancel)[:10]
+    )
+
+
+def _read_backup_items(cache, cancel):
+    if cache is None:
+        return (), ""
+    try:
+        return _backup_items(cache, cancel), ""
+    except (OSError, ValueError):
+        LOGGER.warning("Não foi possível listar as bases anteriores", exc_info=True)
+        return (), "Não foi possível consultar as bases anteriores. Tente novamente."
 
 
 class _CheckedRows:
@@ -163,6 +207,8 @@ class _LoadPresentation:
     sales_begin: date | None
     sales: object
     closings: object
+    backups: tuple = ()
+    backup_error: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -181,6 +227,8 @@ class _Publication:
     period: str
     unit: str
     load: _LoadPresentation | None = None
+    cache_fingerprint: tuple | None = None
+    backup_id: str = ""
 
 
 def _prepare_publication(
@@ -471,6 +519,7 @@ class InventoryController(QObject):
     analysisChanged = Signal()
     detailChanged = Signal()
     monthlyChanged = Signal()
+    backupChanged = Signal()
     shutdownFinished = Signal()
 
     def __init__(self, settings=None, parent=None, *, cache_path=None, bundled_path=None):
@@ -503,6 +552,12 @@ class InventoryController(QObject):
         self._restored = False
         self._closed = False
         self._staged_cache = None
+        self._backup_entries = ()
+        self._backup_error = ""
+        self._backup_notice = ""
+        self._restoring_backup = False
+        self._prune_requested = False
+        self._prune_preserve_ids = set()
         self._bundled = Path(bundled_path) if bundled_path is not None else None
         self._search = None
         self._sales_begin = None
@@ -593,6 +648,58 @@ class InventoryController(QObject):
     @Property("QVariantMap", notify=monthlyChanged)
     def monthly(self):
         return self._monthly_view
+
+    @Property("QVariantMap", notify=backupChanged)
+    def backupState(self):
+        available = self._cache is not None and not self._closed
+        busy = self._thread is not None or self._pending or self._debounce.isActive()
+        return {
+            "available": available,
+            "busy": busy,
+            "canRestore": available and not busy,
+            "error": self._backup_error,
+            "notice": self._backup_notice,
+            "items": list(self._backup_entries),
+        }
+
+    @Slot()
+    def refreshBackups(self):
+        self._refresh_backups(clear_notice=True)
+
+    def _refresh_backups(self, *, clear_notice):
+        if not self.backupState["canRestore"]:
+            return
+        self._backup_error = ""
+        if clear_notice:
+            self._backup_notice = ""
+        cache = self._cache
+        prune, preserved = self._prune_requested, tuple(self._prune_preserve_ids)
+        self._prune_requested = False
+
+        def action(cancel, progress):
+            error = ""
+            if prune:
+                try:
+                    prune_backups(cache, preserve_ids=preserved, cancel=cancel)
+                except (OSError, ValueError):
+                    LOGGER.warning("Não foi possível limitar as bases anteriores", exc_info=True)
+                    error = "A base foi salva, mas não foi possível limpar cópias antigas."
+            entries, listing_error = _read_backup_items(cache, cancel)
+            return ("backups", entries, error or listing_error)
+
+        self._start(action, "backups")
+
+    @Slot(str)
+    def restoreBackup(self, backup_id):
+        if not self.backupState["canRestore"]:
+            return
+        if backup_id not in {entry["id"] for entry in self._backup_entries}:
+            self._backup_error = (
+                "A base anterior selecionada não está disponível. Atualize a lista."
+            )
+            self.backupChanged.emit()
+            return
+        self._open_path(self._cache, backup_id=backup_id)
 
     def _refresh_monthly(self):
         # Only bounded month summaries are visited here, never inventory facts/rankings.
@@ -749,15 +856,22 @@ class InventoryController(QObject):
             return
         self._open_path(Path(url.toLocalFile()))
 
-    def _open_path(self, path, *, fallback=None):
+    def _open_path(self, path, *, fallback=None, backup_id=None):
         if self._thread or self._closed:
             return
         self._generation += 1
         self._pending = False
         self._debounce.stop()
+        self._backup_error = self._backup_notice = ""
+        self._restoring_backup = backup_id is not None
         staged = (
             self._cache.with_name(".base-" + uuid4().hex + ".liarte")
-            if self._cache and (path.resolve() != self._cache.resolve() or fallback is not None)
+            if self._cache
+            and (
+                path.resolve() != self._cache.resolve()
+                or fallback is not None
+                or backup_id is not None
+            )
             else None
         )
         self._staged_cache = staged
@@ -771,7 +885,11 @@ class InventoryController(QObject):
                 return load_inventory(candidate, cancel, progress)
 
             try:
-                data = read(path)
+                if backup_id is not None:
+                    progress(0, "Restaurando base anterior")
+                    data = load_backup(self._cache, backup_id, cancel)
+                else:
+                    data = read(path)
             except (ValueError, OSError):
                 if fallback is None:
                     raise
@@ -822,7 +940,7 @@ class InventoryController(QObject):
                 ),
             )
             publication = _prepare_publication(
-                "load",
+                "restore" if backup_id is not None else "load",
                 data,
                 selected,
                 analysis,
@@ -838,7 +956,21 @@ class InventoryController(QObject):
             checkpoint(cancel)
             if staged:
                 write_snapshot(data, staged, cancel)
-            return publication
+                fingerprint = _cache_fingerprint(self._cache)
+                backup = backup_previous(self._cache, staged, cancel)
+                if fingerprint != _cache_fingerprint(self._cache):
+                    raise ValueError(
+                        "A base local foi alterada por outra operação. Abra a base novamente."
+                    )
+                publication = replace(
+                    publication,
+                    cache_fingerprint=fingerprint,
+                    backup_id=backup.id if backup is not None else "",
+                )
+            entries, backup_error = _read_backup_items(self._cache, cancel)
+            return replace(
+                publication, load=replace(load, backups=entries, backup_error=backup_error)
+            )
 
         self._start(action, "load")
 
@@ -883,6 +1015,7 @@ class InventoryController(QObject):
         self._page = 1
         self._debounce.start()
         self.changed.emit()
+        self.backupChanged.emit()
 
     @Slot()
     def resetFilters(self):
@@ -896,6 +1029,7 @@ class InventoryController(QObject):
         self._page = 1
         self._debounce.start()
         self.changed.emit()
+        self.backupChanged.emit()
 
     def _schedule_analysis(self):
         if self._thread or self._data is None or self._closed:
@@ -936,9 +1070,12 @@ class InventoryController(QObject):
             if task in {"analysis", "sort"}
             else "Preparando Excel"
             if task == "export"
+            else "Consultando bases anteriores"
+            if task == "backups"
             else "Abrindo base"
         )
-        self._error = ""
+        if task != "backups":
+            self._error = ""
         self._thread = QThread(self)
         self._worker = InventoryWorker(action, self._cancel)
         self._worker.moveToThread(self._thread)
@@ -952,6 +1089,7 @@ class InventoryController(QObject):
         self._thread.finished.connect(self._thread.deleteLater)
         self._thread.start()
         self.changed.emit()
+        self.backupChanged.emit()
 
     @Slot(int, str)
     def _on_progress(self, value, label):
@@ -967,20 +1105,33 @@ class InventoryController(QObject):
                 self._ordered = result[1]
                 self._applied_sort = result[2]
                 self._publish_rows()
+            elif result[0] == "backups":
+                self._backup_entries, self._backup_error = result[1:]
+                self._prune_preserve_ids.clear()
+                self.backupChanged.emit()
             self.changed.emit()
             return
-        if result.kind == "load":
+        if result.kind in {"load", "restore"}:
             # Commit only after preparation succeeded and this generation is live.
             if self._staged_cache is not None:
                 try:
+                    if _cache_fingerprint(self._cache) != result.cache_fingerprint:
+                        raise ValueError(
+                            "A base local foi alterada por outra operação. Abra a base novamente."
+                        )
                     os.replace(self._staged_cache, self._cache)
-                except OSError:
+                except (OSError, ValueError) as exc:
                     LOGGER.exception("Falha ao publicar a base de estoque")
                     self._fail(
-                        "Não foi possível salvar a base de estoque. Verifique a permissão da pasta de dados da LIARTE."
+                        str(exc)
+                        if isinstance(exc, ValueError)
+                        else "Não foi possível salvar a base de estoque. Verifique a permissão da pasta de dados da LIARTE."
                     )
                     return
                 self._staged_cache = None
+                self._prune_requested = True
+                if result.backup_id:
+                    self._prune_preserve_ids.add(result.backup_id)
             self._data = result.data
             self._selection = self._default = result.selected
             self._search = result.load.search
@@ -989,6 +1140,11 @@ class InventoryController(QObject):
             self._sales_by_position = result.load.sales
             self._closings_by_position = result.load.closings
             self._page = 1
+            self._backup_entries = result.load.backups
+            self._backup_error = result.load.backup_error
+            if result.kind == "restore":
+                self._backup_notice = "Base anterior restaurada."
+            self.backupChanged.emit()
             self.optionsChanged.emit()
         self._analysis = result.analysis
         self._monthly_data = result.monthly
@@ -1007,9 +1163,16 @@ class InventoryController(QObject):
     @Slot(str)
     def _fail(self, message):
         if self._running_generation == self._generation and not self._cancel.is_set():
+            if self._task == "backups":
+                self._backup_error = message
+                self.backupChanged.emit()
+                return
             if self._task == "sort":
                 self._sort, self._descending = self._applied_sort
             self._error = message
+            if self._restoring_backup:
+                self._backup_error = message
+                self.backupChanged.emit()
             self.changed.emit()
 
     @Slot()
@@ -1024,12 +1187,16 @@ class InventoryController(QObject):
         self._discard_staged_cache()
         self._thread = self._worker = None
         self._task = ""
+        self._restoring_backup = False
         self._progress = 0
         self.changed.emit()
+        self.backupChanged.emit()
         if self._closed:
             self._complete_shutdown()
         elif self._pending:
             self._debounce.start(0)
+        elif self._prune_requested:
+            self._refresh_backups(clear_notice=False)
 
     def _publish_rows(self):
         """Commit just one page; callers prepare the complete ordering separately."""
@@ -1068,6 +1235,7 @@ class InventoryController(QObject):
 
             self._start(action, "sort")
         self.changed.emit()
+        self.backupChanged.emit()
 
     @Slot(int)
     def setPage(self, page):
@@ -1231,6 +1399,7 @@ class InventoryController(QObject):
         if self._applied_selection is not None:
             self._selection = self._applied_selection
         self.changed.emit()
+        self.backupChanged.emit()
 
     def shutdown(self, *, wait_ms=15000):
         """Return False while cooperative cancellation still owns a live QThread."""
@@ -1258,6 +1427,7 @@ class InventoryController(QObject):
             return
         self._discard_staged_cache()
         self._shutdown_complete = True
+        self.backupChanged.emit()
         _SHUTTING_DOWN.discard(self)
         self.shutdownFinished.emit()
 

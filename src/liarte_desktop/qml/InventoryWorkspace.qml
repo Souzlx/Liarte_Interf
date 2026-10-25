@@ -11,8 +11,9 @@ FocusScope {
     readonly property var state: inventory.state
     readonly property var view: inventory.analysis
     readonly property var detail: inventory.detail
+    readonly property var backupState: inventory.backupState
     property bool advanced: false
-    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible || monthlySection.modalOpen
+    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || monthlySection.modalOpen
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
     readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 || scroll.contentHeight > scroll.height && scroll.atYEnd ? "products" : scroll.contentY >= monthlySection.y - 80 ? "monthly" : "overview"
     property var lastFocusedControl: null
@@ -153,6 +154,17 @@ FocusScope {
                         iconName: "download"
                         enabled: !page.state.busy && page.state.current
                         onClicked: saveStockDialog.open()
+                    }
+                    Ui.ActionButton {
+                        objectName: "stockRestoreButton"
+                        text: page.width < 600 ? "" : "Restaurar"
+                        iconName: "refresh"
+                        implicitWidth: page.width < 600 ? 40 : Math.max(100, naturalWidth)
+                        enabled: page.backupState.available && !page.state.busy
+                        Accessible.name: "Restaurar base anterior"
+                        onClicked: stockBackups.open()
+                        ToolTip.visible: hovered
+                        ToolTip.text: page.backupState.available ? "Restaurar base anterior" : "As bases anteriores ficam disponíveis após atualizar a base neste computador."
                     }
                     Ui.ActionButton {
                         text: ""
@@ -889,6 +901,168 @@ FocusScope {
         selectedFile: "Estoque_" + page.state.asOf.split("/").reverse().join("-") + ".xlsx"
         nameFilters: ["Excel (*.xlsx)"]
         onAccepted: inventory.exportExcel(selectedFile)
+    }
+    Ui.AppDialog {
+        id: stockBackups
+        objectName: "stockBackupsDialog"
+        property var selected: null
+        readonly property bool selectionAvailable: selected !== null && page.backupState.items.some(item => item.id === selected.id)
+        title: "Restaurar base anterior"
+        onOpened: {
+            selected = null;
+            inventory.refreshBackups();
+        }
+        onClosed: Qt.callLater(page.restoreFocus)
+        Text {
+            Layout.fillWidth: true
+            text: "Escolha uma base salva antes de uma atualização. Até dez bases anteriores ficam disponíveis neste computador."
+            textFormat: Text.PlainText
+            color: Ui.Theme.muted
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
+        }
+        Text {
+            objectName: "stockBackupsStatus"
+            Layout.fillWidth: true
+            visible: page.backupState.busy || page.backupState.error.length > 0 || page.backupState.notice.length > 0 || page.backupState.items.length === 0
+            text: page.backupState.busy ? page.state.busyLabel : page.backupState.error || page.backupState.notice || "Nenhuma base anterior disponível. A base atual será preservada antes de uma próxima atualização."
+            textFormat: Text.PlainText
+            color: page.backupState.error.length ? Ui.Theme.danger : Ui.Theme.muted
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
+            Accessible.role: Accessible.StaticText
+        }
+        ProgressBar {
+            objectName: "stockBackupsProgress"
+            Layout.fillWidth: true
+            visible: page.backupState.busy
+            indeterminate: true
+        }
+        Ui.ActionButton {
+            id: cancelStockBackupTaskButton
+            objectName: "cancelStockBackupTask"
+            visible: page.backupState.busy
+            text: "Cancelar operação"
+            subtle: true
+            onClicked: inventory.cancel()
+        }
+        Repeater {
+            model: page.backupState.items
+            delegate: Button {
+                id: backupChoice
+                required property var modelData
+                required property int index
+                objectName: "stockBackupChoice" + index
+                Layout.fillWidth: true
+                implicitHeight: backupChoiceContent.implicitHeight + 24
+                padding: 12
+                enabled: page.backupState.canRestore
+                checked: stockBackups.selected !== null && stockBackups.selected.id === modelData.id
+                Accessible.name: "Base de " + modelData.asOf + ". " + modelData.source + ". Salva em " + modelData.savedAt
+                onClicked: stockBackups.selected = modelData
+                contentItem: ColumnLayout {
+                    id: backupChoiceContent
+                    spacing: 4
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Base de " + backupChoice.modelData.asOf
+                        textFormat: Text.PlainText
+                        color: Ui.Theme.text
+                        font.pixelSize: 13
+                        font.weight: Font.DemiBold
+                        wrapMode: Text.WordWrap
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: backupChoice.modelData.source
+                        textFormat: Text.PlainText
+                        color: Ui.Theme.text
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Salva em " + backupChoice.modelData.savedAt + " · " + backupChoice.modelData.products + " produtos"
+                        textFormat: Text.PlainText
+                        color: Ui.Theme.muted
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+                }
+                background: Rectangle {
+                    radius: 7
+                    color: backupChoice.checked ? Ui.Theme.selected : backupChoice.hovered ? Ui.Theme.subtle : Ui.Theme.surface
+                    border.color: backupChoice.visualFocus || backupChoice.checked ? Ui.Theme.accent : Ui.Theme.line
+                    border.width: backupChoice.visualFocus ? 2 : 1
+                }
+            }
+        }
+        Ui.ActionButton {
+            id: reviewStockRestoreButton
+            objectName: "reviewStockRestore"
+            Layout.fillWidth: true
+            text: "Restaurar base selecionada"
+            primary: true
+            enabled: stockBackups.selectionAvailable && page.backupState.canRestore
+            onClicked: {
+                confirmStockRestore.selected = stockBackups.selected;
+                confirmStockRestore.open();
+            }
+        }
+    }
+    Ui.AppDialog {
+        id: confirmStockRestore
+        objectName: "confirmStockRestoreDialog"
+        property var selected: null
+        title: "Confirmar restauração"
+        closeButton: false
+        onOpened: Qt.callLater(() => cancelStockRestoreButton.forceActiveFocus(Qt.TabFocusReason))
+        onClosed: if (stockBackups.visible)
+            Qt.callLater(() => page.backupState.busy ? cancelStockBackupTaskButton.forceActiveFocus(Qt.TabFocusReason) : reviewStockRestoreButton.forceActiveFocus(Qt.TabFocusReason))
+        Text {
+            Layout.fillWidth: true
+            text: "Restaurar a base de " + (confirmStockRestore.selected ? confirmStockRestore.selected.asOf : "") + "?"
+            textFormat: Text.PlainText
+            color: Ui.Theme.text
+            font.pixelSize: 14
+            font.weight: Font.DemiBold
+            wrapMode: Text.WordWrap
+        }
+        Text {
+            Layout.fillWidth: true
+            text: confirmStockRestore.selected ? confirmStockRestore.selected.source : ""
+            textFormat: Text.PlainText
+            color: Ui.Theme.muted
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
+        }
+        Text {
+            Layout.fillWidth: true
+            text: "A base atual" + (page.state.asOf ? ", de " + page.state.asOf + "," : "") + " será substituída. Uma cópia dela será preservada quando válida. Seus relatórios e preferências serão mantidos."
+            textFormat: Text.PlainText
+            color: Ui.Theme.text
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
+        }
+        Ui.ActionButton {
+            objectName: "confirmStockRestore"
+            Layout.fillWidth: true
+            text: "Restaurar esta base"
+            primary: true
+            enabled: confirmStockRestore.selected !== null && stockBackups.selectionAvailable && page.backupState.canRestore
+            onClicked: {
+                const selectedId = confirmStockRestore.selected.id;
+                confirmStockRestore.close();
+                inventory.restoreBackup(selectedId);
+            }
+        }
+        Ui.ActionButton {
+            id: cancelStockRestoreButton
+            objectName: "cancelStockRestore"
+            Layout.fillWidth: true
+            text: "Cancelar"
+            onClicked: confirmStockRestore.close()
+        }
     }
     Ui.ChartDialog {
         id: stockChartDialog
