@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import struct
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -132,6 +133,39 @@ class InstallerSmokeContractTests(unittest.TestCase):
         installer.verify_smoke_payload(old, "5.3.0")
         with self.assertRaises(RuntimeError):
             installer.verify_smoke_payload(old, self.version)
+
+    def test_single_uninstall_shortcut_accepts_powershell_json_object(self):
+        shortcut = self.root / "Desinstalar.lnk"
+        shortcut.touch()
+        target = self.bundle / "unins000.exe"
+        entry = {"path": str(shortcut), "target": str(target), "working": ""}
+        result = SimpleNamespace(stdout=json.dumps(entry).encode("utf-8"))
+        with (
+            patch.dict(installer.os.environ, {"SystemRoot": str(self.root)}),
+            patch.object(installer.subprocess, "run", return_value=result) as process,
+        ):
+            installer.check_shortcuts((shortcut,), target, working_directory=False)
+        self.assertEqual(process.call_count, 1)
+
+    def test_two_application_shortcuts_accept_array_and_reject_another_target(self):
+        paths = (self.root / "Desktop.lnk", self.root / "Análise de importações.lnk")
+        for path in paths:
+            path.touch()
+        target = self.bundle / "LIARTE_Desktop.exe"
+        entries = [
+            {"path": str(path), "target": str(target), "working": str(target.parent)}
+            for path in paths
+        ]
+        result = SimpleNamespace(stdout=json.dumps(entries).encode("utf-8"))
+        with (
+            patch.dict(installer.os.environ, {"SystemRoot": str(self.root)}),
+            patch.object(installer.subprocess, "run", return_value=result),
+        ):
+            installer.check_shortcuts(paths, target)
+            entries[1]["target"] = str(self.root / "different-installation.exe")
+            result.stdout = json.dumps(entries).encode("utf-8")
+            with self.assertRaisesRegex(RuntimeError, "outra instalação"):
+                installer.check_shortcuts(paths, target)
 
     def test_baseline_checksum_is_verified_before_creating_extracted_files(self):
         archive, checksum = self.archive([("LIARTE_Desktop/a", b"original")])

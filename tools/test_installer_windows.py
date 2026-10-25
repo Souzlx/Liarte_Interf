@@ -201,7 +201,16 @@ def check_shortcuts(shortcuts, executable, *, working_directory=True):
         timeout=30,
     )
     entries = json.loads(result.stdout.decode("utf-8-sig"))
-    if len(entries) != len(shortcuts) or not all(path.is_file() for path in shortcuts):
+    # PowerShell enumerates pipeline arrays before ConvertTo-Json: one link
+    # becomes an object, while two or more become an array.
+    if isinstance(entries, dict):
+        entries = [entries]
+    if (
+        not isinstance(entries, list)
+        or len(entries) != len(shortcuts)
+        or not all(isinstance(entry, dict) for entry in entries)
+        or not all(path.is_file() for path in shortcuts)
+    ):
         raise RuntimeError("Os atalhos da instalação estão ausentes.")
     for entry in entries:
         if Path(entry["target"]).resolve() != Path(executable).resolve() or (
