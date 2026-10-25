@@ -8,7 +8,7 @@ Baixe o pacote compilado da versão desejada, feche o aplicativo anterior e extr
 
 O ZIP de fontes oferecido pelo GitHub é diferente do pacote compilado. Veja [LEIA_PRIMEIRO.txt](LEIA_PRIMEIRO.txt) para uso, atualização e limites dos indicadores.
 
-A prévia **5.3.0-rc.3** reúne as [correções da auditoria](docs/CORRECOES_AUDITORIA_530_RC3.md), com os critérios de compatibilidade, ensaios de desempenho e evidências de validação.
+A versão estável **5.3.0** promove a RC3 validada pelo usuário, com gráficos responsivos, análise mensal de estoque e as [correções da auditoria](docs/CORRECOES_AUDITORIA_530_RC3.md). Veja as [notas da versão](docs/RELEASE_5.3.0.md) para atualizar.
 
 ## Executar os fontes
 
