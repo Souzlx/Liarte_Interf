@@ -10,6 +10,8 @@ O ZIP de fontes oferecido pelo GitHub é diferente do pacote compilado. Veja [LE
 
 A versão estável **5.3.0** promove a RC3 validada pelo usuário, com gráficos responsivos, análise mensal de estoque e as [correções da auditoria](docs/CORRECOES_AUDITORIA_530_RC3.md). Veja as [notas da versão](docs/RELEASE_5.3.0.md) para atualizar.
 
+[Baixar o pacote portátil Windows 5.3.0](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.0/LIARTE_Desktop_5.3.0_Windows_x64.zip) · [Página da release e checksums](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.0).
+
 ## Executar os fontes
 
 No Windows, instale CPython padrão **3.11, 3.12, 3.13 ou 3.14 de 64 bits**, com Tkinter, e abra `INICIAR_DESKTOP.cmd`. O assistente cria `.liarte-desktop-env`, instala as dependências fixadas e verifica a interface. A preparação inicial exige acesso aos gerenciadores de pacotes.
@@ -49,6 +51,8 @@ python tools/build_windows.py
 ```
 
 O resultado fica em `dist/LIARTE_Desktop/`, incluindo recursos e manifesto de integridade. `CRIAR_INSTALADOR.cmd` acrescenta a geração do Setup com Inno Setup; consulte [INSTALACAO_510.md](docs/INSTALACAO_510.md). O workflow [Windows](.github/workflows/windows.yml) mantém a compilação nas quatro versões Python suportadas; o [CI de alterações](.github/workflows/tests.yml) executa testes em push/PR de código. Publicar uma versão estável é uma etapa separada.
+
+As [evidências da publicação 5.3.0](docs/EVIDENCIAS_RELEASE_530.json) e a [validação Windows](docs/VALIDACAO_WINDOWS_530.json) registram os testes, o código compilado e a conferência independente do ZIP publicado.
 
 ## Organização
 

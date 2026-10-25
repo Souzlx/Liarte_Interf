@@ -1,0 +1,151 @@
+{
+  "version": "5.3.0",
+  "status": "published-stable",
+  "tested_commit": "63c38416a601915ac1bb36cb3ed72f73da300b14",
+  "git_tag": "v5.3.0",
+  "tag_commit_verified": "63c38416a601915ac1bb36cb3ed72f73da300b14",
+  "user_validation": {
+    "confirmed_preview": "5.3.0-rc.3",
+    "confirmation": "está validado",
+    "date_local": "2026-10-24",
+    "timezone": "America/Sao_Paulo",
+    "scope": "Confirmação do usuário após o checklist proposto; não representa nova extração PBIX executada neste host."
+  },
+  "promotion_scope": "Identificação da versão, metadados PE/Inno e notas de release; lógica de negócio da RC3 preservada.",
+  "release": {
+    "id": 423079699,
+    "tag_name": "v5.3.0",
+    "name": "LIARTE 5.3.0",
+    "html_url": "https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.0",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-10-25T01:15:43Z"
+  },
+  "latest_release_verified": "v5.3.0",
+  "assets": [
+    {
+      "id": 673764241,
+      "name": "LIARTE_Desktop_5.3.0_Windows_x64.zip",
+      "size": 92515200,
+      "state": "uploaded",
+      "digest": "sha256:99d7f61a96ed3b415e25e82ee26cdc4e16a919b0a95d4c052235a2b6a75b8782",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.0/LIARTE_Desktop_5.3.0_Windows_x64.zip"
+    },
+    {
+      "id": 673764239,
+      "name": "SHA256SUMS.txt",
+      "size": 103,
+      "state": "uploaded",
+      "digest": "sha256:029ab577cdcf85d37f5e3be58287057a638af4962e0f6e0b4a5447270b2f3ee5",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.0/SHA256SUMS.txt"
+    }
+  ],
+  "linux_local": {
+    "tests": 741,
+    "passed": 741,
+    "skipped": 0,
+    "seconds": 209.366,
+    "volume": {
+      "records": 100000,
+      "first_query_seconds": 4.556,
+      "qt_events": 89
+    },
+    "log_sha256": "b1a13bacce8df14267adf6d230a4ef73977dc8be4fd48a1383cb4977b038849a"
+  },
+  "linux_ci": {
+    "databaseId": 40149430915,
+    "headSha": "63c38416a601915ac1bb36cb3ed72f73da300b14",
+    "conclusion": "success",
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40149430915"
+  },
+  "linux_ci_suite": {
+    "tests": 741,
+    "passed": 741,
+    "skipped": 0,
+    "seconds": 139.9
+  },
+  "windows_report": "VALIDACAO_WINDOWS_530.json",
+  "windows_matrix": [
+    {
+      "python": "3.11",
+      "tests": 741,
+      "passed": 740,
+      "skipped": 1,
+      "smoke_status": "ok",
+      "version": "5.3.0"
+    },
+    {
+      "python": "3.12",
+      "tests": 741,
+      "passed": 740,
+      "skipped": 1,
+      "smoke_status": "ok",
+      "version": "5.3.0"
+    },
+    {
+      "python": "3.13",
+      "tests": 741,
+      "passed": 740,
+      "skipped": 1,
+      "smoke_status": "ok",
+      "version": "5.3.0"
+    },
+    {
+      "python": "3.14",
+      "tests": 741,
+      "passed": 740,
+      "skipped": 1,
+      "smoke_status": "ok",
+      "version": "5.3.0"
+    }
+  ],
+  "release_gate": "All four Windows suites and native frozen smokes succeeded; CI checked every bundled file against the internal manifest and prepared the stable archive plus SHA256SUMS before publication.",
+  "checks": {
+    "ruff": "passed",
+    "pip_check": "No broken requirements found.",
+    "metadata_review_focused_tests": 38,
+    "focused_tests_overlap_full_suite": true,
+    "diff_check": "passed"
+  },
+  "distribution": {
+    "portable_windows_x64": true,
+    "python_included": true,
+    "python_installation_required": false,
+    "setup_installer_included": false,
+    "previous_release_retained": "v5.2.0"
+  },
+  "limits": [
+    "No new real Comex Stat request or PBIX extraction was required for promotion.",
+    "Native smoke does not replace validation of corporate network, Setup, Power BI Desktop runtime or all DPI/GPU configurations."
+  ],
+  "local_published_asset_inspection": {
+    "recorded_at_utc": "2026-10-25T01:17:28.732704+00:00",
+    "repository": "Souzlx/Liarte_Interf",
+    "release_tag": "v5.3.0",
+    "release_url": "https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.0",
+    "archive_independently_downloaded": true,
+    "checksum_asset_independently_downloaded": true,
+    "archive_name": "LIARTE_Desktop_5.3.0_Windows_x64.zip",
+    "archive_bytes": 92515200,
+    "archive_sha256": "99d7f61a96ed3b415e25e82ee26cdc4e16a919b0a95d4c052235a2b6a75b8782",
+    "published_checksum_sha256": "99d7f61a96ed3b415e25e82ee26cdc4e16a919b0a95d4c052235a2b6a75b8782",
+    "published_checksum_matches": true,
+    "zip_crc_test": "passed",
+    "zip_entry_count": 1397,
+    "bundle_file_count": 1397,
+    "internal_manifest_files_checked": 1396,
+    "internal_manifest_sha256": "394ff9b41c87ed19953292a62691d89fe1b5b3442a9c3b59209684776d2a90c9",
+    "internal_manifest_all_match": true,
+    "unlisted_or_missing_bundle_files": [],
+    "native_smoke": {
+      "version": "5.3.0",
+      "status": "ok",
+      "frozen": true,
+      "platform": "win32",
+      "qml_warnings": []
+    },
+    "executed_downloaded_binary": false,
+    "github_asset_digest": "sha256:99d7f61a96ed3b415e25e82ee26cdc4e16a919b0a95d4c052235a2b6a75b8782",
+    "github_asset_digest_matches_independent_hash": true
+  }
+}
