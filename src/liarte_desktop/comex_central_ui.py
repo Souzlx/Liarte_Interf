@@ -12,7 +12,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from threading import Thread
 
-from PySide6.QtCore import QObject, QStandardPaths, QTimer, Signal
+from PySide6.QtCore import QObject, QTimer, Signal
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtNetwork import QNetworkInterface
 from PySide6.QtWidgets import (
@@ -339,20 +339,35 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--central-comex", action="store_true")
     parser.add_argument("--central-smoke", type=Path)
+    parser.add_argument("--profile-dir", type=Path)
     args = parser.parse_args(argv)
     from .windows_identity import set_process_identity
     from .installation_guard import hold_installation_mutex
 
-    set_process_identity()
-    hold_installation_mutex()
+    from .runtime_profile import (
+        DEVELOPMENT_APP_ID, DEVELOPMENT_APP_NAME,
+        configure_development_cache, resolve_profile,
+    )
+
+    if args.profile_dir is not None:
+        configure_development_cache(args.profile_dir)
+        set_process_identity(DEVELOPMENT_APP_ID)
+    else:
+        set_process_identity()
+        hold_installation_mutex()
     app = QApplication(sys.argv[:1])
     app.setOrganizationName("LIARTE")
     app.setApplicationName("LIARTE Desktop")
+    try:
+        profile = resolve_profile(args.profile_dir)
+        if profile.development:
+            profile.prepare()
+    except (ValueError, OSError) as exc:
+        parser.error(str(exc))
+    if profile.development:
+        app.setApplicationName(DEVELOPMENT_APP_NAME)
     app.setWindowIcon(QIcon(str(ASSETS / "liarte.ico")))
-    directory = (
-        Path(QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation))
-        / "central-comex"
-    )
+    directory = profile.central_dir
     if args.central_smoke:
         directory = args.central_smoke.parent / "central-teste"
     directory.mkdir(parents=True, exist_ok=True)
@@ -364,6 +379,8 @@ def main(argv=None):
         logging.getLogger(name).addHandler(log)
         logging.getLogger(name).setLevel(logging.INFO)
     window = CentralWindow(directory)
+    if profile.development:
+        window.setWindowTitle(window.windowTitle() + " [Desenvolvimento]")
     window.show()
     if args.central_smoke:
 

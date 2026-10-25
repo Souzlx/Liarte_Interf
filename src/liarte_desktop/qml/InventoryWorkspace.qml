@@ -128,7 +128,7 @@ FocusScope {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: page.state.loaded ? "Panorama atual e investigação mensal de estoque e vendas" : "Preparando a base de estoque da LIARTE."
+                        text: page.state.loaded ? "Panorama atual e investigação mensal de estoque e vendas" : platform.development ? "Abra uma base de teste neste perfil separado." : "Preparando a base de estoque da LIARTE."
                         textFormat: Text.PlainText
                         color: Ui.Theme.muted
                         font.pixelSize: 12
@@ -261,7 +261,8 @@ FocusScope {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: "A base integrada abre automaticamente. Para atualizar os dados, utilize um novo arquivo da empresa."
+                        objectName: "stockEmptyExplanation"
+                        text: platform.development ? "Este perfil começa vazio. Abra uma base de teste; seus dados de uso ficam preservados." : "A base integrada abre automaticamente. Para atualizar os dados, utilize um novo arquivo da empresa."
                         textFormat: Text.PlainText
                         color: Ui.Theme.muted
                         font.pixelSize: 13

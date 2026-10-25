@@ -118,6 +118,7 @@ class DesktopController(QObject):
         parent=None,
         *,
         preferences: ApplicationPreferences | None = None,
+        profile=None,
     ):
         super().__init__(parent)
         self.table = ImportTableModel(self)
@@ -125,14 +126,16 @@ class DesktopController(QObject):
             from liarte_core.comex import ComexProvider
 
             provider = ComexProvider(
-                Path(
-                    QStandardPaths.writableLocation(
-                        QStandardPaths.StandardLocation.AppLocalDataLocation
-                    )
+                profile.data_dir if profile is not None else (
+                    Path(
+                        QStandardPaths.writableLocation(
+                            QStandardPaths.StandardLocation.AppLocalDataLocation
+                        )
+                    ) / "dados"
                 )
-                / "dados"
             )
         self._provider = provider
+        self._profile = profile
         self._settings = settings
         self.preferences = (
             preferences
@@ -389,7 +392,8 @@ class DesktopController(QObject):
 
     @Property(str, constant=True)
     def reportsFolder(self):
-        folder = (
+        isolated = self._profile is not None and self._profile.development
+        folder = self._profile.reports_dir if isolated else (
             Path(
                 QStandardPaths.writableLocation(
                     QStandardPaths.StandardLocation.DocumentsLocation
@@ -401,7 +405,7 @@ class DesktopController(QObject):
         try:
             folder.mkdir(parents=True, exist_ok=True)
         except OSError:
-            folder = Path.home()
+            folder = self._profile.root if isolated else Path.home()
         return QUrl.fromLocalFile(str(folder)).toString()
 
     @Slot()
@@ -561,7 +565,7 @@ class DesktopController(QObject):
 
     @Slot()
     def openDiagnostics(self):
-        directory = (
+        directory = self._profile.log_dir if self._profile is not None else (
             Path(
                 QStandardPaths.writableLocation(
                     QStandardPaths.StandardLocation.AppLocalDataLocation

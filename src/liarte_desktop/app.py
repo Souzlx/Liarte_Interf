@@ -45,6 +45,10 @@ from .branding import BrandProvider
 from .platform import PlatformController
 from .preferences import ApplicationPreferences
 from .comex_connection import ComexConnectionController
+from .runtime_profile import (
+    DEVELOPMENT_APP_ID, DEVELOPMENT_APP_NAME, RuntimeProfile,
+    configure_development_cache, open_settings, resolve_profile,
+)
 
 PACKAGE = Path(__file__).resolve().parent
 
@@ -76,52 +80,39 @@ class ApplicationBundle:
 
 
 def create_bundle(
-    *, size=None, settings=None, provider=None, initial_module=None
+    *, size=None, settings=None, provider=None, initial_module=None, profile=None
 ) -> ApplicationBundle:
     """Abre a tela configurada; sem preferência, a plataforma começa em Início."""
+    profile = profile if profile is not None else resolve_profile(None)
+    if profile.development:
+        profile.prepare()
     if provider is None:
         if size is not None:
             provider = DemoProvider(size)
         else:
             from liarte_core.comex import ComexProvider
 
-            provider = ComexProvider(
-                Path(
-                    QStandardPaths.writableLocation(
-                        QStandardPaths.StandardLocation.AppLocalDataLocation
-                    )
-                )
-                / "dados"
-            )
+            provider = ComexProvider(profile.data_dir)
     services = QObject()
     preferences = ApplicationPreferences(settings, services)
     controller = DesktopController(
-        provider, settings, services, preferences=preferences
+        provider, settings, services, preferences=preferences, profile=profile
     )
-    comex_access = ComexConnectionController(provider, controller, services)
+    comex_access = ComexConnectionController(provider, controller, services, profile=profile)
     services.comex_access = comex_access
     inventory = InventoryController(
         settings,
         services,
-        cache_path=(
-            Path(
-                QStandardPaths.writableLocation(
-                    QStandardPaths.StandardLocation.AppLocalDataLocation
-                )
-            )
-            / "estoque"
-            / "base.liarte"
-        )
-        if settings is not None
-        else None,
+        cache_path=profile.inventory_cache if settings is not None else None,
         bundled_path=(
             Path(__file__).resolve().parent.parent / "liarte_core/data/estoque.liarte"
         )
-        if not isinstance(provider, DemoProvider)
+        if not isinstance(provider, DemoProvider) and not profile.development
         else None,
     )
     platform = PlatformController(
-        default_registry(), preferences, initial_module=initial_module, parent=services
+        default_registry(), preferences, initial_module=initial_module, parent=services,
+        development=profile.development,
     )
     engine = QQmlApplicationEngine()
     engine.addImageProvider(
@@ -185,15 +176,11 @@ def install_availability_refresh(bundle: ApplicationBundle):
     schedule()
 
 
-def configure_log() -> Path:
-    directory = (
-        Path(
-            QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.AppLocalDataLocation
-            )
-        )
-        / "logs"
-    )
+def configure_log(profile: RuntimeProfile | None = None) -> Path:
+    profile = profile if profile is not None else resolve_profile(None)
+    if profile.development:
+        profile.prepare()
+    directory = profile.log_dir
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / "desktop.log"
     handler = RotatingFileHandler(
@@ -396,6 +383,10 @@ def main(argv=None) -> int:
         "--data-dir", type=Path, help="Diretório local de cache e auditoria."
     )
     parser.add_argument(
+        "--profile-dir", type=Path,
+        help="Perfil de desenvolvimento separado para configurações, dados e logs.",
+    )
+    parser.add_argument(
         "--no-settings", action="store_true", help="Não grava preferências locais."
     )
     parser.add_argument(
@@ -409,35 +400,43 @@ def main(argv=None) -> int:
         help="Confirmação interna para o assistente de abertura.",
     )
     args = parser.parse_args(argv)
-    set_process_identity()
+    if args.profile_dir is not None and args.data_dir is not None:
+        parser.error("--profile-dir não pode ser combinado com --data-dir.")
+    if args.profile_dir is not None:
+        configure_development_cache(args.profile_dir)
+        set_process_identity(DEVELOPMENT_APP_ID)
+    else:
+        set_process_identity()
     QQuickStyle.setStyle("Basic")
     app = QGuiApplication(sys.argv[:1])
     app.setOrganizationName("LIARTE")
     app.setApplicationName("LIARTE Desktop")  # Preserve preferences, cache and reports.
+    try:
+        profile = resolve_profile(args.profile_dir)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if profile.development:
+        app.setApplicationName(DEVELOPMENT_APP_NAME)
     app.setApplicationDisplayName(APP_TITLE)
     app.setApplicationVersion(__version__)
     app.setWindowIcon(QIcon(str(PACKAGE / "assets" / "liarte.ico")))
     app.setFont(QFont("Segoe UI" if sys.platform == "win32" else "DejaVu Sans", 10))
     try:
-        configure_log()
-        if not args.smoke_test:
+        if profile.development:
+            profile.prepare()
+            configure_log(profile)
+        else:
+            configure_log()
+        if not args.smoke_test and not profile.development:
             hold_installation_mutex()
-        settings = None if args.no_settings or args.smoke_test else QSettings()
+        settings = open_settings(profile, no_settings=args.no_settings or bool(args.smoke_test))
         provider = None
         if not args.demo and not args.smoke_test:
             from liarte_core.comex import ComexProvider
 
-            directory = (
-                args.data_dir
-                or Path(
-                    QStandardPaths.writableLocation(
-                        QStandardPaths.StandardLocation.AppLocalDataLocation
-                    )
-                )
-                / "dados"
-            )
+            directory = args.data_dir if args.data_dir is not None else profile.data_dir
             provider = ComexProvider(directory)
-        if settings is not None and not settings.contains("dark"):
+        if settings is not None and not profile.development and not settings.contains("dark"):
             previous = QSettings("LIARTE", "LIARTE Desktop F1")
             for key in ("dark", "compact", "reducedMotion"):
                 if previous.contains(key):
@@ -447,6 +446,7 @@ def main(argv=None) -> int:
             settings=settings,
             provider=provider,
             initial_module="imports" if args.smoke_test else None,
+            profile=profile,
         )
     except Exception:
         logging.getLogger("liarte.desktop").exception("Falha ao iniciar a interface")
@@ -455,6 +455,7 @@ def main(argv=None) -> int:
         sys.platform == "win32"
         and getattr(sys, "frozen", False)
         and not args.smoke_test
+        and not profile.development
     ):
         from threading import Thread
         from .windows_shell import ensure_shortcuts

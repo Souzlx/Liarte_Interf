@@ -29,6 +29,7 @@ def main():
 
     configure_windows_qt()
     from tests.test_core import CoreTests
+    from tests.test_runtime_profile import RuntimeProfileTests, RuntimeProfileUiTests
     from tests.test_qt import QtTests, VolumeTests
     from tests.test_build import DistributionTests
     from tests.test_release import ReleaseTests
@@ -93,6 +94,8 @@ def main():
 
     suite = unittest.TestSuite()
     for case in (
+        RuntimeProfileTests,
+        RuntimeProfileUiTests,
         InventoryBackupTests,
         InventoryBackupUiTests,
         InventoryBackupQmlTests,
