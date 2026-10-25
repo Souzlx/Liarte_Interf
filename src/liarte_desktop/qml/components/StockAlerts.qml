@@ -16,6 +16,7 @@ Rectangle {
     readonly property bool modalOpen: adjustmentDialog.visible
     readonly property var categories: alertData.categories || []
     readonly property var activeCategory: categories.find(category => category.key === activeKey) || categories[0] || null
+    readonly property bool settingsEnabled: controlsEnabled && !busy
     readonly property bool actionsEnabled: controlsEnabled && current && !busy
     signal thresholdsApplied(int staleDays, int coverageDays)
     signal productRequested(string code, string branch, string unit)
@@ -41,6 +42,7 @@ Rectangle {
         }
     }
     onActionsEnabledChanged: Qt.callLater(restoreAdjustmentFocus)
+    onSettingsEnabledChanged: Qt.callLater(restoreAdjustmentFocus)
     onVisibleChanged: if (!visible)
         restoreSettingsFocus = false
 
@@ -71,7 +73,7 @@ Rectangle {
                 Layout.fillWidth: parent.columns === 1
                 Layout.minimumWidth: 0
                 text: "Ajustar alertas"
-                enabled: root.actionsEnabled
+                enabled: root.settingsEnabled
                 Accessible.name: "Ajustar limites dos alertas de estoque"
                 onClicked: root.openSettings()
             }
@@ -368,7 +370,7 @@ Rectangle {
         }
         Text {
             Layout.fillWidth: true
-            visible: !root.actionsEnabled
+            visible: !root.settingsEnabled
             text: "Aguarde a análise em andamento para aplicar os limites."
             textFormat: Text.PlainText
             color: Theme.muted
@@ -403,7 +405,7 @@ Rectangle {
                 Layout.minimumWidth: 0
                 text: "Aplicar limites"
                 primary: true
-                enabled: root.actionsEnabled && adjustmentDialog.validDraft
+                enabled: root.settingsEnabled && adjustmentDialog.validDraft
                 onClicked: {
                     root.thresholdsApplied(Number(staleDaysInput.text), Number(coverageDaysInput.text));
                     adjustmentDialog.close();

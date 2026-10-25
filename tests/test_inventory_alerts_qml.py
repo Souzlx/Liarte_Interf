@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from PySide6.QtCore import QObject, QPointF, QSettings, Qt
-from PySide6.QtTest import QTest
+from PySide6.QtTest import QSignalSpy, QTest
 
 from liarte_core.inventory import SCALE
 from liarte_core.inventory_io import write_snapshot
@@ -72,12 +72,64 @@ class InventoryAlertQmlTests(unittest.TestCase):
 
     def open_settings(self):
         button = self.item("stockAlertSettingsButton")
-        self.reveal(button)
-        click(self.window, button)
         dialog = self.item("stockAlertSettingsDialog")
-        self.assertTrue(pump(lambda: dialog.property("opened")))
+        self.assertTrue(pump(lambda: not dialog.property("visible")))
+        self.window.requestActivate()
+        previous = None
+
+        def rendered_button_is_ready():
+            nonlocal previous
+            # A load publication changes the height above this button. Let Qt
+            # polish/render that layout before trusting a scroll/click position.
+            # Requiring two equal rendered geometries also covers native resize.
+            self.reveal(button)
+            frame = self.window.grabWindow()
+            geometry = self.settings_geometry(button)
+            stable = geometry == previous
+            previous = geometry
+            x, y, width, height = geometry["button"]
+            viewport_width, viewport_height = geometry["viewport"]
+            return (
+                stable
+                and not frame.isNull()
+                and abs(frame.width() / self.window.devicePixelRatio() - self.window.width()) <= 1
+                and geometry["visible"]
+                and geometry["enabled"]
+                and not geometry["moving"]
+                and width > 0
+                and height > 0
+                and x >= -1
+                and y >= -1
+                and x + width <= viewport_width + 1
+                and y + height <= viewport_height + 1
+            )
+
+        self.assertTrue(pump(rendered_button_is_ready), self.settings_geometry(button))
+        clicks = QSignalSpy(button.clicked)
+        click(self.window, button)
+        self.assertEqual(clicks.count(), 1, self.settings_geometry(button))
+        self.assertTrue(pump(lambda: dialog.property("opened")), self.settings_geometry(button))
         self.assertTrue(pump(lambda: self.item("stockAlertStaleDays").hasActiveFocus()))
+        self.assertFalse(self.window.grabWindow().isNull())
         return dialog
+
+    def settings_geometry(self, button):
+        scroll = self.item("stockScroll")
+        point = button.mapToItem(scroll, QPointF())
+        return {
+            "window": (self.window.width(), self.window.height()),
+            "content": (self.window.contentItem().width(), self.window.contentItem().height()),
+            "viewport": (scroll.width(), scroll.height()),
+            "button": tuple(round(value, 3) for value in (
+                point.x(), point.y(), button.width(), button.height()
+            )),
+            "visible": button.isVisible(),
+            "enabled": button.isEnabled(),
+            "moving": scroll.property("moving"),
+            "current": self.c.state["current"],
+            "busy": self.c.state["busy"],
+            "modal": self.item("inventoryWorkspace").property("modalOpen"),
+        }
 
     def set_text(self, item, text):
         item.forceActiveFocus(Qt.FocusReason.TabFocusReason)
@@ -86,6 +138,9 @@ class InventoryAlertQmlTests(unittest.TestCase):
         for character in text:
             QTest.keyClick(self.window, Qt.Key(ord(character)))
         APP.processEvents()
+        # Focus reveal is queued by AppDialog, and its scroll/layout must be
+        # rendered before a following mouse click uses the action's position.
+        self.assertFalse(self.window.grabWindow().isNull())
 
     def dialog_visible_rect(self, dialog, item):
         viewport = dialog.property("bodyViewport")
@@ -160,6 +215,45 @@ class InventoryAlertQmlTests(unittest.TestCase):
         field.setProperty("text", "3650")
         APP.processEvents()
         self.assertTrue(apply.isEnabled())
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_failed_evaluation_can_be_retried_from_the_settings_dialog(self):
+        self.load()
+        dialog = self.open_settings()
+        self.set_text(self.item("stockAlertStaleDays"), "30")
+        self.set_text(self.item("stockAlertCoverageDays"), "300")
+        with (
+            patch(
+                "liarte_desktop.inventory.analyze_stock_alerts",
+                side_effect=ValueError("Falha sintética ao avaliar os alertas"),
+            ),
+            self.assertLogs("liarte.desktop", level="ERROR"),
+        ):
+            self.item("stockAlertApply").forceActiveFocus(Qt.FocusReason.TabFocusReason)
+            QTest.keyClick(self.window, Qt.Key.Key_Space)
+            self.idle()
+        self.assertFalse(dialog.property("visible"))
+        self.assertFalse(self.c.state["current"])
+        self.assertIn("Falha sintética", self.c.state["error"])
+        self.assertIsNone(self.settings.value("inventory/alerts/limits", None))
+        self.assertTrue(self.item("stockAlertSettingsButton").isEnabled())
+        self.assertTrue(pump(lambda: self.item("stockAlertSettingsButton").hasActiveFocus()))
+        self.assertFalse(self.item("stockAlertCategory_stale").isEnabled())
+
+        self.open_settings()
+        self.assertEqual(self.item("stockAlertStaleDays").property("text"), "30")
+        self.assertEqual(self.item("stockAlertCoverageDays").property("text"), "300")
+        self.assertTrue(self.item("stockAlertApply").isEnabled())
+        self.item("stockAlertApply").forceActiveFocus(Qt.FocusReason.TabFocusReason)
+        QTest.keyClick(self.window, Qt.Key.Key_Space)
+        self.idle()
+        self.assertTrue(self.c.state["current"])
+        self.assertEqual(self.c.state["error"], "")
+        self.assertEqual(
+            json.loads(self.settings.value("inventory/alerts/limits")),
+            {"staleDays": 30, "coverageDays": 300},
+        )
+        self.assertTrue(pump(lambda: self.item("stockAlertSettingsButton").hasActiveFocus()))
         self.assertEqual(self.bundle.messages, [])
 
     def test_category_and_alert_click_filter_the_exact_product_branch_and_unit(self):
