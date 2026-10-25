@@ -1,0 +1,217 @@
+{
+  "version": "5.3.1-rc.1",
+  "channel": "prerelease",
+  "tested_commit": "db77b9517b2af234d02db6927bc3d219a8845ddb",
+  "tag_commit": "db77b9517b2af234d02db6927bc3d219a8845ddb",
+  "scope": "Windows Setup, versioned local stock backups and restore; published after four Windows builds and real installer lifecycle checks.",
+  "user_authorization": "Prosseguir com instalador, atualização preservando dados e backup/restauração; alertas de estoque permanecem para uma etapa posterior.",
+  "publication": {
+    "id": 423374965,
+    "tag_name": "v5.3.1-rc.1",
+    "html_url": "https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.1",
+    "draft": false,
+    "prerelease": true,
+    "published_at": "2026-10-25T12:03:09Z"
+  },
+  "latest_stable_verified": "v5.3.0",
+  "assets": [
+    {
+      "name": "LIARTE_Desktop_5.3.1-rc.1_Setup.exe",
+      "size": 62904601,
+      "digest": "sha256:4390d38bd7ce4da1acca23d24217a5085c68fffb8d9ecee38f9d8ddd996ef0dc",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.1/LIARTE_Desktop_5.3.1-rc.1_Setup.exe"
+    },
+    {
+      "name": "LIARTE_Desktop_5.3.1-rc.1_Windows_x64.zip",
+      "size": 92531029,
+      "digest": "sha256:e205b02a81a81977c5f51b81254951a4956aebc9dc441b9007a2a00c483de533",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.1/LIARTE_Desktop_5.3.1-rc.1_Windows_x64.zip"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 210,
+      "digest": "sha256:f2d9b6df638060e746f23f0dc94e388dcd475514ba8b62f8ed0ebb9005fb69d3",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.1/SHA256SUMS.txt"
+    }
+  ],
+  "linux_ci": {
+    "run": 40190638639,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40190638639",
+    "tested_commit": "db77b9517b2af234d02db6927bc3d219a8845ddb",
+    "tests": 815,
+    "passed": 815,
+    "skipped": 0,
+    "seconds": 168.347
+  },
+  "linux_local": {
+    "tested_commit": "820e0d3967a3431fe5a705eadcaa030fe816afea",
+    "tests": 813,
+    "passed": 813,
+    "seconds": 165.286,
+    "log_sha256": "5130828537870183290a26ce2182dcbdb98354e7cc07c0b6f22d6dd58829647a",
+    "later_installer_contract_fix_focused_tests": {
+      "tests": 21,
+      "status": "ok",
+      "overlaps_full_ci": true
+    }
+  },
+  "windows": {
+    "report": "VALIDACAO_WINDOWS_531_RC1.json",
+    "run": 40190640420,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40190640420",
+    "matrix": [
+      {
+        "python": "3.11",
+        "tests": 815,
+        "passed": 814,
+        "skipped": 1,
+        "seconds": 252.061,
+        "native_smoke": "ok",
+        "backup_smoke": "ok"
+      },
+      {
+        "python": "3.12",
+        "tests": 815,
+        "passed": 814,
+        "skipped": 1,
+        "seconds": 298.767,
+        "native_smoke": "ok",
+        "backup_smoke": "ok"
+      },
+      {
+        "python": "3.13",
+        "tests": 815,
+        "passed": 814,
+        "skipped": 1,
+        "seconds": 256.004,
+        "native_smoke": "ok",
+        "backup_smoke": "ok"
+      },
+      {
+        "python": "3.14",
+        "tests": 815,
+        "passed": 814,
+        "skipped": 1,
+        "seconds": 252.91,
+        "native_smoke": "ok",
+        "backup_smoke": "ok"
+      }
+    ]
+  },
+  "installer": {
+    "report": "AUTOTESTE_INSTALADOR_531_RC1.json",
+    "status": "ok",
+    "sha256": "4390d38bd7ce4da1acca23d24217a5085c68fffb8d9ecee38f9d8ddd996ef0dc",
+    "tests": {
+      "explicit_purge_removes_only_profile_and_settings": true,
+      "fresh_install_and_shortcuts": true,
+      "silent_uninstall_preserves_profile_and_exports": true,
+      "upgrade_preserves_directory_settings_stock_backups_exports": true
+    },
+    "compiler_version": "6.5.4",
+    "compiler_supplier_sha256": "fa73bf47a4da250d185d07561c2bfda387e5e20db77e4570004cf6a133cc10b1",
+    "compiler_authenticode_checked_in_ci": true,
+    "baseline": "Compiled from the published 5.3.0 portable ZIP and the original ISS/icon from tagv5.3.0; no 5.3.0 Setup had previously been released."
+  },
+  "backups": {
+    "format": "liarte.inventory-backup/1",
+    "retention_target": 10,
+    "retention_after_successful_publication": true,
+    "retention_failure_policy": "Keep extra copies and warn; never roll back a successfully published base because maintenance failed.",
+    "copy_directory_atomically_published": true,
+    "sha256_and_snapshot_validation_on_restore": true,
+    "invalid_previous_cache_does_not_block_bundled_fallback": true,
+    "restore_preserves_current_valid_cache": true,
+    "gui_publishes_only_current_generation": true,
+    "cache_race_guard": "lstat fingerprint checked after preparation and before replace; not a cross-process transaction guarantee."
+  },
+  "regressions_added_since_5_3_0": 74,
+  "checks": {
+    "ruff": "passed: src tools tests verificar.py",
+    "diff_check": "passed",
+    "supplier_digest_verified": "GitHub official release metadata",
+    "published_asset_verification": {
+      "recorded_at_utc": "2026-10-25T12:05:08.450254+00:00",
+      "repository": "Souzlx/Liarte_Interf",
+      "release_tag": "v5.3.1-rc.1",
+      "release_url": "https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.1",
+      "prerelease": true,
+      "archive_independently_downloaded": true,
+      "setup_independently_downloaded": true,
+      "checksum_asset_independently_downloaded": true,
+      "assets": [
+        {
+          "name": "LIARTE_Desktop_5.3.1-rc.1_Setup.exe",
+          "bytes": 62904601,
+          "sha256": "4390d38bd7ce4da1acca23d24217a5085c68fffb8d9ecee38f9d8ddd996ef0dc",
+          "github_digest_matches": true,
+          "published_checksum_matches": true
+        },
+        {
+          "name": "LIARTE_Desktop_5.3.1-rc.1_Windows_x64.zip",
+          "bytes": 92531029,
+          "sha256": "e205b02a81a81977c5f51b81254951a4956aebc9dc441b9007a2a00c483de533",
+          "github_digest_matches": true,
+          "published_checksum_matches": true
+        },
+        {
+          "name": "SHA256SUMS.txt",
+          "bytes": 210,
+          "sha256": "f2d9b6df638060e746f23f0dc94e388dcd475514ba8b62f8ed0ebb9005fb69d3",
+          "github_digest_matches": true,
+          "published_checksum_matches": null
+        }
+      ],
+      "zip_crc_test": "passed",
+      "bundle_file_count": 1397,
+      "internal_manifest_files_checked": 1396,
+      "internal_manifest_sha256": "3459a8e60dafbea7f0dff39343ffda592f99b90c09d58f4231df317759f303b8",
+      "internal_manifest_all_match": true,
+      "unlisted_or_missing_bundle_files": [],
+      "native_smoke": {
+        "version": "5.3.1-rc.1",
+        "status": "ok",
+        "frozen": true,
+        "platform": "win32",
+        "qml_warnings": [],
+        "document_resources": {
+          "excel": "ok",
+          "pdf": "ok",
+          "pdf_logo": true,
+          "powerbi": "ok",
+          "powerbi_pages": 6,
+          "powerbi_visuals": 85,
+          "synthetic": true,
+          "temporary": true,
+          "inventory_backups": "ok"
+        }
+      },
+      "setup_header_validated": true,
+      "setup_pe_magic": "0x10b",
+      "setup_security_directory": {
+        "file_offset": 0,
+        "bytes": 0,
+        "embedded_authenticode_signature_present": false
+      },
+      "executed_downloaded_binary": false
+    }
+  },
+  "first_gates": [
+    {
+      "run": 40188789108,
+      "result": "blocked before Setup",
+      "fix": "Compact stock actions wrapped in two rows; wide-font geometry regression and real mouse click."
+    },
+    {
+      "run": 40189894503,
+      "result": "all four native builds passed; installer gate blocked",
+      "fix": "PowerShell single shortcut result normalized to a one-item list, with single/multiple shortcut contract regressions."
+    }
+  ],
+  "limits": [
+    "Setup has no embedded publisher signature; compiler supplier signature is a separate check.",
+    "Installer lifecycle used a disposable GitHub-hosted Windows account and silent commands; corporate policies, interactive confirmation UI, SmartScreen/antivirus and all DPI/GPU configurations were not exhaustively validated.",
+    "Local stock backups do not copy original PBIX files or external reports and do not survive deletion of the whole app profile.",
+    "No new public Comex Stat request or real PBIX extraction was required."
+  ]
+}

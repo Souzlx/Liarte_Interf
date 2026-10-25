@@ -41,3 +41,18 @@ python tools/build_installer.py --bundle dist/LIARTE_Desktop --output instalador
 O empacotador confere a versão do autoteste Windows e todos os checksums do bundle antes de compilar em uma área temporária. Uma falha preserva o Setup anterior. O workflow de instalador executa os testes e produz as evidências de instalação, atualização, atalhos e desinstalação antes de disponibilizar a prévia.
 
 O ensaio automatizado usa uma conta descartável do runner Windows e uma instalação anterior compilada com o pacote e o script da versão 5.3.0. Não equivale à validação de políticas da empresa, de todos os antivírus, do SmartScreen ou de todas as configurações DPI/GPU. O Setup não contém assinatura digital de editor.
+
+## Resultados e download
+
+Código validado e marcado como `v5.3.1-rc.1`: `db77b9517b2af234d02db6927bc3d219a8845ddb`.
+
+- [Baixar o Setup da prévia](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.1/LIARTE_Desktop_5.3.1-rc.1_Setup.exe).
+- [ZIP portátil e checksums](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.1).
+- [Execução validada no Windows](https://github.com/Souzlx/Liarte_Interf/actions/runs/40190640420).
+- [Evidências da entrega](EVIDENCIAS_INSTALADOR_531_RC1.json), [matriz Windows](VALIDACAO_WINDOWS_531_RC1.json) e [autoteste do Setup](AUTOTESTE_INSTALADOR_531_RC1.json).
+
+A suíte final executou **815 testes no CI Linux**, todos aprovados. Em cada um dos quatro builds Windows, foram **814 aprovados e um teste exclusivo de POSIX ignorado**. O total inclui 74 regressões novas de backup, interface e empacotamento em relação à 5.3.0. Os autotestes dos executáveis também confirmaram backup e restauração em diretórios temporários.
+
+O ensaio do Setup aprovou instalação nova, destinos dos atalhos, desinstalação silenciosa preservando dados, reutilização do diretório anterior na atualização, preservação de preferências/base/histórico e exclusão explícita do perfil com um relatório externo intacto. A verificação dos atalhos ocorreu antes de abrir o aplicativo, para conferir o que o próprio Setup criou.
+
+Na conferência de janelas compactas, os botões do cabeçalho passaram a ocupar duas linhas; uma regressão com métricas de fonte ampliadas verifica que a ação Restaurar continua visível e recebe o clique. A prévia foi publicada após todos os bloqueios passarem. A versão estável 5.3.0 continua marcada como a mais recente estável.

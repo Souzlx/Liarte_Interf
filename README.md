@@ -12,7 +12,7 @@ A versão estável **5.3.0** promove a RC3 validada pelo usuário, com gráficos
 
 [Baixar o pacote portátil Windows 5.3.0](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.0/LIARTE_Desktop_5.3.0_Windows_x64.zip) · [Página da release e checksums](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.0).
 
-A próxima prévia, **5.3.1-rc.1**, acrescenta Setup Windows e restauração de bases anteriores de Estoque. Veja o [guia de instalação e restauração](docs/INSTALACAO_531_RC1.md) e as [notas da prévia](docs/RELEASE_5.3.1-rc.1.md). A geração e os testes do Setup usam um [workflow separado](.github/workflows/installer.yml).
+A prévia **5.3.1-rc.1** acrescenta Setup Windows e restauração de bases anteriores de Estoque. [Baixar o Setup](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.1/LIARTE_Desktop_5.3.1-rc.1_Setup.exe) · [Pacotes e checksums da prévia](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.1). Veja o [guia de instalação e restauração](docs/INSTALACAO_531_RC1.md) e as [notas da prévia](docs/RELEASE_5.3.1-rc.1.md). A geração e os testes do Setup usam um [workflow separado](.github/workflows/installer.yml).
 
 ## Executar os fontes
 
