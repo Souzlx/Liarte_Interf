@@ -135,15 +135,23 @@ FocusScope {
                         wrapMode: Text.WordWrap
                     }
                 }
-                RowLayout {
+                GridLayout {
+                    id: stockHeaderActions
+                    objectName: "stockHeaderActions"
                     Layout.alignment: Qt.AlignRight
                     Layout.fillWidth: page.width < 720
+                    Layout.minimumWidth: 0
+                    columns: page.width < 720 ? 2 : 4
+                    columnSpacing: 8
+                    rowSpacing: 8
                     Ui.ActionButton {
                         id: openBase
                         objectName: "openStockBase"
                         text: page.state.loaded ? "Atualizar base" : "Abrir base"
                         iconName: "folder"
                         primary: !page.state.loaded
+                        Layout.fillWidth: stockHeaderActions.columns === 2
+                        Layout.minimumWidth: 0
                         enabled: !page.state.busy
                         onClicked: sourceDialog.open()
                     }
@@ -152,6 +160,8 @@ FocusScope {
                         visible: page.state.loaded
                         text: "Baixar Excel"
                         iconName: "download"
+                        Layout.fillWidth: stockHeaderActions.columns === 2
+                        Layout.minimumWidth: 0
                         enabled: !page.state.busy && page.state.current
                         onClicked: saveStockDialog.open()
                     }
@@ -167,6 +177,7 @@ FocusScope {
                         ToolTip.text: page.backupState.available ? "Restaurar base anterior" : "As bases anteriores ficam disponíveis após atualizar a base neste computador."
                     }
                     Ui.ActionButton {
+                        objectName: "stockMethodologyButton"
                         text: ""
                         iconName: "info"
                         implicitWidth: 40

@@ -65,13 +65,59 @@ class InventoryBackupQmlTests(unittest.TestCase):
     def open_backups(self):
         self.platform.openModule("inventory")
         self.window.update()
-        pump(timeout=0.08)
         self.idle()
+        self.assertTrue(pump(self.header_ready), self.header_geometry())
+        # Wait for a frame at the resized client size, rather than assuming a
+        # fixed delay is enough for native window/layout updates on Windows.
+        frame = self.window.grabWindow()
+        self.assertFalse(frame.isNull(), self.header_geometry())
+        self.assertAlmostEqual(
+            frame.width() / self.window.devicePixelRatio(), self.window.width(), delta=1
+        )
         click(self.window, self.item("stockRestoreButton"))
         dialog = self.item("stockBackupsDialog")
-        self.assertTrue(pump(lambda: dialog.property("opened")))
+        self.assertTrue(pump(lambda: dialog.property("opened")), self.header_geometry())
         self.idle()
         return dialog
+
+    def header_geometry(self):
+        viewport = self.item("stockScroll")
+        actions = {}
+        for name in (
+            "openStockBase",
+            "stockExportButton",
+            "stockRestoreButton",
+            "stockMethodologyButton",
+        ):
+            item = self.item(name)
+            point = item.mapToItem(viewport, QPointF())
+            actions[name] = {
+                "rect": (point.x(), point.y(), item.width(), item.height()),
+                "visible": item.isVisible(),
+                "enabled": item.isEnabled(),
+                "naturalWidth": item.property("naturalWidth"),
+                "font": item.property("font").toString(),
+            }
+        return {
+            "window": (self.window.width(), self.window.height()),
+            "content": (self.window.contentItem().width(), self.window.contentItem().height()),
+            "viewport": (viewport.width(), viewport.height()),
+            "busy": self.inventory.state["busy"],
+            "actions": actions,
+        }
+
+    def header_ready(self):
+        geometry = self.header_geometry()
+        width, height = geometry["viewport"]
+        if abs(geometry["window"][0] - geometry["content"][0]) > 1:
+            return False
+        for item in geometry["actions"].values():
+            x, y, w, h = item["rect"]
+            if not item["visible"] or not item["enabled"] or w <= 0 or h <= 0:
+                return False
+            if x < -1 or y < -1 or x + w > width + 1 or y + h > height + 1:
+                return False
+        return True
 
     def choose_first(self):
         click(self.window, self.item("stockBackupChoice0"))
@@ -210,4 +256,18 @@ class InventoryBackupQmlTests(unittest.TestCase):
         )
         QTest.keyClick(self.window, Qt.Key.Key_Space)
         self.assertTrue(pump(lambda: self.item("confirmStockRestoreDialog").property("opened")))
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_compact_header_wraps_wide_font_actions_and_restore_remains_clickable(self):
+        self.load_stock()
+        for name in ("openStockBase", "stockExportButton"):
+            item = self.item(name)
+            font = item.property("font")
+            font.setStretch(200)
+            item.setProperty("font", font)
+        self.window.resize(500, 400)
+        dialog = self.open_backups()
+        self.assertTrue(self.header_ready(), self.header_geometry())
+        self.assertEqual(self.item("stockHeaderActions").property("columns"), 2)
+        self.assertTrue(dialog.property("visible"))
         self.assertEqual(self.bundle.messages, [])
