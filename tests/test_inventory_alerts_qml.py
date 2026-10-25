@@ -70,24 +70,21 @@ class InventoryAlertQmlTests(unittest.TestCase):
         self.window.update()
         APP.processEvents()
 
-    def open_settings(self):
-        button = self.item("stockAlertSettingsButton")
-        dialog = self.item("stockAlertSettingsDialog")
-        self.assertTrue(pump(lambda: not dialog.property("visible")))
+    def click_workspace(self, control):
         self.window.requestActivate()
         previous = None
 
-        def rendered_button_is_ready():
+        def rendered_control_is_ready():
             nonlocal previous
-            # A load publication changes the height above this button. Let Qt
+            # A load publication changes the height above these controls. Let Qt
             # polish/render that layout before trusting a scroll/click position.
             # Requiring two equal rendered geometries also covers native resize.
-            self.reveal(button)
+            self.reveal(control)
             frame = self.window.grabWindow()
-            geometry = self.settings_geometry(button)
+            geometry = self.workspace_geometry(control)
             stable = geometry == previous
             previous = geometry
-            x, y, width, height = geometry["button"]
+            x, y, width, height = geometry["control"]
             viewport_width, viewport_height = geometry["viewport"]
             return (
                 stable
@@ -104,27 +101,37 @@ class InventoryAlertQmlTests(unittest.TestCase):
                 and y + height <= viewport_height + 1
             )
 
-        self.assertTrue(pump(rendered_button_is_ready), self.settings_geometry(button))
-        clicks = QSignalSpy(button.clicked)
-        click(self.window, button)
-        self.assertEqual(clicks.count(), 1, self.settings_geometry(button))
-        self.assertTrue(pump(lambda: dialog.property("opened")), self.settings_geometry(button))
+        self.assertTrue(pump(rendered_control_is_ready), self.workspace_geometry(control))
+        # A clicked alert row may be destroyed by the resulting publication.
+        # Capture diagnostics first; the signal spy survives that model reset.
+        geometry = self.workspace_geometry(control)
+        clicks = QSignalSpy(control.clicked)
+        click(self.window, control)
+        self.assertEqual(clicks.count(), 1, geometry)
+
+    def open_settings(self):
+        button = self.item("stockAlertSettingsButton")
+        dialog = self.item("stockAlertSettingsDialog")
+        self.assertTrue(pump(lambda: not dialog.property("visible")))
+        self.click_workspace(button)
+        self.assertTrue(pump(lambda: dialog.property("opened")), self.workspace_geometry(button))
         self.assertTrue(pump(lambda: self.item("stockAlertStaleDays").hasActiveFocus()))
         self.assertFalse(self.window.grabWindow().isNull())
         return dialog
 
-    def settings_geometry(self, button):
+    def workspace_geometry(self, control):
         scroll = self.item("stockScroll")
-        point = button.mapToItem(scroll, QPointF())
+        point = control.mapToItem(scroll, QPointF())
         return {
+            "name": control.objectName(),
             "window": (self.window.width(), self.window.height()),
             "content": (self.window.contentItem().width(), self.window.contentItem().height()),
             "viewport": (scroll.width(), scroll.height()),
-            "button": tuple(round(value, 3) for value in (
-                point.x(), point.y(), button.width(), button.height()
+            "control": tuple(round(value, 3) for value in (
+                point.x(), point.y(), control.width(), control.height()
             )),
-            "visible": button.isVisible(),
-            "enabled": button.isEnabled(),
+            "visible": control.isVisible(),
+            "enabled": control.isEnabled(),
             "moving": scroll.property("moving"),
             "current": self.c.state["current"],
             "busy": self.c.state["busy"],
@@ -260,16 +267,14 @@ class InventoryAlertQmlTests(unittest.TestCase):
         self.load()
         self.assertFalse(self.item("stockAlerts").property("showOccurrences"))
         low = self.item("stockAlertCategory_low_coverage")
-        self.reveal(low)
-        click(self.window, low)
-        self.assertTrue(self.item("stockAlerts").property("showOccurrences"))
+        self.click_workspace(low)
+        self.assertTrue(pump(lambda: self.item("stockAlerts").property("showOccurrences")))
         row = self.item("stockAlertRow0")
         model = row.property("modelData")
         model = model.toVariant() if hasattr(model, "toVariant") else model
         self.assertEqual(model["code"], "0001")
-        self.reveal(row)
         with patch.object(self.bundle.controller._provider, "query") as query:
-            click(self.window, row)
+            self.click_workspace(row)
             self.idle()
             query.assert_not_called()
         selected = self.c.state["selection"]
@@ -286,8 +291,7 @@ class InventoryAlertQmlTests(unittest.TestCase):
         self.c.setFilter("warehouse", "01")
         self.idle()
         category = self.item("stockAlertCategory_low_coverage")
-        self.reveal(category)
-        click(self.window, category)
+        self.click_workspace(category)
         self.assertIn("armazém", self.item("stockAlertCategoryNotice").property("text"))
         data = {item["key"]: item for item in self.c.alerts["categories"]}["low_coverage"]
         self.assertFalse(data["available"])
