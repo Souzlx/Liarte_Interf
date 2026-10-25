@@ -16,6 +16,8 @@ A prévia **5.3.1-rc.1** acrescenta Setup Windows e restauração de bases anter
 
 ## Executar os fontes
 
+Para continuar o desenvolvimento na sua máquina com VS Code e Codex, siga o [guia de desenvolvimento local no Windows](docs/DESENVOLVIMENTO_LOCAL_WINDOWS.md). O [resumo de continuidade](docs/CONTINUIDADE_LOCAL.md) registra o estado da instalação validada e os cuidados com o perfil de dados.
+
 No Windows, instale CPython padrão **3.11, 3.12, 3.13 ou 3.14 de 64 bits**, com Tkinter, e abra `INICIAR_DESKTOP.cmd`. O assistente cria `.liarte-desktop-env`, instala as dependências fixadas e verifica a interface. A preparação inicial exige acesso aos gerenciadores de pacotes.
 
 Os comandos `.cmd` procuram o Python instalado no computador. Launchers de um ambiente de outra máquina não fazem parte da árvore-fonte. Para selecionar uma instalação explicitamente, execute no diretório do projeto, por exemplo:
