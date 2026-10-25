@@ -91,9 +91,17 @@ def main():
     from tests.test_inventory_backup_smoke import InventoryBackupSmokeTests
     from tests.test_installer_package import InstallerPackageTests
     from tests.test_installer_smoke_contract import InstallerSmokeContractTests
+    from tests.test_inventory_alerts import InventoryAlertTests
+    from tests.test_inventory_alerts_export import InventoryAlertsExportTests
+    from tests.test_inventory_alerts_ui import InventoryAlertsUiTests
+    from tests.test_inventory_alerts_qml import InventoryAlertQmlTests
 
     suite = unittest.TestSuite()
     for case in (
+        InventoryAlertTests,
+        InventoryAlertsExportTests,
+        InventoryAlertsUiTests,
+        InventoryAlertQmlTests,
         RuntimeProfileTests,
         RuntimeProfileUiTests,
         InventoryBackupTests,

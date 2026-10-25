@@ -3,6 +3,7 @@ ChartDialog 1.0 ChartDialog.qml
 StockFilter 1.0 StockFilter.qml
 StockBars 1.0 StockBars.qml
 StockMonthly 1.0 StockMonthly.qml
+StockAlerts 1.0 StockAlerts.qml
 singleton Theme 1.0 Theme.qml
 ActionButton 1.0 ActionButton.qml
 AppCombo 1.0 AppCombo.qml

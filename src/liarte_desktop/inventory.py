@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import json
 import os
 import stat
 from collections import defaultdict
@@ -20,6 +21,7 @@ from PySide6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
     QObject,
+    QSettings,
     Qt,
     QThread,
     QTimer,
@@ -39,6 +41,7 @@ from liarte_core.inventory import (
     number,
 )
 from liarte_core.inventory_export import export_inventory
+from liarte_core.inventory_alerts import AlertPolicy, analyze_stock_alerts
 from liarte_core.inventory_monthly import analyze_monthly_inventory
 from liarte_core.inventory_assets import verify_bundled_inventory
 from liarte_core.inventory_search import ProductSearch
@@ -67,6 +70,82 @@ HEADERS = (
     "Giro (x/mês)",
     "Dias fonte",
 )
+
+_ALERT_SETTINGS_KEY = "inventory/alerts/limits"
+
+
+def _read_alert_policy(settings):
+    if settings is None:
+        return AlertPolicy(), ""
+    try:
+        raw = settings.value(_ALERT_SETTINGS_KEY, None)
+        if raw is None:
+            return AlertPolicy(), ""
+        values = json.loads(raw)
+        if not isinstance(values, dict) or set(values) != {"staleDays", "coverageDays"}:
+            raise ValueError("Invalid alert preferences")
+        return AlertPolicy(values["staleDays"], values["coverageDays"]), ""
+    except (TypeError, ValueError, OSError):
+        LOGGER.warning("Limites de alertas inválidos; utilizando os padrões")
+        return AlertPolicy(), "Limites salvos inválidos; foram usados os padrões de 90 e 30 dias."
+
+
+def _alert_presentation(result, cancel):
+    """Bound the QML payload; retain complete entries for the Excel export."""
+    categories = []
+    for key, title, rule, entries in (
+        (
+            "stale", "Tempo sem venda",
+            f"Mais de {result.policy.stale_days} dias sem venda observada, com saldo positivo.",
+            result.stale,
+        ),
+        (
+            "low_coverage", "Cobertura baixa",
+            f"Menos de {result.policy.coverage_days} dias de cobertura da filial.",
+            result.low_coverage,
+        ),
+        (
+            "no_sale", "Sem venda registrada",
+            "Saldo positivo sem saída positiva registrada até a data da base; prazo desconhecido.",
+            result.no_sale,
+        ),
+    ):
+        no_coverage = result.scope_count > 0 and result.coverage_unavailable_count == result.scope_count
+        available = key != "low_coverage" or result.coverage_available and not no_coverage
+        items = []
+        for item in entries[:8]:
+            checkpoint(cancel)
+            days = number(item.days_since_sale, 0) + " dias" if item.days_since_sale is not None else "Prazo desconhecido"
+            coverage = number(item.coverage, 1) + " dias" if item.coverage is not None else "Indisponível"
+            items.append({
+                "code": item.code, "name": item.name, "branch": item.branch, "unit": item.unit,
+                "balance": number(Decimal(item.quantity) / SCALE, 3) + " " + item.unit,
+                "cost": money(item.cost),
+                "lastSale": item.last_sale.strftime("%d/%m/%Y") if item.last_sale else "Sem venda registrada",
+                "days": days, "coverage": coverage,
+                "detail": "Cobertura: " + coverage if key == "low_coverage" else days,
+            })
+        capital = 0
+        for item in _checked(entries, cancel):
+            capital += item.cost
+        notice = ""
+        if key == "low_coverage" and not result.coverage_available:
+            notice = "Indisponível com filtro de armazém: as vendas são registradas por filial."
+        elif key == "low_coverage" and no_coverage:
+            notice = "Nenhuma combinação tem cobertura calculável neste recorte. Confira o período, as vendas positivas e os saldos; valores ausentes não representam cobertura zero."
+        elif key == "low_coverage" and result.coverage_unavailable_count:
+            notice = f"{result.coverage_unavailable_count} combinações sem cobertura calculável ficam fora deste alerta."
+        categories.append({
+            "key": key, "title": title, "rule": rule, "count": len(entries),
+            "capital": money(capital), "available": available, "notice": notice, "items": items,
+        })
+    checkpoint(cancel)
+    return {
+        "asOf": result.as_of.strftime("%d/%m/%Y"),
+        "period": result.start[5:] + "/" + result.start[:4] + " a " + result.end[5:] + "/" + result.end[:4],
+        "notice": "Cada ocorrência representa um produto, filial e unidade no recorte. Um item pode aparecer em mais de uma categoria. Tempo sem venda não mede idade de lote ou consumo interno.",
+        "categories": categories,
+    }
 
 
 def stock_cells(row):
@@ -229,6 +308,9 @@ class _Publication:
     load: _LoadPresentation | None = None
     cache_fingerprint: tuple | None = None
     backup_id: str = ""
+    alerts: object = None
+    alert_view: dict | None = None
+    alert_policy: AlertPolicy = AlertPolicy()
 
 
 def _prepare_publication(
@@ -244,10 +326,14 @@ def _prepare_publication(
     names,
     cancel,
     load=None,
+    *,
+    alert_policy=AlertPolicy(),
 ):
     display, units = _monthly_presentation(monthly, cancel)
     view, period, unit = _monthly_view(display, units, selected, names, period, unit)
     ordered = _order_rows(analysis.rows, column, descending, cancel)
+    alerts = analyze_stock_alerts(data, selected, analysis, alert_policy, cancel=cancel)
+    alert_view = _alert_presentation(alerts, cancel)
     checkpoint(cancel)
     return _Publication(
         kind,
@@ -263,6 +349,9 @@ def _prepare_publication(
         period,
         unit,
         load,
+        alerts=alerts,
+        alert_view=alert_view,
+        alert_policy=alert_policy,
     )
 
 
@@ -520,12 +609,19 @@ class InventoryController(QObject):
     detailChanged = Signal()
     monthlyChanged = Signal()
     backupChanged = Signal()
+    alertsChanged = Signal()
     shutdownFinished = Signal()
 
     def __init__(self, settings=None, parent=None, *, cache_path=None, bundled_path=None):
         super().__init__(parent)
         self.table = StockTableModel(self)
         self._settings = settings
+        self._alert_policy, self._alert_notice = _read_alert_policy(settings)
+        self._applied_alert_policy = self._alert_policy
+        self._alert_save_pending = False
+        self._alert_error = ""
+        self._alerts = None
+        self._alert_view = {"asOf": "", "period": "", "notice": "", "categories": []}
         self._cache = Path(cache_path) if cache_path else None
         self._data = None
         self._analysis = None
@@ -584,6 +680,7 @@ class InventoryController(QObject):
             "loaded": data is not None,
             "busy": self._thread is not None,
             "current": self._selection == self._applied_selection
+            and self._alert_policy == self._applied_alert_policy
             and not self._pending
             and not self._debounce.isActive(),
             "task": self._task,
@@ -648,6 +745,88 @@ class InventoryController(QObject):
     @Property("QVariantMap", notify=monthlyChanged)
     def monthly(self):
         return self._monthly_view
+
+    @Property("QVariantMap", notify=alertsChanged)
+    def alerts(self):
+        return self._alert_view
+
+    @Property("QVariantMap", notify=alertsChanged)
+    def alertSettings(self):
+        return {
+            "staleDays": self._alert_policy.stale_days,
+            "coverageDays": self._alert_policy.coverage_days,
+            "notice": self._alert_notice,
+            "error": self._alert_error,
+        }
+
+    def _save_alert_policy(self):
+        notice = "Limites aplicados somente nesta sessão."
+        if self._settings is not None:
+            try:
+                self._settings.setValue(_ALERT_SETTINGS_KEY, json.dumps({
+                    "staleDays": self._alert_policy.stale_days,
+                    "coverageDays": self._alert_policy.coverage_days,
+                }, separators=(",", ":")))
+                self._settings.sync()
+                notice = "" if self._settings.status() == QSettings.Status.NoError else "Limites aplicados nesta sessão; não foi possível salvar as preferências."
+            except (TypeError, ValueError, OSError):
+                LOGGER.warning("Não foi possível salvar os limites de alertas", exc_info=True)
+                notice = "Limites aplicados nesta sessão; não foi possível salvar as preferências."
+        self._alert_notice = notice
+        self._alert_save_pending = False
+
+    @Slot(int, int)
+    def setAlertThresholds(self, stale_days, coverage_days):
+        if self._closed or self._task in {"load", "export"}:
+            return
+        try:
+            policy = AlertPolicy(stale_days, coverage_days)
+        except (TypeError, ValueError):
+            self._alert_error = "Informe dias inteiros entre 1 e 3650 para os dois limites."
+            self.alertsChanged.emit()
+            return
+        self._alert_error = ""
+        if policy == self._alert_policy and policy == self._applied_alert_policy:
+            if self._alert_notice:
+                # Explicit Apply can repair invalid saved values or retry a
+                # failed write without recalculating an unchanged analysis.
+                self._save_alert_policy()
+            self.alertsChanged.emit()
+            return
+        self._alert_policy = policy
+        if self._data is None:
+            self._applied_alert_policy = policy
+            self._save_alert_policy()
+        else:
+            self._alert_save_pending = True
+            self._generation += 1
+            if self._thread:
+                self._cancel.set()
+            self._pending = True
+            self._error = ""
+            self._debounce.start()
+            self.changed.emit()
+            self.backupChanged.emit()
+        self.alertsChanged.emit()
+
+    @Slot(str, str, str)
+    def focusAlertProduct(self, code, branch, unit):
+        if self._closed or self._thread or self._analysis is None or not self.state["current"]:
+            return
+        items = (item for category in self._alert_view["categories"] for item in category["items"])
+        if not any((item["code"], item["branch"], item["unit"]) == (code, branch, unit) for item in items):
+            return
+        updated = replace(self._selection, product=code, branch=branch, unit=unit, search="")
+        if updated == self._selection:
+            return
+        self._selection = updated
+        self._generation += 1
+        self._pending = True
+        self._error = ""
+        self._page = 1
+        self._debounce.start()
+        self.changed.emit()
+        self.backupChanged.emit()
 
     @Property("QVariantMap", notify=backupChanged)
     def backupState(self):
@@ -877,6 +1056,7 @@ class InventoryController(QObject):
         self._staged_cache = staged
 
         column, descending = self._sort, self._descending
+        alert_policy = self._alert_policy
 
         def action(cancel, progress):
             def read(candidate):
@@ -952,6 +1132,7 @@ class InventoryController(QObject):
                 search.names,
                 cancel,
                 load,
+                alert_policy=alert_policy,
             )
             checkpoint(cancel)
             if staged:
@@ -1039,8 +1220,19 @@ class InventoryController(QObject):
         column, descending = self._sort, self._descending
         period, unit = self._monthly_period, self._monthly_unit
         names = self._search.names
+        alert_policy = self._alert_policy
+        cached_analysis = (
+            self._analysis
+            if selected == self._applied_selection
+            and alert_policy != self._applied_alert_policy
+            and (column, descending) == self._applied_sort
+            else None
+        )
 
         def action(cancel, progress):
+            if cached_analysis is not None:
+                alerts = analyze_stock_alerts(data, selected, cached_analysis, alert_policy, cancel=cancel)
+                return ("alerts", alerts, _alert_presentation(alerts, cancel), alert_policy)
             analysis = analyze_inventory(data, selected, cancel=cancel)
             checkpoint(cancel)
             monthly = analyze_monthly_inventory(data, selected, analysis=analysis, cancel=cancel)
@@ -1056,6 +1248,7 @@ class InventoryController(QObject):
                 unit,
                 names,
                 cancel,
+                alert_policy=alert_policy,
             )
 
         self._start(action, "analysis")
@@ -1109,6 +1302,8 @@ class InventoryController(QObject):
                 self._backup_entries, self._backup_error = result[1:]
                 self._prune_preserve_ids.clear()
                 self.backupChanged.emit()
+            elif result[0] == "alerts":
+                self._accept_alerts(*result[1:])
             self.changed.emit()
             return
         if result.kind in {"load", "restore"}:
@@ -1155,10 +1350,18 @@ class InventoryController(QObject):
         self._monthly_view = result.monthly_view
         self._monthly_period, self._monthly_unit = result.period, result.unit
         self._applied_selection = result.selected
+        self._accept_alerts(result.alerts, result.alert_view, result.alert_policy)
         self._publish_rows()
         self.monthlyChanged.emit()
         self.analysisChanged.emit()
         self.changed.emit()
+
+    def _accept_alerts(self, alerts, view, policy):
+        self._alerts, self._alert_view = alerts, view
+        self._applied_alert_policy = policy
+        if self._alert_save_pending:
+            self._save_alert_policy()
+        self.alertsChanged.emit()
 
     @Slot(str)
     def _fail(self, message):
@@ -1249,7 +1452,7 @@ class InventoryController(QObject):
     def selectRow(self, index):
         if (
             not 0 <= index < len(self.table.rows)
-            or self._selection != self._applied_selection
+            or not self.state["current"]
             or self._pending
             or self._debounce.isActive()
             or self._task == "load"
@@ -1374,7 +1577,7 @@ class InventoryController(QObject):
             or self._debounce.isActive()
             or self._data is None
             or self._analysis is None
-            or self._selection != self._applied_selection
+            or not self.state["current"]
             or not url.isLocalFile()
         ):
             return
@@ -1382,10 +1585,10 @@ class InventoryController(QObject):
         if path.suffix.lower() != ".xlsx":
             path = path.with_suffix(".xlsx")
         data, analysis, selected = self._data, self._analysis, self._selection
-        monthly = self._monthly_data
+        monthly, alerts = self._monthly_data, self._alerts
 
         def action(cancel, progress):
-            export_inventory(data, analysis, selected, path, cancel, monthly=monthly)
+            export_inventory(data, analysis, selected, path, cancel, monthly=monthly, alerts=alerts)
             return ("export",)
 
         self._start(action, "export")
@@ -1396,9 +1599,13 @@ class InventoryController(QObject):
         self._debounce.stop()
         self._cancel.set()
         self._sort, self._descending = self._applied_sort
+        self._alert_policy = self._applied_alert_policy
+        self._alert_save_pending = False
+        self._alert_error = ""
         if self._applied_selection is not None:
             self._selection = self._applied_selection
         self.changed.emit()
+        self.alertsChanged.emit()
         self.backupChanged.emit()
 
     def shutdown(self, *, wait_ms=15000):

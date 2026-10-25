@@ -13,6 +13,7 @@ from pathlib import Path
 from threading import Event
 
 from .inventory import SCALE, InventoryData, StockAnalysis, StockSelection
+from .inventory_alerts import analyze_stock_alerts
 from .query import checkpoint
 
 HEADERS = (
@@ -33,6 +34,8 @@ HEADERS = (
     "Cobertura filial (d)",
     "CV vendas mensais",
 )
+
+_ALERTS_MAX_ROWS = 1_048_576
 
 
 class _ExactText(str):
@@ -382,6 +385,103 @@ def _append_monthly_sheets(workbook, months, cancel):
     return layouts
 
 
+def _append_alert_sheets(workbook, alerts, selection, cancel):
+    """Write every alert occurrence, without the presentation's ranking limit."""
+    headers = (
+        "Alerta",
+        "Código",
+        "Produto",
+        "Filial",
+        "UM",
+        "Saldo selecionado",
+        "Capital positivo (R$)",
+        "Última venda observada",
+        "Dias sem venda observada",
+        "Cobertura filial (dias)",
+        "Limite configurado (dias)",
+        "Data da base",
+        "Período de vendas",
+        "Abrangência",
+        "Definição",
+    )
+    widths = (30, 16, 50, 12, 10, 23, 25, 24, 25, 25, 25, 18, 24, 48, 90)
+    layouts = {}
+    part, row_number, sheet = 0, 0, None
+
+    def new_sheet():
+        nonlocal part, row_number, sheet
+        part += 1
+        title = "Alertas" + (" " + str(part) if part > 1 else "")
+        sheet = workbook.create_sheet(title)
+        sheet.append(headers)
+        layouts[title] = widths
+        row_number = 1
+
+    new_sheet()
+    categories = (
+        (
+            "Sem venda acima do limite",
+            alerts.stale,
+            alerts.policy.stale_days,
+            "Saldo selecionado positivo e última venda observada há mais de "
+            + str(alerts.policy.stale_days)
+            + " dias na data da base. Não mede idade física ou obsolescência.",
+        ),
+        (
+            "Cobertura abaixo do limite",
+            alerts.low_coverage,
+            alerts.policy.coverage_days,
+            "Cobertura conhecida da filial inferior a "
+            + str(alerts.policy.coverage_days)
+            + " dias, pela demanda líquida do período. Não é previsão garantida de ruptura.",
+        ),
+        (
+            "Sem venda registrada",
+            alerts.no_sale,
+            None,
+            "Saldo selecionado positivo sem saída positiva observada na filial e unidade. "
+            "Não comprova ausência de venda por um número de dias nem obsolescência.",
+        ),
+    )
+    for label, entries, threshold, definition in categories:
+        for item in entries:
+            checkpoint(cancel)
+            if row_number >= _ALERTS_MAX_ROWS:
+                new_sheet()
+            row_number += 1
+            scope = "Vendas da filial e unidade; saldo das posições selecionadas"
+            if selection.warehouse:
+                scope += "; armazém " + selection.warehouse + " selecionado"
+            _append_values(
+                sheet,
+                [
+                    label,
+                    item.code,
+                    item.name,
+                    item.branch,
+                    item.unit,
+                    _excel_scaled(item.quantity, SCALE),
+                    _excel_scaled(item.cost, 100),
+                    item.last_sale,
+                    item.days_since_sale,
+                    item.coverage,
+                    threshold,
+                    alerts.as_of,
+                    selection.start + " a " + selection.end,
+                    scope,
+                    definition,
+                ],
+                row_number,
+            )
+            sheet.cell(row_number, 6).number_format = "#,##0.000;[Red](#,##0.000)"
+            sheet.cell(row_number, 7).number_format = '"R$" #,##0.00;[Red]("R$" #,##0.00)'
+            for column in (8, 12):
+                sheet.cell(row_number, column).number_format = "dd/mm/yyyy"
+            sheet.cell(row_number, 10).number_format = "0.00"
+    checkpoint(cancel)
+    return layouts
+
+
 def export_inventory(
     data: InventoryData,
     analysis: StockAnalysis,
@@ -390,6 +490,7 @@ def export_inventory(
     cancel: Event,
     *,
     monthly=None,
+    alerts=None,
 ):
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -399,6 +500,8 @@ def export_inventory(
 
     if monthly is None:
         monthly = analyze_monthly_inventory(data, selection, analysis=analysis, cancel=cancel)
+    if alerts is None:
+        alerts = analyze_stock_alerts(data, selection, analysis, cancel=cancel)
     checkpoint(cancel)
 
     workbook = Workbook()
@@ -483,7 +586,8 @@ def export_inventory(
             n,
         )
         sales.cell(n, 3).number_format = "#,##0.000"
-    monthly_layouts = _append_monthly_sheets(workbook, monthly, cancel)
+    table_layouts = _append_monthly_sheets(workbook, monthly, cancel)
+    table_layouts.update(_append_alert_sheets(workbook, alerts, selection, cancel))
     rules = workbook.create_sheet("Leitura dos indicadores")
     rules.append(["Indicador", "Definição"])
     for entry in (
@@ -572,6 +676,50 @@ def export_inventory(
             "Consumo interno e histórico de entradas/lotes não estão disponíveis nesta base.",
         ),
         (
+            "Alertas · limites aplicados",
+            f"Tempo sem venda: mais de {alerts.policy.stale_days} dias. "
+            f"Cobertura baixa: inferior a {alerts.policy.coverage_days} dias. "
+            f"Referência da recência: {alerts.as_of.isoformat()}. "
+            f"Período de demanda: {selection.start} a {selection.end}.",
+        ),
+        (
+            "Alertas · tempo sem venda",
+            "Agrupa o saldo e o custo das posições atuais selecionadas por produto, filial e "
+            "unidade. Saldo agrupado positivo e dias desde a última saída positiva observada "
+            "estritamente acima do limite. Não mede idade de lote, consumo ou obsolescência. "
+            "A data de referência é a da base, independentemente do período de demanda.",
+        ),
+        (
+            "Alertas · sem venda registrada",
+            "Categoria informativa separada: saldo selecionado positivo sem última saída "
+            "positiva observada. A ausência de histórico não é convertida em zero ou infinito "
+            "e não comprova que o limite de tempo sem venda foi ultrapassado.",
+        ),
+        (
+            "Alertas · cobertura baixa",
+            "Usa a cobertura conhecida de todas as posições da filial, produto e unidade, "
+            "pela demanda líquida no período selecionado. Cobertura zero pode ser sinalizada; "
+            "valores ausentes ou negativos não são tratados como zero. A regra fica "
+            "indisponível com filtro de armazém, pois vendas não têm essa atribuição. "
+            "Não é previsão garantida de ruptura nem medida de consumo interno.",
+        ),
+        (
+            "Alertas · disponibilidade da cobertura",
+            ("Disponível no recorte. " if alerts.coverage_available else "Indisponível com filtro de armazém. ")
+            + str(alerts.coverage_unavailable_count)
+            + " grupos sem cobertura calculável.",
+        ),
+        (
+            "Alertas · ocorrências e capital",
+            f"Tempo sem venda: {len(alerts.stale)}; cobertura baixa: {len(alerts.low_coverage)}; "
+            f"sem venda registrada: {len(alerts.no_sale)}. Cada linha representa um produto, "
+            "filial, unidade e regra. Um mesmo grupo pode aparecer em regras diferentes; "
+            "somar ocorrências ou capital entre regras duplica esses grupos. O capital é "
+            "o custo positivo após agregar as posições selecionadas; quantidades de unidades "
+            "diferentes não são somadas. A aba inclui todas as ocorrências, mesmo além da "
+            "lista resumida da interface.",
+        ),
+        (
             "Precisão numérica do Excel",
             "Valores com mais de 15 dígitos significativos são texto decimal exato, "
             "identificado por comentário na célula. As unidades continuam as do cabeçalho; "
@@ -594,8 +742,8 @@ def export_inventory(
             ws.column_dimensions["B"].width = 88 if ws is rules else 24
             ws.column_dimensions["C"].width = 60
             ws.freeze_panes = "A2"
-        if ws.title in monthly_layouts:
-            for column, width in enumerate(monthly_layouts[ws.title], 1):
+        if ws.title in table_layouts:
+            for column, width in enumerate(table_layouts[ws.title], 1):
                 ws.column_dimensions[get_column_letter(column)].width = width
             ws.auto_filter.ref = f"A1:{get_column_letter(ws.max_column)}{ws.max_row}"
         for row in ws:

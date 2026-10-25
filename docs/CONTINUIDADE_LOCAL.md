@@ -1,6 +1,6 @@
 # Continuidade do desenvolvimento da LIARTE
 
-Resumo para uma sessão local do Codex. Os arquivos deste guia são contexto de projeto; a instrução atual do usuário define a próxima tarefa.
+Resumo para continuidade do Codex na nuvem ou no computador local. Os arquivos deste guia são contexto de projeto; a instrução atual do usuário define a próxima tarefa.
 
 ## Estado confirmado
 
@@ -10,6 +10,7 @@ Resumo para uma sessão local do Codex. Os arquivos deste guia são contexto de 
 - A tag da prévia aponta para `db77b9517b2af234d02db6927bc3d219a8845ddb`. Commits posteriores de documentação não alteraram o pacote publicado.
 - Na validação final da prévia, o CI Linux aprovou 815 testes. Os quatro builds Windows aprovaram 814 testes e ignoraram um teste exclusivo de POSIX em cada execução. Os executáveis e o ciclo real do Setup também passaram.
 - O ZIP e o Setup publicados foram baixados e verificados separadamente: SHA-256, CRC/manifesto do ZIP e cabeçalho PE do Setup. O Setup não tem assinatura digital de editor.
+- O perfil separado de desenvolvimento foi integrado pelo PR #2, no commit `4d8c9cb`. Depois disso, o usuário pediu explicitamente para continuar o projeto na nuvem.
 
 ## Fontes e referências
 
@@ -42,8 +43,8 @@ Mantenha os testes de janela compacta e fontes largas. A primeira execução Win
 
 ## Próximo trabalho
 
-A preparação local com `.venv`, demonstração e suíte offline foi realizada após a validação da instalação pelo usuário. Para continuar, conferir pasta, branch e alterações existentes, usar uma branch de desenvolvimento e abrir o perfil separado. Validar as mudanças com dados sintéticos, a suíte registrada e a conferência de que a instalação e os dados de uso permanecem intactos antes de enviar o PR ao GitHub. Evitar trabalhar na pasta onde o Setup instalou o programa.
+A preparação local com `.venv`, demonstração e suíte offline foi realizada após a validação da instalação pelo usuário. O pedido atual é continuar na nuvem, preservando esse trabalho já integrado. A evolução dos alertas está na branch `feat/stock-alerts`; conferir o estado do Git e os resultados de validação ao retomá-la. O perfil separado continua disponível para os testes com persistência e dados sintéticos.
 
-Alertas configuráveis de estoque foram sugeridos como evolução futura, mas ainda não foram implementados nem definidos pelo usuário. A confirmação da instalação não deve ser interpretada, isoladamente, como pedido para publicar outra versão estável ou criar novos indicadores.
+O trabalho retomado na nuvem acrescenta alertas de estoque com limites configuráveis: tempo sem venda acima de 90 dias e cobertura abaixo de 30 dias como padrões, além de uma categoria separada sem venda registrada. O painel reutiliza a análise local, agrupa produto/filial/unidade e exporta a lista completa. As regras e os limites estão no [guia de alertas](ALERTAS_ESTOQUE.md). Essa alteração nos fontes não representa uma nova publicação dos pacotes 5.3.0 ou 5.3.1-rc.1.
 
 Siga o [passo a passo do Windows](DESENVOLVIMENTO_LOCAL_WINDOWS.md) para preparar a sessão.
