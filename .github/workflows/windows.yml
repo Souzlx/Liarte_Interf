@@ -51,7 +51,7 @@ jobs:
           import unittest
           os.environ["QT_QPA_PLATFORM"] = "offscreen"
           os.environ["QT_QUICK_BACKEND"] = "software"
-          sys.path.insert(0, str(Path.cwd() / "src"))
+          sys.path[:0] = [str(Path.cwd()), str(Path.cwd() / "src")]
           from liarte_desktop.qt_runtime import configure_windows_qt
           configure_windows_qt()
           suite = unittest.defaultTestLoader.loadTestsFromNames([
