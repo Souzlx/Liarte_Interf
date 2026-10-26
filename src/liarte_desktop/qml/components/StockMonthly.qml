@@ -6,6 +6,9 @@ ColumnLayout {
     id: section
     objectName: "stockMonthly"
     required property var monthly
+    property var comparison: ({})
+    property var comparisonState: ({})
+    property bool comparisonEnabled: true
     property bool controlsEnabled: true
     property string metricKey: "cost"
     property string rankingKey: "sellers"
@@ -54,6 +57,8 @@ ColumnLayout {
     signal monthSelected(string period)
     signal unitSelected(string unit)
     signal productSelected(string code)
+    signal comparisonRequested(string base, string target)
+    signal comparisonFocusRequested(string dimension, string key)
     spacing: 14
 
     function optionIndex(options, value) {
@@ -283,6 +288,15 @@ ColumnLayout {
                 }
             }
         }
+    }
+    StockComparison {
+        Layout.fillWidth: true
+        Layout.minimumWidth: 0
+        comparison: section.comparison
+        comparisonState: section.comparisonState
+        controlsEnabled: section.comparisonEnabled
+        onComparisonRequested: (base, target) => section.comparisonRequested(base, target)
+        onComparisonFocusRequested: (dimension, key) => section.comparisonFocusRequested(dimension, key)
     }
     Rectangle {
         objectName: "stockMonthlyChartCard"

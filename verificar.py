@@ -95,9 +95,17 @@ def main():
     from tests.test_inventory_alerts_export import InventoryAlertsExportTests
     from tests.test_inventory_alerts_ui import InventoryAlertsUiTests
     from tests.test_inventory_alerts_qml import InventoryAlertQmlTests
+    from tests.test_inventory_compare import InventoryCompareTests
+    from tests.test_inventory_compare_export import InventoryCompareExportTests
+    from tests.test_inventory_compare_ui import InventoryComparisonUiTests
+    from tests.test_inventory_compare_qml import InventoryComparisonQmlTests
 
     suite = unittest.TestSuite()
     for case in (
+        InventoryCompareTests,
+        InventoryCompareExportTests,
+        InventoryComparisonUiTests,
+        InventoryComparisonQmlTests,
         InventoryAlertTests,
         InventoryAlertsExportTests,
         InventoryAlertsUiTests,

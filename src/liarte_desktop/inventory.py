@@ -43,6 +43,7 @@ from liarte_core.inventory import (
 from liarte_core.inventory_export import export_inventory
 from liarte_core.inventory_alerts import AlertPolicy, analyze_stock_alerts
 from liarte_core.inventory_monthly import analyze_monthly_inventory
+from liarte_core.inventory_compare import compare_inventory_months
 from liarte_core.inventory_assets import verify_bundled_inventory
 from liarte_core.inventory_search import ProductSearch
 from liarte_core.inventory_io import load_inventory, write_snapshot
@@ -53,6 +54,7 @@ from liarte_core.inventory_backup import (
     prune_backups,
 )
 from liarte_core.query import Cancelled, checkpoint
+from .inventory_compare_view import prepare_comparison
 
 LOGGER = logging.getLogger("liarte.desktop")
 # A timed-out shutdown must retain its QObject tree until QThread.finished.
@@ -311,6 +313,9 @@ class _Publication:
     alerts: object = None
     alert_view: dict | None = None
     alert_policy: AlertPolicy = AlertPolicy()
+    comparison: dict | None = None
+    comparison_views: dict | None = None
+    comparison_pair: tuple = ("", "")
 
 
 def _prepare_publication(
@@ -328,12 +333,18 @@ def _prepare_publication(
     load=None,
     *,
     alert_policy=AlertPolicy(),
+    comparison_base="",
+    comparison_target="",
 ):
     display, units = _monthly_presentation(monthly, cancel)
     view, period, unit = _monthly_view(display, units, selected, names, period, unit)
     ordered = _order_rows(analysis.rows, column, descending, cancel)
     alerts = analyze_stock_alerts(data, selected, analysis, alert_policy, cancel=cancel)
     alert_view = _alert_presentation(alerts, cancel)
+    comparison, comparison_views, comparison_base, comparison_target = prepare_comparison(
+        monthly, comparison_base, comparison_target, dict(data.branches), cancel,
+        compare=compare_inventory_months,
+    )
     checkpoint(cancel)
     return _Publication(
         kind,
@@ -352,6 +363,9 @@ def _prepare_publication(
         alerts=alerts,
         alert_view=alert_view,
         alert_policy=alert_policy,
+        comparison=comparison,
+        comparison_views=comparison_views,
+        comparison_pair=(comparison_base, comparison_target),
     )
 
 
@@ -610,6 +624,7 @@ class InventoryController(QObject):
     monthlyChanged = Signal()
     backupChanged = Signal()
     alertsChanged = Signal()
+    comparisonChanged = Signal()
     shutdownFinished = Signal()
 
     def __init__(self, settings=None, parent=None, *, cache_path=None, bundled_path=None):
@@ -667,6 +682,13 @@ class InventoryController(QObject):
         self._monthly_period = ""
         self._monthly_unit = ""
         self._monthly_view = {}
+        self._comparison_result = None
+        self._comparison_views = {}
+        self._compare_base = self._compare_target = ""
+        self._comparison_applied = ("", "")
+        self._comparison_pending = False
+        self._comparison_error = ""
+        self.changed.connect(self.comparisonChanged.emit)
         self._debounce = QTimer(self)
         self._debounce.setSingleShot(True)
         self._debounce.setInterval(140)
@@ -746,6 +768,93 @@ class InventoryController(QObject):
     def monthly(self):
         return self._monthly_view
 
+    @Property("QVariantMap", notify=comparisonChanged)
+    def comparison(self):
+        return self._comparison_views.get(
+            self._monthly_unit, next(iter(self._comparison_views.values()), {})
+        )
+
+    @Property("QVariantMap", notify=comparisonChanged)
+    def comparisonState(self):
+        return {
+            "available": bool(self._monthly_data) and not self._closed,
+            "months": [{"value": m["period"], "label": m["label"]} for m in self._monthly_display],
+            "base": self._compare_base, "target": self._compare_target,
+            "busy": self._task == "comparison" or self._comparison_pending,
+            "current": self._comparison_result is not None
+            and (self._compare_base, self._compare_target) == self._comparison_applied
+            and not self._comparison_pending and self._task != "comparison"
+            and self.state["current"],
+            "error": self._comparison_error,
+        }
+
+    @Slot(str, str)
+    def setComparisonMonths(self, base, target):
+        if (
+            self._closed or not self._monthly_data or not self.state["current"]
+            or self._thread is not None and self._task != "comparison"
+        ):
+            return
+        periods = {month["period"] for month in self._monthly_display}
+        if base not in periods or target not in periods:
+            self._comparison_error = "Selecione dois meses disponíveis no recorte carregado."
+            self.comparisonChanged.emit()
+            return
+        if (base, target) == self._comparison_applied and not self._comparison_error:
+            if (base, target) != (self._compare_base, self._compare_target):
+                self._generation += 1
+                self._cancel.set()
+                self._comparison_pending = False
+                self._compare_base, self._compare_target = base, target
+                self.comparisonChanged.emit()
+            return
+        self._compare_base, self._compare_target = base, target
+        self._comparison_error = ""
+        self._comparison_pending = True
+        self._generation += 1
+        if self._thread:
+            self._cancel.set()
+        else:
+            self._schedule_comparison()
+        self.comparisonChanged.emit()
+
+    def _schedule_comparison(self):
+        if self._thread or self._closed or not self._monthly_data:
+            return
+        self._comparison_pending = False
+        months = self._monthly_data
+        base, target = self._compare_base, self._compare_target
+        data = self._data
+
+        def action(cancel, progress):
+            result, views, first, second = prepare_comparison(
+                months, base, target, dict(data.branches), cancel,
+                compare=compare_inventory_months,
+            )
+            return ("comparison", result, views, first, second)
+
+        self._start(action, "comparison")
+
+    def _accept_comparison(self, result, views, base, target):
+        self._comparison_result, self._comparison_views = result, views or {}
+        self._compare_base, self._compare_target = base, target
+        self._comparison_applied = base, target
+        self._comparison_error = ""
+        self._comparison_pending = False
+        self.comparisonChanged.emit()
+
+    @Slot(str, str)
+    def focusComparison(self, dimension, key):
+        if self._thread or not self.comparisonState["current"] or self._closed:
+            return
+        collection = {"product": "products", "branch": "branches"}.get(dimension)
+        if collection is None:
+            return
+        rows = (row for metric in self.comparison.get("metrics", ()) for row in metric[collection])
+        if not any(row["key"] == key for row in rows):
+            return
+        self.setFilter(dimension, key)
+
     @Property("QVariantMap", notify=alertsChanged)
     def alerts(self):
         return self._alert_view
@@ -803,6 +912,8 @@ class InventoryController(QObject):
             if self._thread:
                 self._cancel.set()
             self._pending = True
+            if self._task == "comparison":
+                self._comparison_pending = True
             self._error = ""
             self._debounce.start()
             self.changed.emit()
@@ -891,6 +1002,7 @@ class InventoryController(QObject):
             self._monthly_unit,
         )
         self.monthlyChanged.emit()
+        self.comparisonChanged.emit()
 
     @Slot(str)
     def setMonthlyPeriod(self, period):
@@ -1040,6 +1152,7 @@ class InventoryController(QObject):
             return
         self._generation += 1
         self._pending = False
+        self._comparison_pending = False
         self._debounce.stop()
         self._backup_error = self._backup_notice = ""
         self._restoring_backup = backup_id is not None
@@ -1192,6 +1305,8 @@ class InventoryController(QObject):
         if self._thread:
             self._cancel.set()
         self._pending = True
+        if self._task == "comparison":
+            self._comparison_pending = True
         self._error = ""
         self._page = 1
         self._debounce.start()
@@ -1207,6 +1322,8 @@ class InventoryController(QObject):
         if self._thread:
             self._cancel.set()
         self._pending = True
+        if self._task == "comparison":
+            self._comparison_pending = True
         self._page = 1
         self._debounce.start()
         self.changed.emit()
@@ -1221,6 +1338,7 @@ class InventoryController(QObject):
         period, unit = self._monthly_period, self._monthly_unit
         names = self._search.names
         alert_policy = self._alert_policy
+        comparison_base, comparison_target = self._compare_base, self._compare_target
         cached_analysis = (
             self._analysis
             if selected == self._applied_selection
@@ -1249,6 +1367,8 @@ class InventoryController(QObject):
                 names,
                 cancel,
                 alert_policy=alert_policy,
+                comparison_base=comparison_base,
+                comparison_target=comparison_target,
             )
 
         self._start(action, "analysis")
@@ -1259,7 +1379,9 @@ class InventoryController(QObject):
         self._task = task
         self._progress = 0
         self._label = (
-            "Atualizando análise"
+            "Comparando os meses"
+            if task == "comparison"
+            else "Atualizando análise"
             if task in {"analysis", "sort"}
             else "Preparando Excel"
             if task == "export"
@@ -1267,7 +1389,7 @@ class InventoryController(QObject):
             if task == "backups"
             else "Abrindo base"
         )
-        if task != "backups":
+        if task not in {"backups", "comparison"}:
             self._error = ""
         self._thread = QThread(self)
         self._worker = InventoryWorker(action, self._cancel)
@@ -1304,6 +1426,8 @@ class InventoryController(QObject):
                 self.backupChanged.emit()
             elif result[0] == "alerts":
                 self._accept_alerts(*result[1:])
+            elif result[0] == "comparison":
+                self._accept_comparison(*result[1:])
             self.changed.emit()
             return
         if result.kind in {"load", "restore"}:
@@ -1351,6 +1475,9 @@ class InventoryController(QObject):
         self._monthly_period, self._monthly_unit = result.period, result.unit
         self._applied_selection = result.selected
         self._accept_alerts(result.alerts, result.alert_view, result.alert_policy)
+        self._accept_comparison(
+            result.comparison, result.comparison_views, *result.comparison_pair
+        )
         self._publish_rows()
         self.monthlyChanged.emit()
         self.analysisChanged.emit()
@@ -1366,6 +1493,10 @@ class InventoryController(QObject):
     @Slot(str)
     def _fail(self, message):
         if self._running_generation == self._generation and not self._cancel.is_set():
+            if self._task == "comparison":
+                self._comparison_error = message
+                self.comparisonChanged.emit()
+                return
             if self._task == "backups":
                 self._backup_error = message
                 self.backupChanged.emit()
@@ -1398,6 +1529,8 @@ class InventoryController(QObject):
             self._complete_shutdown()
         elif self._pending:
             self._debounce.start(0)
+        elif self._comparison_pending:
+            self._schedule_comparison()
         elif self._prune_requested:
             self._refresh_backups(clear_notice=False)
 
@@ -1578,6 +1711,7 @@ class InventoryController(QObject):
             or self._data is None
             or self._analysis is None
             or not self.state["current"]
+            or self._comparison_result is not None and not self.comparisonState["current"]
             or not url.isLocalFile()
         ):
             return
@@ -1585,10 +1719,13 @@ class InventoryController(QObject):
         if path.suffix.lower() != ".xlsx":
             path = path.with_suffix(".xlsx")
         data, analysis, selected = self._data, self._analysis, self._selection
-        monthly, alerts = self._monthly_data, self._alerts
+        monthly, alerts, comparison = self._monthly_data, self._alerts, self._comparison_result
 
         def action(cancel, progress):
-            export_inventory(data, analysis, selected, path, cancel, monthly=monthly, alerts=alerts)
+            export_inventory(
+                data, analysis, selected, path, cancel,
+                monthly=monthly, alerts=alerts, comparison=comparison,
+            )
             return ("export",)
 
         self._start(action, "export")
@@ -1602,6 +1739,9 @@ class InventoryController(QObject):
         self._alert_policy = self._applied_alert_policy
         self._alert_save_pending = False
         self._alert_error = ""
+        self._comparison_pending = False
+        self._compare_base, self._compare_target = self._comparison_applied
+        self._comparison_error = ""
         if self._applied_selection is not None:
             self._selection = self._applied_selection
         self.changed.emit()
