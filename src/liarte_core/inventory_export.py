@@ -492,6 +492,8 @@ def export_inventory(
     monthly=None,
     alerts=None,
     comparison=None,
+    performance=None,
+    performance_detail=None,
 ):
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -594,6 +596,14 @@ def export_inventory(
 
         table_layouts.update(
             append_comparison_sheets(workbook, comparison, data, selection, cancel)
+        )
+    if performance is not None:
+        from .inventory_performance_export import append_performance_sheets
+
+        table_layouts.update(
+            append_performance_sheets(
+                workbook, performance, performance_detail, data, selection, cancel
+            )
         )
     rules = workbook.create_sheet("Leitura dos indicadores")
     rules.append(["Indicador", "Definição"])
@@ -768,6 +778,28 @@ def export_inventory(
             ),
         ):
             rules.append(entry)
+    if performance is not None:
+        rules.append((
+            "Desempenho dos produtos · janelas",
+            str(performance.get("window", 3)) + " meses por janela. Anterior: "
+            + performance.get("baseLabel", "") + "; recente: "
+            + performance.get("targetLabel", "") + ". "
+            + str(performance.get("notice", "")) + " " + str(performance.get("reason", "")),
+        ))
+        rules.append((
+            "Desempenho dos produtos · abrangência",
+            performance.get("scope", "") + " A tabela inclui todos os produtos e unidades "
+            "do recorte, independentemente da busca, ordenação e paginação da lista.",
+        ))
+        rules.append((
+            "Desempenho dos produtos · interpretação",
+            "Vendas são quantidades líquidas, inclusive devoluções, em janelas completas "
+            "consecutivas; um zero líquido não comprova ausência de saídas positivas. "
+            "Percentuais exigem base positiva e nenhuma janela negativa. Giro é mediana "
+            "das posições elegíveis no fechamento-alvo, não giro consolidado. Cobertura "
+            "estima dias ao ritmo registrado e não mede idade de lote. As hipóteses "
+            "orientam uma investigação, sem comprovar causas, rupturas ou compras.",
+        ))
     edge = Side(style="thin", color="E3E9EF")
     alignment = Alignment(vertical="center", wrap_text=True)
     normal_font = Font(name="Calibri", size=11, color="20334A")
@@ -803,7 +835,7 @@ def export_inventory(
                 34
                 if ws is sheet
                 else max(30, math.ceil(len(str(row[1].value or "")) / 78) * 15 + 12)
-                if ws is rules
+                if ws is rules or ws.title == "Investigação do produto"
                 else 25
             )
         ws.print_title_rows = f"{header_row}:{header_row}"

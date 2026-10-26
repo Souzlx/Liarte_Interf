@@ -99,9 +99,23 @@ def main():
     from tests.test_inventory_compare_export import InventoryCompareExportTests
     from tests.test_inventory_compare_ui import InventoryComparisonUiTests
     from tests.test_inventory_compare_qml import InventoryComparisonQmlTests
+    from tests.test_inventory_performance import InventoryPerformanceTests
+    from tests.test_inventory_performance_export import InventoryPerformanceExportTests
+    from tests.test_inventory_performance_ui import (
+        InventoryPerformanceUiTests, InventoryPerformanceIntegrationTests,
+    )
+    from tests.test_inventory_performance_qml import (
+        InventoryPerformanceQmlTests, InventoryPerformanceWorkspaceTests,
+    )
 
     suite = unittest.TestSuite()
     for case in (
+        InventoryPerformanceTests,
+        InventoryPerformanceExportTests,
+        InventoryPerformanceUiTests,
+        InventoryPerformanceIntegrationTests,
+        InventoryPerformanceQmlTests,
+        InventoryPerformanceWorkspaceTests,
         InventoryCompareTests,
         InventoryCompareExportTests,
         InventoryComparisonUiTests,

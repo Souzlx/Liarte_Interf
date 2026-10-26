@@ -4,6 +4,7 @@ StockFilter 1.0 StockFilter.qml
 StockBars 1.0 StockBars.qml
 StockMonthly 1.0 StockMonthly.qml
 StockComparison 1.0 StockComparison.qml
+StockPerformance 1.0 StockPerformance.qml
 StockAlerts 1.0 StockAlerts.qml
 singleton Theme 1.0 Theme.qml
 ActionButton 1.0 ActionButton.qml
