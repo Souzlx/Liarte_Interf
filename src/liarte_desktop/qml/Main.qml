@@ -68,7 +68,7 @@ ApplicationWindow {
     palette.highlightedText: Ui.Theme.text
 
     onClosing: event => {
-        if (inventory.state.busy) {
+        if (inventory.presentation.busy) {
             event.accepted = false;
             if (!inventoryClosing)
                 closeDialog.open();
@@ -112,7 +112,7 @@ ApplicationWindow {
     Connections {
         target: inventory
         function onChanged() {
-            if (window.inventoryClosing && !inventory.state.busy && !window.viewState.busy && !window.viewState.exportBusy && !window.viewState.metadataBusy)
+            if (window.inventoryClosing && !inventory.presentation.busy && !window.viewState.busy && !window.viewState.exportBusy && !window.viewState.metadataBusy)
                 Qt.callLater(() => window.close());
         }
     }
@@ -267,7 +267,7 @@ ApplicationWindow {
                             ToolTip.text: "Estoque"
                         }
                         Repeater {
-                            model: platform.activeModule === "inventory" && inventory.state.loaded ? [
+                            model: platform.activeModule === "inventory" && inventory.presentation.loaded ? [
                                 {
                                     key: "overview",
                                     label: "Panorama",
@@ -458,7 +458,7 @@ ApplicationWindow {
                     id: homePage
                     platform: window.platformController
                     importState: window.viewState
-                    inventoryState: inventory.state
+                    inventoryState: inventory.presentation
                     importAnalysis: controller.analysis
                     inventoryAnalysis: inventory.analysis
                     onModuleRequested: key => platform.openModule(key)

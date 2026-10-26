@@ -59,6 +59,9 @@ jobs:
               "tests.test_inventory_alerts_qml",
               "tests.test_inventory_compare_qml",
               "tests.test_inventory_performance_qml",
+              "tests.test_ux_stock_filters",
+              "tests.test_ux_navigation",
+              "tests.test_ux_chart_interactions",
           ])
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(0 if result.wasSuccessful() else 1)

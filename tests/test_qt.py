@@ -7,7 +7,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from PySide6.QtCore import QCoreApplication, QEvent, QObject, QPoint, QPointF, QSettings, QTimer, Qt
+from PySide6.QtCore import Q_ARG, QCoreApplication, QEvent, QMetaObject, QObject, QPoint, QPointF, QSettings, QTimer, Qt
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQuickControls2 import QQuickStyle
 from PySide6.QtTest import QAbstractItemModelTester, QTest
@@ -296,13 +296,23 @@ class QtTests(unittest.TestCase):
     def test_control_f_reveals_search_below_fold(self):
         self.load()
         QTest.keyClick(self.window, Qt.Key.Key_F, Qt.KeyboardModifier.ControlModifier)
-        APP.processEvents()
-        self.assertTrue(self.item("searchBox").hasActiveFocus())
-        self.assertGreater(self.item("contentScroll").property("contentY"), 0)
+        self.assertTrue(pump(lambda: self.item("searchBox").hasActiveFocus()))
+        self.assertEqual(self.item("importsWorkspace").property("activeSection"), "records")
+        self.assertTrue(self.item("recordsPanel").isVisible())
+        self.assertFalse(self.item("trendPanel").isVisible())
+        search, scroll = self.item("searchBox"), self.item("contentScroll")
+        position = search.mapToItem(scroll, QPointF())
+        self.assertGreaterEqual(position.y(), -1)
+        self.assertLessEqual(position.y() + search.height(), scroll.height() + 1)
         self.assertEqual(self.bundle.messages, [])
 
     def test_keyboard_keeps_selected_row_visible(self):
         self.load()
+        QMetaObject.invokeMethod(
+            self.item("importsWorkspace"), "navigate", Qt.ConnectionType.DirectConnection,
+            Q_ARG("QVariant", "records"),
+        )
+        self.assertTrue(pump(lambda: self.item("recordsPanel").isVisible()))
         scroll = self.item("contentScroll")
         scroll.setProperty("contentY", scroll.property("contentHeight") - scroll.height())
         table = self.item("recordsTable")

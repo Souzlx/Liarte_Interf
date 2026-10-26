@@ -106,7 +106,7 @@ class AuditQmlTests(unittest.TestCase):
         self.assert_home_focus()
         self.assertAlmostEqual(scroll.property("contentY"), previous_scroll, delta=1)
 
-    def test_stock_last_section_is_products_at_end_in_tall_windows(self):
+    def test_stock_scroll_does_not_select_another_task_in_tall_windows(self):
         self.load_inventory()
         self.open_inventory()
         workspace, scroll = self.item("inventoryWorkspace"), self.item("stockScroll")
@@ -116,7 +116,7 @@ class AuditQmlTests(unittest.TestCase):
                 self.settle_layout()
                 scroll.setProperty("contentY", scroll.property("contentHeight") - scroll.height())
                 APP.processEvents()
-                self.assertEqual(workspace.property("activeSection"), "products")
+                self.assertEqual(workspace.property("activeSection"), "overview")
                 QMetaObject.invokeMethod(
                     workspace,
                     "navigate",
@@ -125,6 +125,14 @@ class AuditQmlTests(unittest.TestCase):
                 )
                 APP.processEvents()
                 self.assertEqual(workspace.property("activeSection"), "products")
+                scroll.setProperty("contentY", max(0, scroll.property("contentHeight") - scroll.height()))
+                APP.processEvents()
+                self.assertEqual(workspace.property("activeSection"), "products")
+                QMetaObject.invokeMethod(
+                    workspace, "navigate", Qt.ConnectionType.DirectConnection,
+                    Q_ARG("QVariant", "overview"),
+                )
+                APP.processEvents()
 
     def test_detail_keyboard_reveals_chart_readout_and_previous_control(self):
         self.window.resize(500, 400)

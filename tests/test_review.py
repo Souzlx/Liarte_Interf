@@ -356,12 +356,15 @@ class ReviewQtTests(unittest.TestCase):
         from PySide6.QtGui import QFont, QFontDatabase, QFontMetricsF
 
         self.load()
+        self.item("importsWorkspace").setProperty("periodExpanded", True)
+        self.item("importsWorkspace").setProperty("filtersExpanded", True)
+        APP.processEvents()
         self.item("trendMetric").setProperty("currentIndex", 1)
         self.item("quickExportButton").setProperty("visible", True)
         controls = [
             self.item(name)
             for name in (
-                "settingsButton", "toggleFilters", "filterExpansion", "clearFilters",
+                "settingsButton", "toggleFilters", "editImportPeriod", "clearFilters",
                 "priceScale", "openTrendValues", "quickExportButton", "queryButton",
                 "cancelButton",
             )
@@ -408,7 +411,7 @@ class ReviewQtTests(unittest.TestCase):
                 self.assertGreaterEqual(left, 0, caption)
                 self.assertLessEqual(left + control.width(), width, caption)
             for names in (
-                ("toggleFilters", "filterExpansion", "clearFilters"),
+                ("toggleFilters", "clearFilters"),
                 ("priceScale", "openTrendValues"),
             ):
                 first, last = self.item(names[0]), self.item(names[-1])

@@ -147,11 +147,14 @@ class UsabilityTests(unittest.TestCase):
         self.controller.setPreference("reducedMotion", True)
         test_comex.click(self.window, self.item("jump_records"))
         self.assertTrue(pump(lambda: self.window.property("activeSection") == "records"))
-        self.assertGreater(self.item("contentScroll").property("contentY"), 500)
+        self.assertTrue(self.item("recordsPanel").isVisible())
+        self.assertFalse(self.item("trendPanel").isVisible())
         test_comex.click(self.window, self.item("jump_buying"))
         self.assertTrue(pump(lambda: self.window.property("activeSection") == "buying"))
         test_comex.click(self.window, self.item("jump_summary"))
-        self.assertTrue(pump(lambda: self.item("contentScroll").property("contentY") < 20))
+        self.assertTrue(pump(lambda: self.window.property("activeSection") == "summary"))
+        self.assertTrue(self.item("trendPanel").isVisible())
+        self.assertFalse(self.item("recordsPanel").isVisible())
         self.assertEqual(self.controller.state["countryValues"], ["China"])
         self.assertEqual(self.controller.analysis, before)
         self.assertEqual(len(self.transport.calls), calls)
@@ -166,7 +169,7 @@ class UsabilityTests(unittest.TestCase):
         self.assertTrue(pump(lambda: not animation.property("running"), 1))
         scroll = self.item("contentScroll")
         self.assertLessEqual(
-            scroll.property("contentY"), scroll.property("contentHeight") - scroll.height() + 0.1
+            scroll.property("contentY"), max(0, scroll.property("contentHeight") - scroll.height()) + 0.1
         )
         self.controller.setPreference("reducedMotion", True)
         test_comex.click(self.window, self.item("jump_summary"))
@@ -400,6 +403,7 @@ class UsabilityTests(unittest.TestCase):
         self.controller.setFilters("state", [pair[1]])
         settled(self.controller)
         self.assertTrue(self.controller.analysis["procurement"]["empty"])
+        test_comex.click(self.window, self.item("jump_buying"))
         self.assertTrue(self.item("recoverEmptyFilters").isVisible())
         self.assertFalse(self.item("chooseComparisonProduct").isVisible())
         self.assertFalse(self.item("exportPdf").isEnabled())

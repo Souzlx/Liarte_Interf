@@ -87,7 +87,9 @@ class InterfaceTests(unittest.TestCase):
 
     def test_origin_bars_use_all_origins_as_denominator(self):
         self.load()
+        test_comex.click(self.window, self.item("importVisualOrigins"))
         chart = self.item("originChart")
+        self.assertTrue(chart.isVisible())
         rows = [
             {"label": str(i), "value": value, "share": str(value) + "%"}
             for i, value in enumerate((40, 20, 10, 10, 8, 7, 5))
@@ -174,6 +176,8 @@ class InterfaceTests(unittest.TestCase):
 
     def test_primary_button_captions_are_not_truncated(self):
         self.load()
+        self.item("importsWorkspace").setProperty("periodExpanded", True)
+        APP.processEvents()
         for width in (500, 760, 1120, 1380):
             self.window.resize(width, 900)
             QTest.qWait(20)

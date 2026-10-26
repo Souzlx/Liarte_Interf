@@ -40,7 +40,7 @@ FocusScope {
                 basis: "Saldo a custo · R$",
                 scope: "Valores do recorte aplicado no módulo",
                 status: inventoryState.busy || !inventoryState.current ? "Atualizando · último resultado concluído" : "Último recorte aplicado",
-                metrics: stock.length > 4 ? [stock[0], stock[4]] : stock.slice(0, 2)
+                metrics: stock.slice(0, 2)
             });
         return cards;
     }

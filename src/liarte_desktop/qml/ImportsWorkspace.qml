@@ -13,17 +13,55 @@ FocusScope {
     function openExportMenu() {
         quickExportMenu.open();
     }
+    property string activeSection: "summary"
+    property string primaryVisual: "trend"
+    property bool periodExpanded: false
+    property bool documentsExpanded: false
+    property var sectionPositions: ({
+            summary: 0,
+            buying: 0,
+            records: 0
+        })
+    property var sectionFocus: ({})
+    property string lastAppliedPeriod: ""
+
+    function belongsToWorkspace(item) {
+        for (let ancestor = item; ancestor; ancestor = ancestor.parent)
+            if (ancestor === window)
+                return true;
+        return false;
+    }
     function restoreFocus() {
-        if (!window.viewState.loaded)
-            queryButton.forceActiveFocus();
+        if (!viewState.loaded) {
+            queryPanel.focusQuery();
+            return;
+        }
+        const saved = sectionFocus[activeSection];
+        if (saved && saved.visible && saved.enabled && belongsToWorkspace(saved)) {
+            saved.forceActiveFocus(Qt.TabFocusReason);
+            reveal(saved);
+        } else if (activeSection === "records")
+            recordsPanel.focusFirst();
+        else if (activeSection === "buying")
+            buyingSection.focusFirst();
+        else if (primaryVisual === "trend")
+            trendPanel.focusFirst();
         else
-            tableView.forceActiveFocus();
+            visualOrigins.forceActiveFocus(Qt.TabFocusReason);
+    }
+    Connections {
+        target: window.hostWindow
+        function onActiveFocusItemChanged() {
+            const item = window.hostWindow.activeFocusItem;
+            if (window.visible && !window.modalOpen && item && window.belongsToWorkspace(item))
+                window.sectionFocus[window.activeSection] = item;
+        }
     }
     readonly property var viewState: controller.presentation
     readonly property var analysis: controller.analysis
     readonly property var buying: analysis.procurement
     property int originLimit: 8
-    property bool filtersExpanded: true
+    property bool filtersExpanded: false
     property bool methodologyExpanded: false
     readonly property bool localActivityPending: viewState.loaded && (viewState.waiting || (viewState.busy && viewState.localBusy))
     property bool localActivityVisible: false
@@ -41,18 +79,13 @@ FocusScope {
         onTriggered: window.localActivityVisible = window.localActivityPending
     }
     function chooseProduct() {
-        filtersExpanded = true;
-        Qt.callLater(() => {
-            window.reveal(productFilter);
-            productFilter.forceActiveFocus();
-            productFilter.popup.open();
-        });
+        filterPanel.chooseProduct();
     }
     readonly property var matchingOrigins: {
         if (!buying.comparable)
             return [];
-        const rows = buying.origins.filter(row => row.kgValue >= Number(originMinWeight.currentValue || 0));
-        const order = originOrder.currentValue || "volume";
+        const rows = buying.origins.filter(row => row.kgValue >= Number(buyingSection.minimumWeight || 0));
+        const order = buyingSection.order || "volume";
         rows.sort((a, b) => {
             if (order === "volume")
                 return a.volumeRank - b.volumeRank;
@@ -63,81 +96,58 @@ FocusScope {
         return rows;
     }
     onBuyingChanged: originLimit = 8
-    readonly property string activeSection: contentScroll.atYEnd && contentScroll.contentHeight > contentScroll.height ? "records" : contentScroll.contentY >= recordsPanel.y + body.y - 80 ? "records" : contentScroll.contentY >= buyingSection.y + body.y - 80 ? "buying" : "summary"
     function navigate(section) {
-        const item = section === "records" ? recordsPanel : section === "buying" ? buyingSection : section === "documents" ? documentsPanel : queryPanel;
-        const maximum = Math.max(0, contentScroll.contentHeight - contentScroll.height);
-        const target = Math.max(0, Math.min(maximum, item.y + body.y - 12));
-        navigation.stop();
-        if (!Ui.Theme.motionEnabled)
-            contentScroll.contentY = target;
-        else {
-            navigation.to = target;
-            navigation.restart();
+        if (section === "documents") {
+            documentsExpanded = true;
+            navigate("records");
+            Qt.callLater(() => reveal(documentsPanel));
+            return;
         }
+        if (!["summary", "buying", "records"].includes(section))
+            return;
+        if (activeSection !== section) {
+            sectionPositions[activeSection] = contentScroll.contentY;
+            activeSection = section;
+            navigation.stop();
+            if (Ui.Theme.motionEnabled)
+                navigation.restart();
+            else
+                body.opacity = 1;
+        }
+        Qt.callLater(() => {
+            const maximum = Math.max(0, contentScroll.contentHeight - contentScroll.height);
+            contentScroll.contentY = Math.max(0, Math.min(maximum, sectionPositions[activeSection] || 0));
+            Qt.callLater(window.restoreFocus);
+        });
     }
     NumberAnimation {
         id: navigation
         objectName: "navigationAnimation"
-        target: contentScroll
-        property: "contentY"
-        duration: 240
-        easing.type: Easing.OutCubic
-    }
-    NumberAnimation {
-        id: recordsTransition
-        objectName: "recordsTransition"
-        target: tableView
+        target: body
         property: "opacity"
-        from: 0.90
+        from: 0.96
         to: 1
         duration: 140
         easing.type: Easing.OutCubic
     }
     Connections {
-        target: recordModel
-        function onContentChanged() {
-            if (Ui.Theme.motionEnabled && tableView.visible && window.viewState.loaded)
-                recordsTransition.restart();
-            else {
-                recordsTransition.stop();
-                tableView.opacity = 1;
-            }
-        }
-    }
-    Connections {
         target: Ui.Theme
         function onMotionEnabledChanged() {
             if (!Ui.Theme.motionEnabled) {
-                recordsTransition.stop();
-                tableView.opacity = 1;
-            }
-            if (!Ui.Theme.motionEnabled && navigation.running) {
-                const target = navigation.to;
                 navigation.stop();
-                contentScroll.contentY = Math.max(0, Math.min(target, contentScroll.contentHeight - contentScroll.height));
+                body.opacity = 1;
             }
         }
     }
-    readonly property string trendKey: trendMetric.currentValue || "value"
-    readonly property var trendData: buying.series[trendKey] || buying.series.value || ({
-            points: [],
-            unit: "US$ mi",
-            precision: 2,
-            change: "—",
-            comparison: "",
-            hasRolling: false,
-            rollingLabel: ""
-        })
-    readonly property var lastTrendPoint: trendData.points.length ? trendData.points[trendData.points.length - 1] : ({label: "", display: "—"})
-    readonly property bool modalOpen: globalModalOpen || detailDialog.visible || exportDialog.visible || productFilter.popup.visible || countryFilter.popup.visible || stateFilter.popup.visible || portFilter.popup.visible || cityFilter.popup.visible || startPeriod.popup.visible || endPeriod.popup.visible || trendMetric.popup.visible || originMinWeight.popup.visible || originOrder.popup.visible || quickExportMenu.visible || trendValuesDialog.visible || importChartDialog.visible || tableProfile.popup.visible
-    readonly property bool draftPeriod: viewState.loaded && (startPeriod.currentValue !== viewState.appliedStart || endPeriod.currentValue !== viewState.appliedEnd)
+    readonly property string trendKey: trendPanel.trendKey
+    readonly property var trendData: trendPanel.trendData
+    readonly property bool modalOpen: globalModalOpen || detailDialog.visible || exportDialog.visible || filterPanel.modalOpen || queryPanel.modalOpen || trendPanel.modalOpen || buyingSection.modalOpen || recordsPanel.modalOpen || quickExportMenu.visible || trendValuesDialog.visible || importChartDialog.visible
+    readonly property bool draftPeriod: viewState.loaded && (queryPanel.startValue !== viewState.appliedStart || queryPanel.endValue !== viewState.appliedEnd)
     readonly property bool collapsed: hostWindow.width < 1120
     readonly property var headers: viewState.headers
     readonly property string shownKind: viewState.appliedKind
     onShownKindChanged: {
-        tableView.contentX = 0;
-        tableView.contentY = 0;
+        recordsPanel.resetPosition();
     }
     readonly property string valueBasis: viewState.appliedKind === "municipal" ? "FOB" : "CIF"
     readonly property int pauseSeconds: viewState.sourcePauseSeconds || 0
@@ -168,6 +178,8 @@ FocusScope {
         exportDialog.open();
     }
     function reveal(item) {
+        if (!item || !item.visible)
+            return;
         const point = item.mapToItem(contentScroll.contentItem, 0, 0);
         const maximum = Math.max(0, contentScroll.contentHeight - contentScroll.height);
         if (point.y < contentScroll.contentY)
@@ -180,21 +192,25 @@ FocusScope {
         function onPresentationChanged() {
             if (window.viewState.selection < 0 && detailDialog.visible)
                 detailDialog.close();
+            const applied = window.viewState.appliedStart + "/" + window.viewState.appliedEnd;
+            if (window.viewState.loaded && applied !== window.lastAppliedPeriod) {
+                window.periodExpanded = false;
+                window.lastAppliedPeriod = applied;
+            }
         }
     }
     Shortcut {
         sequence: "Ctrl+F"
         enabled: window.visible && window.viewState.loaded && !window.modalOpen
         onActivated: {
-            window.reveal(searchBox);
-            searchBox.forceActiveFocus();
-            searchBox.selectAll();
+            window.navigate("records");
+            Qt.callLater(() => recordsPanel.focusSearch());
         }
     }
     Shortcut {
         sequence: "F5"
         enabled: window.visible && !window.viewState.busy && !window.viewState.metadataBusy && window.pauseSeconds === 0 && !window.modalOpen
-        onActivated: controller.queryPeriod(startPeriod.currentValue, endPeriod.currentValue)
+        onActivated: controller.queryPeriod(queryPanel.startValue, queryPanel.endValue)
     }
 
     readonly property var activeFilters: [
@@ -273,199 +289,10 @@ FocusScope {
                     wrapMode: Text.WordWrap
                 }
             }
-            Rectangle {
+            Ui.ImportQueryPanel {
                 id: queryPanel
-                objectName: "queryPanel"
-                Layout.fillWidth: true
-                Layout.preferredHeight: queryBody.implicitHeight + 24
-                color: Ui.Theme.surface
-                radius: Ui.Theme.radius
-                border.color: Ui.Theme.softLine
-                ColumnLayout {
-                    id: queryBody
-                    anchors.fill: parent
-                    anchors.margins: 12
-                    spacing: 12
-                    GridLayout {
-                        Layout.fillWidth: true
-                        Layout.maximumWidth: 740
-                        columns: body.width > 650 ? 3 : body.width > 470 ? 2 : 1
-                        columnSpacing: 12
-                        rowSpacing: 12
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 195
-                            Layout.preferredWidth: 255
-                            spacing: 5
-                            Text {
-                                textFormat: Text.PlainText
-                                text: "Mês inicial"
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                            }
-                            Ui.AppCombo {
-                                id: startPeriod
-                                objectName: "startPeriod"
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(startPeriod)
-                                Layout.fillWidth: true
-                                model: controller.periods
-                                enabled: !window.viewState.metadataBusy && !window.viewState.busy
-                                currentIndex: model.findIndex(item => item.value === window.viewState.defaultStart)
-                                Accessible.name: "Mês inicial"
-                                onActivated: controller.setDraftPeriod("start", currentValue)
-                            }
-                        }
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 195
-                            Layout.preferredWidth: 255
-                            spacing: 5
-                            Text {
-                                textFormat: Text.PlainText
-                                text: "Mês final"
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                            }
-                            Ui.AppCombo {
-                                id: endPeriod
-                                objectName: "endPeriod"
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(endPeriod)
-                                Layout.fillWidth: true
-                                model: controller.periods
-                                enabled: !window.viewState.metadataBusy && !window.viewState.busy
-                                currentIndex: model.findIndex(item => item.value === window.viewState.defaultEnd)
-                                Accessible.name: "Mês final"
-                                onActivated: controller.setDraftPeriod("end", currentValue)
-                            }
-                        }
-                        Ui.ActionButton {
-                            id: queryButton
-                            objectName: "queryButton"
-                            iconName: "search"
-                            text: window.draftPeriod ? "Aplicar período" : window.viewState.busy && !window.viewState.localBusy ? "Consultando…" : "Consultar"
-                            primary: true
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 155
-                            Layout.minimumWidth: naturalWidth
-                            Layout.alignment: Qt.AlignBottom
-                            enabled: !window.viewState.busy && !window.viewState.metadataBusy && window.pauseSeconds === 0
-                            onClicked: controller.queryPeriod(startPeriod.currentValue, endPeriod.currentValue)
-                        }
-                    }
-                    Flow {
-                        Layout.fillWidth: true
-                        spacing: 6
-                        Ui.ActionButton {
-                            objectName: "cancelButton"
-                            text: window.viewState.busy || window.viewState.waiting || window.viewState.metadataBusy ? "Cancelar" : window.viewState.demo ? "Todo o período" : "Último mês"
-                            implicitWidth: Math.max(130, naturalWidth)
-                            implicitHeight: 30
-                            font.pixelSize: 11
-                            subtle: !window.viewState.busy && !window.viewState.waiting
-                            onClicked: {
-                                if (window.viewState.metadataBusy)
-                                    controller.cancelAvailability();
-                                else if (window.viewState.busy || window.viewState.waiting)
-                                    controller.cancel();
-                                else {
-                                    const last = controller.periods[controller.periods.length - 1].value;
-                                    controller.queryPeriod(window.viewState.demo ? controller.periods[0].value : last, last);
-                                }
-                            }
-                        }
-                        Repeater {
-                            model: [3, 6, 12]
-                            Ui.ActionButton {
-                                required property int modelData
-                                objectName: "preset" + modelData
-                                text: "Últimos " + modelData + " meses"
-                                implicitHeight: 30
-                                implicitWidth: Math.max(130, naturalWidth)
-                                subtle: true
-                                font.pixelSize: 11
-                                enabled: !window.viewState.busy && !window.viewState.metadataBusy
-                                onClicked: controller.setPeriodPreset(modelData)
-                                ToolTip.visible: hovered
-                                ToolTip.text: "Preencher meses publicados mais recentes. Confirme em Consultar."
-                                ToolTip.delay: 500
-                            }
-                        }
-                    }
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        visible: (window.viewState.busy && !window.viewState.localBusy) || (window.viewState.waiting && !window.viewState.loaded) || window.viewState.metadataBusy || window.viewState.closing
-                        spacing: 6
-                        Ui.TaskProgress {
-                            objectName: "queryProgress"
-                            Layout.fillWidth: true
-                            from: 0
-                            to: 100
-                            indeterminate: window.viewState.waiting || window.viewState.metadataBusy
-                            value: window.viewState.progress
-                            Accessible.name: "Progresso da consulta"
-                        }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Text {
-                                objectName: "queryStage"
-                                textFormat: Text.PlainText
-                                Layout.fillWidth: true
-                                text: window.viewState.metadataBusy ? "Verificando publicação do Comex Stat…" : window.viewState.waiting ? "Aplicando filtros…" : window.viewState.stage.replace(/\s*\(HTTP\s+\d{3}\)/g, "")
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                                wrapMode: Text.WordWrap
-                            }
-                            Text {
-                                textFormat: Text.PlainText
-                                text: window.viewState.progress + "%"
-                                visible: !window.viewState.metadataBusy && !window.viewState.waiting
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                            }
-                        }
-                        Text {
-                            textFormat: Text.PlainText
-                            visible: window.viewState.loaded
-                            Layout.fillWidth: true
-                            text: "Exibindo o último resultado concluído."
-                            color: Ui.Theme.warningText
-                            font.pixelSize: 10
-                            wrapMode: Text.WordWrap
-                        }
-                    }
-                    Text {
-                        objectName: "queryError"
-                        textFormat: Text.PlainText
-                        Layout.fillWidth: true
-                        visible: window.pauseSeconds > 0 || window.viewState.error.length > 0 || window.viewState.metadataError.length > 0
-                        text: window.pauseSeconds > 0 ? "O Comex Stat solicitou uma pausa. " + (window.viewState.busy || window.viewState.metadataBusy ? "Aguardando " + window.pauseLabel + " para uma nova tentativa automática." : "Aguarde " + window.pauseLabel + " antes de consultar novamente.") : window.userError(window.viewState.error || window.viewState.metadataError)
-                        color: window.pauseSeconds > 0 || window.sourcePauseError(window.viewState.error || window.viewState.metadataError) ? Ui.Theme.muted : Ui.Theme.danger
-                        font.pixelSize: 12
-                        wrapMode: Text.WordWrap
-                        Accessible.role: Accessible.AlertMessage
-                    }
-                    Text {
-                        textFormat: Text.PlainText
-                        Layout.fillWidth: true
-                        visible: !window.viewState.busy && !window.viewState.waiting && window.viewState.stage.includes("cancelada")
-                        text: window.viewState.stage
-                        color: Ui.Theme.muted
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                    }
-                    Text {
-                        textFormat: Text.PlainText
-                        objectName: "draftPeriodNotice"
-                        Layout.fillWidth: true
-                        visible: window.draftPeriod && !window.viewState.busy
-                        text: "Período alterado. Aplique para atualizar."
-                        color: Ui.Theme.warningText
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                    }
-                }
+                workspace: window
+                backend: controller
             }
             Rectangle {
                 objectName: "emptyState"
@@ -576,191 +403,26 @@ FocusScope {
                     ToolTip.text: window.viewState.appliedKind === "municipal" ? "Município do domicílio fiscal do importador. Posição SH4 e valor FOB; universo mais amplo que os NCMs cadastrados." : "Importações agregadas por NCM, UF, país e URF."
                 }
             }
-            Rectangle {
+            Ui.ImportFilters {
                 id: filterPanel
-                objectName: "filterPanel"
-                visible: window.viewState.loaded
+                workspace: window
+                backend: controller
+            }
+            Text {
+                objectName: "importLocalUpdateNotice"
+                visible: window.localActivityVisible
                 Layout.fillWidth: true
-                Layout.preferredHeight: filterBody.implicitHeight + 24
-                color: Ui.Theme.surface
-                radius: Ui.Theme.radius
-                border.color: Ui.Theme.softLine
-                ColumnLayout {
-                    id: filterBody
-                    anchors.fill: parent
-                    anchors.margins: 12
-                    spacing: 8
-                    GridLayout {
-                        id: filterActions
-                        Layout.fillWidth: true
-                        Layout.maximumWidth: Infinity
-                        columns: parent.width >= toggleFilters.implicitWidth + filterExpansion.implicitWidth + clearFilters.implicitWidth + 3 * columnSpacing ? 4 : parent.width >= filterExpansion.implicitWidth + clearFilters.implicitWidth + columnSpacing ? 2 : 1
-                        Ui.ActionButton {
-                            id: toggleFilters
-                            objectName: "toggleFilters"
-                            Layout.columnSpan: filterActions.columns === 4 ? 1 : filterActions.columns
-                            Layout.minimumWidth: naturalWidth
-                            iconName: "filter"
-                            text: "Filtros" + (window.viewState.filterCount ? " · " + window.viewState.filterCount : "")
-                            implicitHeight: 30
-                            subtle: true
-                            Accessible.name: window.filtersExpanded ? "Recolher filtros" : "Expandir filtros"
-                            onClicked: window.filtersExpanded = !window.filtersExpanded
-                        }
-                        Item {
-                            visible: filterActions.columns === 4
-                            Layout.fillWidth: true
-                        }
-                        Ui.ActionButton {
-                            id: filterExpansion
-                            objectName: "filterExpansion"
-                            text: window.filtersExpanded ? "Recolher" : "Expandir"
-                            implicitHeight: 30
-                            implicitWidth: Math.max(90, naturalWidth)
-                            Layout.minimumWidth: implicitWidth
-                            subtle: true
-                            onClicked: window.filtersExpanded = !window.filtersExpanded
-                        }
-                        Ui.ActionButton {
-                            id: clearFilters
-                            objectName: "clearFilters"
-                            text: "Limpar"
-                            implicitHeight: 28
-                            implicitWidth: Math.max(80, naturalWidth)
-                            Layout.minimumWidth: implicitWidth
-                            subtle: true
-                            enabled: window.viewState.filterCount > 0 || searchBox.text.length > 0
-                            onClicked: controller.clearFilters()
-                        }
-                    }
-                    GridLayout {
-                        Layout.fillWidth: true
-                        visible: window.filtersExpanded
-                        columns: body.width > 970 ? 4 : body.width > 550 ? 2 : 1
-                        columnSpacing: 12
-                        rowSpacing: 10
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 340
-                            spacing: 6
-                            Text {
-                                textFormat: Text.PlainText
-                                text: window.viewState.kind === "municipal" ? "Posição SH4" : "Produto / NCM"
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                            }
-                            Ui.MultiCombo {
-                                id: productFilter
-                                objectName: "productFilter"
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(productFilter)
-                                Layout.fillWidth: true
-                                model: controller.products
-                                currentValues: window.viewState.ncmValues
-                                Accessible.name: "Filtrar por produto ou código"
-                                onValuesChosen: values => controller.setFilters("ncm", values)
-                            }
-                        }
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 210
-                            spacing: 6
-                            Text {
-                                textFormat: Text.PlainText
-                                text: "País de origem"
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                            }
-                            Ui.MultiCombo {
-                                id: countryFilter
-                                objectName: "countryFilter"
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(countryFilter)
-                                Layout.fillWidth: true
-                                model: controller.countries
-                                currentValues: window.viewState.countryValues
-                                Accessible.name: "Filtrar por país"
-                                onValuesChosen: values => controller.setFilters("country", values)
-                            }
-                        }
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 115
-                            spacing: 6
-                            Text {
-                                textFormat: Text.PlainText
-                                text: "UF"
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                            }
-                            Ui.MultiCombo {
-                                id: stateFilter
-                                objectName: "stateFilter"
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(stateFilter)
-                                Layout.fillWidth: true
-                                model: controller.states
-                                currentValues: window.viewState.stateValues
-                                Accessible.name: "Filtrar por UF"
-                                onValuesChosen: values => controller.setFilters("state", values)
-                            }
-                        }
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 245
-                            spacing: 6
-                            Text {
-                                textFormat: Text.PlainText
-                                text: window.viewState.kind === "municipal" ? "Município fiscal" : "Porto / URF"
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                            }
-                            Ui.MultiCombo {
-                                id: portFilter
-                                objectName: "portFilter"
-                                visible: window.viewState.kind !== "municipal"
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(portFilter)
-                                Layout.fillWidth: true
-                                model: controller.ports
-                                currentValues: window.viewState.portValues
-                                Accessible.name: "Filtrar por porto ou URF"
-                                onValuesChosen: values => controller.setFilters("port", values)
-                            }
-                            Ui.MultiCombo {
-                                id: cityFilter
-                                objectName: "cityFilter"
-                                visible: window.viewState.kind === "municipal"
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(cityFilter)
-                                Layout.fillWidth: true
-                                model: controller.cities
-                                currentValues: window.viewState.cityValues
-                                Accessible.name: "Filtrar por município fiscal"
-                                onValuesChosen: values => controller.setFilters("city", values)
-                            }
-                        }
-                    }
-                    Flow {
-                        visible: window.activeFilters.length > 0
-                        Layout.fillWidth: true
-                        spacing: 6
-                        Repeater {
-                            model: window.activeFilters
-                            Ui.FilterChip {
-                                required property var modelData
-                                objectName: "activeFilter_" + modelData.key
-                                caption: modelData.caption
-                                description: modelData.description
-                                onRemoved: controller.setFilters(modelData.key, [])
-                            }
-                        }
-                    }
-                }
+                text: "Atualizando o recorte… Os indicadores mostram o último resultado concluído."
+                color: Ui.Theme.muted
+                font.pixelSize: 11
+                textFormat: Text.PlainText
+                wrapMode: Text.WordWrap
+                Accessible.role: Accessible.AlertMessage
             }
             GridLayout {
                 id: metricsGrid
-                visible: window.viewState.loaded
+                objectName: "importSummaryMetrics"
+                visible: window.viewState.loaded && window.activeSection === "summary"
                 Layout.fillWidth: true
                 columns: body.width > 930 ? 4 : body.width > 440 ? 2 : 1
                 columnSpacing: 12
@@ -779,292 +441,50 @@ FocusScope {
                     }
                 }
             }
+            RowLayout {
+                visible: window.viewState.loaded && window.activeSection === "summary"
+                Layout.fillWidth: true
+                spacing: 8
+                Ui.ActionButton {
+                    objectName: "importVisualTrend"
+                    text: "Evolução mensal"
+                    iconName: "chart"
+                    primary: window.primaryVisual === "trend"
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    onClicked: window.primaryVisual = "trend"
+                }
+                Ui.ActionButton {
+                    id: visualOrigins
+                    objectName: "importVisualOrigins"
+                    text: "Origens"
+                    iconName: "grid"
+                    primary: window.primaryVisual === "origins"
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    onClicked: window.primaryVisual = "origins"
+                }
+            }
             GridLayout {
                 id: importChartsGrid
-                visible: window.viewState.loaded
+                objectName: "importSummaryVisual"
+                visible: window.viewState.loaded && window.activeSection === "summary"
                 Layout.fillWidth: true
-                columns: width >= 1080 ? 2 : 1
+                columns: 1
                 columnSpacing: 16
                 rowSpacing: 16
-                Rectangle {
+                Ui.ImportTrendPanel {
                     id: trendPanel
-                    objectName: "trendPanel"
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredWidth: 660
-                    Layout.minimumWidth: 0
-                    Layout.preferredHeight: trendContent.implicitHeight + 36
-                    color: Ui.Theme.surface
-                    radius: Ui.Theme.radius
-                    border.color: Ui.Theme.softLine
-                    ColumnLayout {
-                        id: trendContent
-                        anchors.fill: parent
-                        anchors.margins: 18
-                        spacing: 8
-                        GridLayout {
-                            id: trendHeading
-                            Layout.fillWidth: true
-                            columns: width >= trendTitle.implicitWidth + trendMetric.implicitWidth + openTrendChart.implicitWidth + 2 * columnSpacing ? 3 : 2
-                            rowSpacing: 8
-                            Text {
-                                id: trendTitle
-                                Layout.fillWidth: true
-                                Layout.columnSpan: trendHeading.columns === 2 ? 2 : 1
-                                textFormat: Text.PlainText
-                                text: "Evolução mensal"
-                                color: Ui.Theme.text
-                                font.pixelSize: 14
-                                font.weight: Font.DemiBold
-                            }
-                            Ui.AppCombo {
-                                id: trendMetric
-                                objectName: "trendMetric"
-                                property string selectedMetricKey: "value"
-                                Layout.fillWidth: true
-                                Layout.preferredWidth: 160
-                                implicitHeight: 34
-                                font.pixelSize: 12
-                                Accessible.name: "Indicador do gráfico mensal"
-                                onActivated: selectedMetricKey = currentValue
-                                onModelChanged: Qt.callLater(() => {
-                                    const matchingIndex = model.findIndex(item => item.value === selectedMetricKey);
-                                    currentIndex = matchingIndex >= 0 ? matchingIndex : 0;
-                                })
-                                model: window.shownKind === "municipal" ? [
-                                    {
-                                        label: "Valor FOB",
-                                        value: "value"
-                                    },
-                                    {
-                                        label: "FOB/kg",
-                                        value: "price"
-                                    },
-                                    {
-                                        label: "Peso",
-                                        value: "weight"
-                                    },
-                                    {
-                                        label: "Variação (%)",
-                                        value: "valueChange"
-                                    }
-                                ] : [
-                                    {
-                                        label: "Valor CIF",
-                                        value: "value"
-                                    },
-                                    {
-                                        label: "CIF/kg",
-                                        value: "price"
-                                    },
-                                    {
-                                        label: "FOB/kg",
-                                        value: "fob"
-                                    },
-                                    {
-                                        label: "Frete/kg",
-                                        value: "freight"
-                                    },
-                                    {
-                                        label: "Peso",
-                                        value: "weight"
-                                    },
-                                    {
-                                        label: "Variação (%)",
-                                        value: "valueChange"
-                                    }
-                                ]
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(trendMetric)
-                            }
-                            Ui.ActionButton {
-                                id: openTrendChart
-                                objectName: "openTrendChart"
-                                text: "Ampliar"
-                                iconName: "chart"
-                                implicitHeight: 30
-                                implicitWidth: Math.max(112, naturalWidth)
-                                Layout.minimumWidth: implicitWidth
-                                font.pixelSize: 11
-                                subtle: true
-                                onClicked: importChartDialog.open()
-                            }
-                        }
-                        GridLayout {
-                            Layout.fillWidth: true
-                            columns: width >= 500 ? 2 : 1
-                            columnSpacing: 18
-                            rowSpacing: 4
-                            Text {
-                                Layout.fillWidth: true
-                                Layout.minimumWidth: 0
-                                text: window.lastTrendPoint.display || "—"
-                                color: Ui.Theme.text
-                                font.pixelSize: 27
-                                minimumPixelSize: 18
-                                fontSizeMode: Text.HorizontalFit
-                                font.weight: Font.DemiBold
-                                textFormat: Text.PlainText
-                            }
-                            ColumnLayout {
-                                spacing: 2
-                                Text {
-                                    text: window.trendData.change
-                                    color: Ui.Theme.text
-                                    font.pixelSize: 13
-                                    font.weight: Font.DemiBold
-                                    textFormat: Text.PlainText
-                                }
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: window.trendData.comparison
-                                    color: Ui.Theme.muted
-                                    font.pixelSize: 11
-                                    textFormat: Text.PlainText
-                                    wrapMode: Text.WordWrap
-                                }
-                            }
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: [window.lastTrendPoint.label, window.trendData.coverage || ""].filter(Boolean).join(" · ")
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            textFormat: Text.PlainText
-                            wrapMode: Text.WordWrap
-                        }
-                        GridLayout {
-                            id: trendActions
-                            Layout.fillWidth: true
-                            Layout.maximumWidth: Infinity
-                            columns: parent.width >= priceScale.implicitWidth + openTrendValues.implicitWidth + 2 * columnSpacing ? 3 : 1
-                            Ui.AppCheck {
-                                id: priceScale
-                                objectName: "priceScale"
-                                Layout.minimumWidth: 0
-                                Layout.maximumWidth: trendActions.parent.width
-                                wrapLabel: true
-                                text: "Ampliar variação"
-                                visible: ["price", "fob", "freight"].includes(window.trendKey)
-                                font.pixelSize: 11
-                                ToolTip.visible: hovered
-                                ToolTip.text: "Ajusta o eixo para comparar pequenas diferenças. Os valores permanecem iguais."
-                            }
-                            Item {
-                                visible: trendActions.columns === 3
-                                Layout.fillWidth: true
-                            }
-                            Ui.ActionButton {
-                                id: openTrendValues
-                                objectName: "openTrendValues"
-                                text: "Ver valores"
-                                iconName: "grid"
-                                implicitHeight: 30
-                                implicitWidth: Math.max(132, naturalWidth)
-                                Layout.minimumWidth: implicitWidth
-                                font.pixelSize: 11
-                                subtle: true
-                                onClicked: trendValuesDialog.open()
-                            }
-                        }
-                        Ui.LinePlot {
-                            id: monthlyChart
-                            objectName: "monthlyChart"
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.minimumHeight: 220
-                            Layout.preferredHeight: Math.min(310, Math.max(220, trendPanel.width * 0.42))
-                            points: window.trendData.points
-                            unit: window.trendData.unit
-                            precision: window.trendData.precision
-                            allowNegative: window.trendKey === "valueChange"
-                            zoomed: priceScale.checked && ["price", "fob", "freight"].includes(window.trendKey)
-                        }
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 7
-                            Rectangle {
-                                width: 16
-                                height: 2
-                                color: Ui.Theme.accent
-                            }
-                            Text {
-                                text: "Mensal"
-                                color: Ui.Theme.muted
-                                font.pixelSize: 10
-                            }
-                            Item {
-                                width: 8
-                                height: 1
-                            }
-                            Item {
-                                visible: window.trendData.hasRolling
-                                width: 16
-                                height: 2
-                                Row {
-                                    spacing: 2
-                                    Repeater {
-                                        model: 3
-                                        Rectangle {
-                                            width: 4
-                                            height: 2
-                                            color: Ui.Theme.muted
-                                        }
-                                    }
-                                }
-                            }
-                            Text {
-                                visible: window.trendData.hasRolling
-                                text: window.trendData.rollingLabel
-                                color: Ui.Theme.muted
-                                font.pixelSize: 10
-                                Layout.fillWidth: true
-                                wrapMode: Text.WordWrap
-                            }
-                        }
-                        Text {
-                            visible: Boolean(window.trendData.periodChange) && window.trendData.periodChange !== "—"
-                            Layout.fillWidth: true
-                            text: "Primeiro → último mês: " + (window.trendData.periodChange || "—")
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            wrapMode: Text.WordWrap
-                            textFormat: Text.PlainText
-                        }
-                        Rectangle {
-                            Layout.fillWidth: true
-                            implicitHeight: trendReadout.implicitHeight + 20
-                            radius: 7
-                            color: Ui.Theme.subtle
-                            Text {
-                                id: trendReadout
-                                objectName: "trendReadout"
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.top: parent.top
-                                anchors.margins: 10
-                                text: monthlyChart.readout.replace(/\n/g, " · ") || "Passe o cursor ou use as setas para consultar os meses."
-                                textFormat: Text.PlainText
-                                color: Ui.Theme.text
-                                font.pixelSize: 11
-                                wrapMode: Text.WordWrap
-                                Accessible.name: monthlyChart.readout
-                            }
-                        }
-                        Text {
-                            objectName: "axisScaleNotice"
-                            visible: monthlyChart.croppedAxis
-                            Layout.fillWidth: true
-                            text: "Eixo ajustado · a escala não começa em zero"
-                            color: Ui.Theme.muted
-                            font.pixelSize: 10
-                            textFormat: Text.PlainText
-                            wrapMode: Text.WordWrap
-                        }
-                    }
+                    visible: window.primaryVisual === "trend"
+                    buying: window.buying
+                    shownKind: window.shownKind
+                    onRevealRequested: control => window.reveal(control)
+                    onExpandRequested: importChartDialog.open()
+                    onValuesRequested: trendValuesDialog.open()
                 }
                 Rectangle {
                     objectName: "originsPanel"
+                    visible: window.primaryVisual === "origins"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.preferredWidth: 420
@@ -1101,794 +521,45 @@ FocusScope {
                             objectName: "originChart"
                             Layout.fillWidth: true
                             rows: window.analysis.countries
-                        }
-                        Item { Layout.fillHeight: true }
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Participação no valor " + window.valueBasis + " do recorte · até 6 origens"
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            wrapMode: Text.WordWrap
-                            textFormat: Text.PlainText
-                        }
-                    }
-                }
-            }
-            ColumnLayout {
-                id: buyingSection
-                objectName: "buyingSection"
-                visible: window.viewState.loaded
-                Layout.fillWidth: true
-                spacing: 12
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
-                        text: "Referências de compra"
-                        color: Ui.Theme.text
-                        font.pixelSize: 15
-                        font.weight: Font.DemiBold
-                        textFormat: Text.PlainText
-                    }
-                    Item {
-                        Layout.fillWidth: true
-                    }
-                    Text {
-                        text: window.buying.productLabel
-                        color: Ui.Theme.muted
-                        font.pixelSize: 11
-                        textFormat: Text.PlainText
-                        Layout.maximumWidth: 175
-                        Layout.preferredWidth: 140
-                        wrapMode: Text.WordWrap
-                    }
-                }
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: body.width > 930 ? 4 : body.width > 440 ? 2 : 1
-                    columnSpacing: 12
-                    rowSpacing: 12
-                    Repeater {
-                        model: window.buying.cards
-                        Ui.MetricCard {
-                            required property var modelData
-                            required property int index
-                            objectName: "buyingMetric" + index
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 108
-                            metric: modelData
-                            iconName: ["price", "chart", "weight", "grid"][index]
-                        }
-                    }
-                }
-                Rectangle {
-                    id: comparisonPanel
-                    objectName: "comparisonPanel"
-                    Layout.fillWidth: true
-                    implicitHeight: comparisonContent.implicitHeight + 36
-                    radius: Ui.Theme.radius
-                    color: Ui.Theme.surface
-                    border.color: Ui.Theme.softLine
-                    ColumnLayout {
-                        id: comparisonContent
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.margins: 18
-                        spacing: 12
-                        GridLayout {
-                            Layout.fillWidth: true
-                            columns: comparisonPanel.width > 650 ? 4 : 2
-                            columnSpacing: 10
-                            rowSpacing: 8
-                            Text {
-                                text: "Preço por origem"
-                                color: Ui.Theme.text
-                                font.pixelSize: 14
-                                font.weight: Font.DemiBold
-                                textFormat: Text.PlainText
+                            interactive: window.viewState.loaded && !window.viewState.busy && !window.viewState.waiting
+                            onOriginSelected: country => {
+                                if (window.analysis.countries.some(row => row.label === country))
+                                    controller.setFilters("country", [country]);
                             }
-                            Item {
-                                Layout.fillWidth: true
-                            }
-                            Ui.AppCombo {
-                                id: originMinWeight
-                                objectName: "originMinWeight"
-                                visible: window.buying.comparable
-                                Layout.preferredWidth: 140
-                                implicitHeight: 34
-                                font.pixelSize: 12
-                                currentIndex: 1
-                                model: [
-                                    {
-                                        label: "Sem mínimo",
-                                        value: "0"
-                                    },
-                                    {
-                                        label: "≥ 1.000 kg",
-                                        value: "1000"
-                                    },
-                                    {
-                                        label: "≥ 10.000 kg",
-                                        value: "10000"
-                                    },
-                                    {
-                                        label: "≥ 50.000 kg",
-                                        value: "50000"
-                                    }
-                                ]
-                                onCurrentValueChanged: window.originLimit = 8
-                                Accessible.name: "Peso mínimo por país no comparador"
-                                ToolTip.visible: hovered
-                                ToolTip.text: "Peso acumulado por país no período. Altera apenas este comparador; os totais e documentos mantêm seus filtros."
-                                ToolTip.delay: 600
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.reveal(originMinWeight)
-                            }
-                            Ui.AppCombo {
-                                id: originOrder
-                                objectName: "originOrder"
-                                visible: window.buying.comparable
-                                Layout.preferredWidth: 165
-                                implicitHeight: 34
-                                font.pixelSize: 12
-                                model: [
-                                    {
-                                        label: "Maior volume",
-                                        value: "volume"
-                                    },
-                                    {
-                                        label: "Menor valor/kg",
-                                        value: "low"
-                                    },
-                                    {
-                                        label: "Maior valor/kg",
-                                        value: "high"
-                                    }
-                                ]
-                                Accessible.name: "Ordenar comparação de países"
-                                onCurrentValueChanged: window.originLimit = 8
-                            }
-                            Ui.ActionButton {
-                                objectName: "chooseComparisonProduct"
-                                visible: !window.buying.comparable && !window.buying.empty
-                                text: "Selecionar produto"
-                                primary: false
-                                Layout.preferredWidth: 165
-                                implicitHeight: 34
-                                onClicked: window.chooseProduct()
-                            }
-                        }
-                        Text {
-                            visible: !window.buying.comparable
-                            Layout.fillWidth: true
-                            text: window.buying.empty ? "Nenhuma importação para estes filtros." : "Escolha um produto para comparar as origens."
-                            wrapMode: Text.WordWrap
-                            textFormat: Text.PlainText
-                            color: Ui.Theme.muted
-                            font.pixelSize: 12
-                        }
-                        Ui.ActionButton {
-                            objectName: "recoverEmptyFilters"
-                            visible: window.buying.empty && window.viewState.filterCount > 0
-                            text: "Limpar filtros"
-                            implicitHeight: 34
-                            onClicked: controller.clearFilters()
-                        }
-                        Ui.OriginComparison {
-                            id: priceComparison
-                            objectName: "priceComparison"
-                            visible: window.buying.comparable
-                            Layout.fillWidth: true
-                            rows: window.matchingOrigins.slice(0, window.originLimit)
-                            basis: window.valueBasis
-                            reference: window.buying.reference === undefined ? null : window.buying.reference
-                            onOriginChosen: name => controller.setFilters("country", [name])
-                        }
-                        Text {
-                            visible: window.buying.comparable && priceComparison.rows.length === 0
-                            Layout.fillWidth: true
-                            text: "Nenhuma origem atinge o peso mínimo selecionado."
-                            wrapMode: Text.WordWrap
-                            color: Ui.Theme.muted
-                            font.pixelSize: 12
-                            textFormat: Text.PlainText
-                        }
-                        Text {
-                            visible: window.buying.comparable
-                            Layout.fillWidth: true
-                            text: priceComparison.rows.length + " de " + window.matchingOrigins.length + " origens · Média do recorte: " + window.buying.referenceText + "/kg" + (priceComparison.graphic ? " (traço vertical)" : "")
-                            wrapMode: Text.WordWrap
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            textFormat: Text.PlainText
-                        }
-                        Ui.ActionButton {
-                            objectName: "moreOrigins"
-                            visible: window.matchingOrigins.length > window.originLimit
-                            text: "Mostrar mais origens"
-                            implicitHeight: 32
-                            font.pixelSize: 11
-                            onClicked: window.originLimit += 8
-                        }
-                        Text {
-                            visible: window.buying.comparable
-                            Layout.fillWidth: true
-                            text: window.buying.range
-                            wrapMode: Text.WordWrap
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            textFormat: Text.PlainText
-                        }
-                        Ui.ActionButton {
-                            objectName: "toggleMethodology"
-                            text: window.methodologyExpanded ? "Ocultar explicação" : "Como interpretar"
-                            iconName: "info"
-                            subtle: true
-                            implicitHeight: 30
-                            font.pixelSize: 11
-                            onClicked: window.methodologyExpanded = !window.methodologyExpanded
-                        }
-                        Text {
-                            visible: window.methodologyExpanded
-                            Layout.fillWidth: true
-                            text: window.buying.note
-                            wrapMode: Text.WordWrap
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            textFormat: Text.PlainText
-                        }
-                    }
-                }
-            }
-            Rectangle {
-                id: documentsPanel
-                objectName: "documentsPanel"
-                visible: !window.viewState.demo && window.viewState.loaded
-                Layout.fillWidth: true
-                Layout.preferredHeight: exportBody.implicitHeight + 32
-                color: Ui.Theme.surface
-                border.color: Ui.Theme.softLine
-                radius: Ui.Theme.radius
-                ColumnLayout {
-                    id: exportBody
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 10
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text {
-                            textFormat: Text.PlainText
-                            text: "Documentos"
-                            color: Ui.Theme.text
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
                         }
                         Item {
+                            Layout.fillHeight: true
+                        }
+                        Text {
                             Layout.fillWidth: true
+                            text: "Participação no valor " + window.valueBasis + " do recorte · até 6 origens. Selecione uma origem para aplicar o filtro."
+                            color: Ui.Theme.muted
+                            font.pixelSize: 11
+                            wrapMode: Text.WordWrap
+                            textFormat: Text.PlainText
                         }
-                        Ui.ActionButton {
-                            objectName: "openReportFolder"
-                            visible: !window.viewState.exportBusy && window.viewState.lastExport.length > 0
-                            iconName: "folder"
-                            text: ""
-                            implicitWidth: 30
-                            implicitHeight: 28
-                            leftPadding: 6
-                            rightPadding: 6
-                            subtle: true
-                            Accessible.name: "Abrir pasta do relatório"
-                            ToolTip.text: "Abrir pasta · " + window.viewState.lastExport
-                            onClicked: controller.openExport(true)
-                            ToolTip.visible: hovered
-                            ToolTip.delay: 400
-                        }
-                    }
-                    GridLayout {
-                        Layout.fillWidth: true
-                        Layout.maximumWidth: 740
-                        columns: body.width > 670 ? 3 : body.width > 370 ? 2 : 1
-                        columnSpacing: 10
-                        rowSpacing: 8
-                        Ui.ActionButton {
-                            objectName: "exportExcel"
-                            Layout.fillWidth: true
-                            iconName: "file"
-                            text: "Baixar Excel"
-                            enabled: window.viewState.canExport && !window.draftPeriod && !window.viewState.exportBusy
-                            onClicked: window.saveDocument("excel")
-                            ToolTip.visible: hovered
-                            ToolTip.text: "Todo o período e cadastro. Os filtros da análise não reduzem a planilha."
-                            ToolTip.delay: 400
-                        }
-                        Ui.ActionButton {
-                            objectName: "exportPowerBI"
-                            Layout.fillWidth: true
-                            iconName: "chart"
-                            text: "Baixar Power BI"
-                            enabled: window.viewState.canExport && !window.draftPeriod && !window.viewState.exportBusy
-                            onClicked: window.saveDocument("powerbi")
-                            ToolTip.visible: hovered
-                            ToolTip.text: "Projeto Power BI e Excel do período completo, em ZIP. Extraia antes de abrir no Power BI Desktop."
-                            ToolTip.delay: 400
-                        }
-                        Ui.ActionButton {
-                            objectName: "exportPdf"
-                            Layout.fillWidth: true
-                            iconName: "download"
-                            text: "Baixar PDF"
-                            enabled: window.viewState.canExport && !window.draftPeriod && !window.viewState.exportBusy && window.viewState.appliedKind === "general" && window.viewState.tableCount !== "0"
-                            onClicked: window.saveDocument("pdf")
-                            ToolTip.visible: hovered
-                            ToolTip.text: window.viewState.appliedKind === "municipal" ? "O PDF comercial utiliza a base geral." : "Seleção atual de toda a tabela. Acima de 1.000 kg, sem aeroportos, em A4."
-                            ToolTip.delay: 400
-                        }
-                    }
-                    Text {
-                        textFormat: Text.PlainText
-                        visible: window.viewState.filterCount > 0 || window.viewState.search.length > 0
-                        Layout.fillWidth: true
-                        text: "Excel e BI: período completo. PDF: seleção atual."
-                        color: Ui.Theme.muted
-                        font.pixelSize: 10
-                        wrapMode: Text.WordWrap
-                    }
-                    RowLayout {
-                        visible: window.viewState.exportBusy
-                        Layout.fillWidth: true
-                        Ui.TaskProgress {
-                            objectName: "documentProgress"
-                            Layout.fillWidth: true
-                            from: 0
-                            to: 100
-                            value: window.viewState.exportProgress
-                            Accessible.name: "Progresso do documento"
-                        }
-                        Ui.ActionButton {
-                            objectName: "cancelExport"
-                            iconName: "close"
-                            text: "Cancelar"
-                            implicitHeight: 32
-                            onClicked: controller.cancelExport()
-                        }
-                    }
-                    Text {
-                        textFormat: Text.PlainText
-                        visible: window.viewState.exportBusy
-                        Layout.fillWidth: true
-                        text: window.viewState.exportStage
-                        color: Ui.Theme.muted
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                    }
-                    Text {
-                        textFormat: Text.PlainText
-                        visible: window.viewState.exportError.length > 0
-                        Layout.fillWidth: true
-                        text: window.viewState.exportError
-                        color: Ui.Theme.danger
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                        Accessible.role: Accessible.AlertMessage
-                    }
-                    Text {
-                        textFormat: Text.PlainText
-                        visible: window.viewState.exportMessage.length > 0
-                        Layout.fillWidth: true
-                        text: window.viewState.exportMessage
-                        color: Ui.Theme.muted
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
                     }
                 }
             }
-            Rectangle {
+            Ui.ImportBuyingPanel {
+                id: buyingSection
+                visible: window.viewState.loaded && window.activeSection === "buying"
+                workspace: window
+                backend: controller
+            }
+            Ui.ImportDocumentsPanel {
+                id: documentsPanel
+                visible: !window.viewState.demo && window.viewState.loaded && window.activeSection === "records" && (window.documentsExpanded || window.viewState.exportBusy || Boolean(window.viewState.exportError) || Boolean(window.viewState.exportMessage))
+                workspace: window
+                backend: controller
+            }
+            Ui.ImportRecordsPanel {
                 id: recordsPanel
-                objectName: "recordsPanel"
-                visible: window.viewState.loaded
-                Layout.fillWidth: true
-                Layout.preferredHeight: tableBody.implicitHeight + 34
-                color: Ui.Theme.surface
-                radius: Ui.Theme.radius
-                border.color: Ui.Theme.softLine
-                ColumnLayout {
-                    id: tableBody
-                    anchors {
-                        fill: parent
-                        margins: 17
-                    }
-                    spacing: 10
-                    GridLayout {
-                        Layout.fillWidth: true
-                        columns: body.width > 970 ? 3 : body.width > 550 ? 2 : 1
-                        columnSpacing: 12
-                        rowSpacing: 10
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-                            Text {
-                                textFormat: Text.PlainText
-                                text: "Registros"
-                                color: Ui.Theme.text
-                                font.pixelSize: 14
-                                font.weight: Font.DemiBold
-                            }
-                            Text {
-                                textFormat: Text.PlainText
-                                text: window.viewState.tableRange
-                                color: Ui.Theme.muted
-                                font.pixelSize: 10
-                            }
-                        }
-                        Ui.AppCombo {
-                            id: tableProfile
-                            objectName: "tableProfile"
-                            Layout.preferredWidth: 180
-                            implicitHeight: 36
-                            model: [
-                                {
-                                    label: "Visão de compras",
-                                    value: "buying"
-                                },
-                                {
-                                    label: "Todas as colunas",
-                                    value: "full"
-                                }
-                            ]
-                            Accessible.name: "Colunas da tabela"
-                            onCurrentValueChanged: {
-                                recordModel.setProfile(currentValue);
-                                Qt.callLater(() => {
-                                    tableView.contentX = 0;
-                                    tableView.forceLayout();
-                                });
-                            }
-                            Component.onCompleted: recordModel.setProfile(currentValue)
-                        }
-                        TextField {
-                            id: searchBox
-                            objectName: "searchBox"
-                            Layout.fillWidth: true
-                            Layout.columnSpan: parent.columns === 2 ? 2 : 1
-                            Layout.preferredWidth: 360
-                            Layout.maximumWidth: 400
-                            Layout.alignment: Qt.AlignRight
-                            implicitHeight: 39
-                            text: window.viewState.search
-                            placeholderText: "Buscar na tabela…"
-                            maximumLength: 250
-                            rightPadding: 38
-                            Ui.ActionButton {
-                                objectName: "clearSearch"
-                                visible: searchBox.text.length > 0
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.rightMargin: 3
-                                implicitWidth: 30
-                                implicitHeight: 30
-                                leftPadding: 6
-                                rightPadding: 6
-                                subtle: true
-                                text: ""
-                                iconName: "close"
-                                Accessible.name: "Limpar busca da tabela"
-                                onClicked: controller.setFilter("search", "")
-                            }
-                            color: Ui.Theme.text
-                            placeholderTextColor: Ui.Theme.muted
-                            font.pixelSize: 12
-                            leftPadding: 11
-                            Accessible.name: "Buscar somente na tabela, sem alterar indicadores e gráficos"
-                            onTextEdited: controller.setFilter("search", text)
-                            background: Rectangle {
-                                radius: 5
-                                color: Ui.Theme.surface
-                                border.color: parent.activeFocus ? Ui.Theme.accent : Ui.Theme.line
-                                border.width: parent.activeFocus ? 2 : 1
-                            }
-                        }
-                    }
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 385
-                        objectName: "recordsViewport"
-                        clip: true
-                        border.color: Ui.Theme.line
-                        color: Ui.Theme.surface
-                        HorizontalHeaderView {
-                            id: tableHeader
-                            anchors {
-                                top: parent.top
-                                left: parent.left
-                                right: parent.right
-                            }
-                            height: 42
-                            syncView: tableView
-                            clip: true
-                            delegate: Rectangle {
-                                required property int column
-                                required property string display
-                                objectName: "tableHeader" + column
-                                clip: true
-                                implicitWidth: tableView.columnWidthProvider(column)
-                                implicitHeight: 42
-                                color: Ui.Theme.subtle
-                                Text {
-                                    textFormat: Text.PlainText
-                                    anchors {
-                                        fill: parent
-                                        leftMargin: 11
-                                        rightMargin: 11
-                                    }
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: display + (window.viewState.sortColumn === tableView.sourceColumn(column) ? window.viewState.descending ? " ↓" : " ↑" : "")
-                                    horizontalAlignment: tableView.numericColumn(column) ? Text.AlignRight : Text.AlignLeft
-                                    color: Ui.Theme.text
-                                    font.pixelSize: 11
-                                    font.weight: Font.DemiBold
-                                    elide: Text.ElideRight
-                                }
-                                TapHandler {
-                                    onTapped: controller.sortByColumn(tableView.sourceColumn(column))
-                                }
-                                Accessible.role: Accessible.ColumnHeader
-                                Accessible.name: "Ordenar por " + display
-                                Accessible.onPressAction: controller.sortByColumn(tableView.sourceColumn(column))
-                            }
-                        }
-                        TableView {
-                            id: tableView
-                            objectName: "recordsTable"
-                            onVisibleChanged: {
-                                if (!visible) {
-                                    recordsTransition.stop();
-                                    opacity = 1;
-                                }
-                            }
-                            anchors {
-                                top: tableHeader.bottom
-                                left: parent.left
-                                right: parent.right
-                                bottom: parent.bottom
-                            }
-                            clip: true
-                            model: recordModel
-                            reuseItems: true
-                            boundsBehavior: Flickable.StopAtBounds
-                            columnSpacing: 1
-                            rowSpacing: 1
-                            property var columnSpecs: recordModel.viewColumns
-                            function sourceColumn(column) {
-                                return columnSpecs[column] ? columnSpecs[column].source : -1;
-                            }
-                            function numericColumn(column) {
-                                return columnSpecs[column] ? columnSpecs[column].numeric : false;
-                            }
-                            onColumnSpecsChanged: forceLayout()
-                            property bool compactMode: window.viewState.compact
-                            columnWidthProvider: column => columnSpecs[column] ? columnSpecs[column].width : 120
-                            rowHeightProvider: row => compactMode ? 32 : 40
-                            onCompactModeChanged: forceLayout()
-                            onWidthChanged: forceLayout()
-                            ScrollBar.horizontal: ScrollBar {
-                                policy: ScrollBar.AsNeeded
-                            }
-                            ScrollBar.vertical: ScrollBar {
-                                policy: ScrollBar.AsNeeded
-                            }
-                            Keys.onPressed: event => {
-                                let count = recordModel.rowCount();
-                                if (event.key === Qt.Key_Down && count) {
-                                    const row = Math.min(count - 1, window.viewState.selection + 1);
-                                    controller.selectRow(row);
-                                    positionViewAtRow(row, TableView.Contain);
-                                    event.accepted = true;
-                                } else if (event.key === Qt.Key_Up && count) {
-                                    const row = Math.max(0, window.viewState.selection - 1);
-                                    controller.selectRow(row);
-                                    positionViewAtRow(row, TableView.Contain);
-                                    event.accepted = true;
-                                } else if (count && [Qt.Key_Home, Qt.Key_End, Qt.Key_PageDown, Qt.Key_PageUp].includes(event.key)) {
-                                    const step = event.key === Qt.Key_PageDown ? 8 : -8;
-                                    const row = event.key === Qt.Key_Home ? 0 : event.key === Qt.Key_End ? count - 1 : Math.max(0, Math.min(count - 1, window.viewState.selection + step));
-                                    controller.selectRow(row);
-                                    positionViewAtRow(row, TableView.Contain);
-                                    event.accepted = true;
-                                } else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && window.viewState.selection >= 0) {
-                                    detailDialog.open();
-                                    event.accepted = true;
-                                } else if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier) {
-                                    controller.copySelected();
-                                    event.accepted = true;
-                                }
-                            }
-                            delegate: Rectangle {
-                                required property int row
-                                required property int column
-                                required property string display
-                                required property string originalText
-                                clip: true
-                                implicitWidth: tableView.columnWidthProvider(column)
-                                implicitHeight: window.viewState.compact ? 32 : 40
-                                color: window.viewState.selection === row ? Ui.Theme.selected : row % 2 ? Ui.Theme.subtle : Ui.Theme.surface
-                                Text {
-                                    id: cellText
-                                    textFormat: Text.PlainText
-                                    anchors {
-                                        fill: parent
-                                        leftMargin: 11
-                                        rightMargin: 11
-                                    }
-                                    text: display
-                                    color: Ui.Theme.text
-                                    font.pixelSize: 12
-                                    verticalAlignment: Text.AlignVCenter
-                                    horizontalAlignment: tableView.numericColumn(column) ? Text.AlignRight : Text.AlignLeft
-                                    elide: Text.ElideRight
-                                }
-                                TapHandler {
-                                    onTapped: {
-                                        controller.selectRow(row);
-                                        tableView.forceActiveFocus();
-                                    }
-                                    onDoubleTapped: {
-                                        controller.selectRow(row);
-                                        detailDialog.open();
-                                    }
-                                }
-                                HoverHandler {
-                                    id: cellHover
-                                }
-                                ToolTip.visible: cellHover.hovered && cellText.truncated
-                                ToolTip.text: originalText
-                                ToolTip.delay: 450
-                                Accessible.role: Accessible.Cell
-                                Accessible.name: (tableView.columnSpecs[column] || {
-                                        label: ""
-                                    }).label + ": " + originalText
-                                Accessible.onPressAction: controller.selectRow(row)
-                            }
-                            Text {
-                                textFormat: Text.PlainText
-                                anchors.centerIn: parent
-                                visible: window.viewState.loaded && window.viewState.tableCount === "0"
-                                text: "Nenhum registro para esta seleção."
-                                color: Ui.Theme.muted
-                                font.pixelSize: 13
-                            }
-                            Text {
-                                textFormat: Text.PlainText
-                                anchors.centerIn: parent
-                                visible: !window.viewState.loaded
-                                text: "Consulte um período para visualizar os registros."
-                                color: Ui.Theme.muted
-                                font.pixelSize: 12
-                            }
-                        }
-                        Ui.TaskProgress {
-                            objectName: "localProgress"
-                            anchors.top: tableHeader.bottom
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            height: 2
-                            z: 2
-                            indeterminate: true
-                            visible: window.localActivityVisible
-                            Accessible.name: "Atualizando registros"
-                        }
-                    }
-                    GridLayout {
-                        columns: body.width > 480 ? 2 : 1
-                        columnSpacing: 12
-                        rowSpacing: 9
-                        Layout.fillWidth: true
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Ui.AppCombo {
-                                objectName: "pageSize"
-                                Layout.preferredWidth: 125
-                                model: [
-                                    {
-                                        label: "25 linhas",
-                                        value: 25
-                                    },
-                                    {
-                                        label: "50 linhas",
-                                        value: 50
-                                    },
-                                    {
-                                        label: "100 linhas",
-                                        value: 100
-                                    },
-                                    {
-                                        label: "200 linhas",
-                                        value: 200
-                                    }
-                                ]
-                                currentIndex: model.findIndex(item => item.value === window.viewState.pageSize)
-                                Accessible.name: "Linhas por página"
-                                onActivated: controller.setPageSize(currentValue)
-                            }
-                            Text {
-                                textFormat: Text.PlainText
-                                text: "Página " + window.viewState.page + " de " + window.viewState.pages
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                            }
-                        }
-                        RowLayout {
-                            Layout.alignment: Qt.AlignRight
-                            Layout.fillWidth: true
-                            Item {
-                                Layout.fillWidth: true
-                            }
-                            Ui.ActionButton {
-                                objectName: "firstPage"
-                                iconName: "first"
-                                implicitWidth: 36
-                                leftPadding: 8
-                                rightPadding: 8
-                                text: ""
-                                Accessible.name: "Primeira página"
-                                enabled: window.viewState.loaded && !window.viewState.busy && !window.viewState.waiting && window.viewState.page > 1
-                                onClicked: controller.setPage(1)
-                                ToolTip.visible: hovered
-                                ToolTip.text: "Primeira página"
-                                ToolTip.delay: 450
-                            }
-                            Ui.ActionButton {
-                                objectName: "previousPage"
-                                iconName: "left"
-                                implicitWidth: 42
-                                text: ""
-                                Accessible.name: "Página anterior"
-                                enabled: window.viewState.loaded && !window.viewState.waiting && window.viewState.page > 1 && !window.viewState.busy
-                                onClicked: controller.setPage(window.viewState.page - 1)
-                            }
-                            Ui.ActionButton {
-                                objectName: "nextPage"
-                                iconName: "right"
-                                implicitWidth: 42
-                                text: ""
-                                Accessible.name: "Próxima página"
-                                enabled: window.viewState.loaded && !window.viewState.waiting && window.viewState.page < window.viewState.pages && !window.viewState.busy
-                                onClicked: controller.setPage(window.viewState.page + 1)
-                            }
-                            Ui.ActionButton {
-                                objectName: "lastPage"
-                                iconName: "last"
-                                implicitWidth: 36
-                                leftPadding: 8
-                                rightPadding: 8
-                                text: ""
-                                Accessible.name: "Última página"
-                                enabled: window.viewState.loaded && !window.viewState.busy && !window.viewState.waiting && window.viewState.page < window.viewState.pages
-                                onClicked: controller.setPage(window.viewState.pages)
-                                ToolTip.visible: hovered
-                                ToolTip.text: "Última página"
-                                ToolTip.delay: 450
-                            }
-                        }
-                    }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text {
-                            textFormat: Text.PlainText
-                            Layout.fillWidth: true
-                            text: window.viewState.copyMessage || window.viewState.selectedTitle || ""
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-                        Ui.ActionButton {
-                            objectName: "detailsButton"
-                            text: "Detalhes"
-                            enabled: window.viewState.selection >= 0
-                            onClicked: detailDialog.open()
-                        }
-                    }
-                }
+                visible: window.viewState.loaded && window.activeSection === "records"
+                workspace: window
+                backend: controller
+                tableModel: recordModel
+                onDetailsRequested: detailDialog.open()
             }
         }
     }
@@ -1932,19 +603,19 @@ FocusScope {
         id: importChartDialog
         objectName: "importChartDialog"
         title: "Evolução mensal · " + (window.trendData.label || window.valueBasis)
-        contextLabel: window.viewState.periodLabel + " · " + window.valueBasis + " · " + window.trendData.unit
+        contextLabel: window.viewState.periodLabel + " · " + window.valueBasis + " · " + window.trendData.unit + "\n" + trendPanel.metricContext
         legendLabel: "Mensal" + (window.trendData.hasRolling ? " · " + window.trendData.rollingLabel + " (tracejada)" : "")
         points: window.trendData.points
         unit: window.trendData.unit
         precision: window.trendData.precision
-        zoomed: monthlyChart.zoomed
-        allowNegative: monthlyChart.allowNegative
+        zoomed: trendPanel.zoomed
+        allowNegative: trendPanel.allowNegative
     }
     Ui.TrendDialog {
         id: trendValuesDialog
         objectName: "trendValuesDialog"
         series: window.trendData
-        contextLabel: window.viewState.periodLabel + (window.buying.productLabel ? " · " + window.buying.productLabel : "")
+        contextLabel: window.viewState.periodLabel + (window.buying.productLabel ? " · " + window.buying.productLabel : "") + "\n" + trendPanel.metricContext
         onCopyRequested: copied = controller.copyTrendData(window.trendKey)
     }
     FileDialog {
@@ -1954,7 +625,10 @@ FocusScope {
         fileMode: FileDialog.SaveFile
         currentFolder: controller.reportsFolder
         title: exportKind === "excel" ? "Salvar Excel" : exportKind === "pdf" ? "Salvar PDF" : "Salvar projeto Power BI"
-        onAccepted: controller.exportTo(exportKind, selectedFile)
+        onAccepted: {
+            window.navigate("documents");
+            controller.exportTo(exportKind, selectedFile);
+        }
     }
     Ui.AppDialog {
         id: detailDialog

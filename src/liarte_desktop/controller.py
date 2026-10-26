@@ -1073,6 +1073,7 @@ class DesktopController(QObject):
                 {
                     "label": name,
                     "value": cents / 100_000_000,
+                    "full": money(cents),
                     "share": f"{number(Decimal(100) * cents / t.value_cents, 1)}%"
                     if t.value_cents
                     else "0%",

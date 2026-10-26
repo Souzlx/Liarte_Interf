@@ -8,14 +8,32 @@ FocusScope {
     id: page
     objectName: "inventoryWorkspace"
     required property var hostWindow
-    readonly property var state: inventory.state
+    readonly property var state: inventory.presentation
     readonly property var view: inventory.analysis
     readonly property var detail: inventory.detail
     readonly property var backupState: inventory.backupState
-    property bool advanced: false
-    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockPerformance.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen
+    readonly property bool modalOpen: sourceDialog.visible || stockFilters.visible || saveStockDialog.visible || stockDetail.visible || stockPerformance.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
-    readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 || scroll.contentHeight > scroll.height && scroll.atYEnd ? "products" : scroll.contentY >= monthlySection.y - 80 ? "monthly" : "overview"
+    property string activeSection: "overview"
+    property var sectionScroll: ({
+            overview: 0,
+            monthly: 0,
+            products: 0
+        })
+    property int navigationRevision: 0
+    property bool navigating: false
+    property bool showAlerts: false
+    property var pendingOverviewTarget: null
+    readonly property var appliedSelection: state.appliedSelection || state.selection || ({})
+    readonly property var branchOption: inventory.filterOptions.find(option => option.key === "branch") || ({
+            values: []
+        })
+    readonly property int advancedFilterCount: ["warehouse", "group", "kind", "abc", "activity", "balance"].filter(key => Boolean(appliedSelection[key])).length
+    readonly property string advancedFilterSummary: {
+        const labels = {warehouse: "Armazém", group: "Grupo", kind: "Tipo", abc: "ABC", activity: "Última venda", balance: "Saldo"};
+        const balances = {positive: "positivo", zero: "zerado", negative: "negativo"};
+        return Object.keys(labels).filter(key => Boolean(appliedSelection[key])).map(key => labels[key] + ": " + (key === "balance" ? balances[appliedSelection[key]] || appliedSelection[key] : appliedSelection[key])).join(" · ");
+    }
     property var lastFocusedControl: null
     property var pendingAlertTarget: null
     property var pendingComparisonFocus: null
@@ -38,17 +56,69 @@ FocusScope {
         }
         return null;
     }
+    function firstFocusableControl(parentItem) {
+        for (const item of parentItem.children) {
+            if (!item.visible || !item.enabled)
+                continue;
+            if (item.activeFocusOnTab)
+                return item;
+            const child = firstFocusableControl(item);
+            if (child)
+                return child;
+        }
+        return null;
+    }
     function navigate(section) {
-        const maximum = Math.max(0, scroll.contentHeight - scroll.height);
-        const destination = section === "products" ? Math.min(maximum, positionsSection.y - 18) : section === "monthly" ? Math.min(maximum, monthlySection.y - 18) : 0;
+        if (!["overview", "monthly", "products"].includes(section))
+            return;
+        if (section === activeSection) {
+            restoreFocus();
+            return;
+        }
+        if (!navigating)
+            sectionScroll[activeSection] = scroll.contentY;
+        const destination = sectionScroll[section] || 0;
+        const revision = ++navigationRevision;
+        navigating = true;
         stockScrollMotion.stop();
-        if (Ui.Theme.motionEnabled) {
-            stockScrollMotion.to = destination;
-            stockScrollMotion.restart();
-        } else
-            scroll.contentY = destination;
-        if (section === "products")
-            stockTable.forceActiveFocus();
+        scroll.cancelFlick();
+        activeSection = section;
+        Qt.callLater(() => {
+            if (revision !== navigationRevision)
+                return;
+            scroll.contentY = Math.max(0, Math.min(destination, scroll.contentHeight - scroll.height));
+            Qt.callLater(() => {
+                if (revision !== navigationRevision)
+                    return;
+                navigating = false;
+                const owner = activeSection === "products" ? positionsSection : activeSection === "monthly" ? monthlySection : overviewSection;
+                const target = destination > 0 ? firstVisibleControl(content) : firstFocusableControl(owner);
+                if (target && page.visible) {
+                    target.forceActiveFocus(Qt.TabFocusReason);
+                    revealComparisonFocus(target);
+                } else
+                    restoreFocus();
+            });
+        });
+    }
+    function appliedPeriod() {
+        const start = appliedSelection.start || "";
+        const end = appliedSelection.end || "";
+        return start && end ? start.slice(5) + "/" + start.slice(0, 4) + " a " + end.slice(5) + "/" + end.slice(0, 4) : "Sem período disponível";
+    }
+    function finishOverviewNavigation() {
+        if (!pendingOverviewTarget)
+            return;
+        if (!visible || state.error.length > 0) {
+            pendingOverviewTarget = null;
+            return;
+        }
+        if (!state.current || state.busy)
+            return;
+        const target = pendingOverviewTarget;
+        pendingOverviewTarget = null;
+        if (state.selection[target.dimension] === target.key)
+            navigate("products");
     }
     function restoreFocus() {
         const item = visibleControl(lastFocusedControl) ? lastFocusedControl : firstVisibleControl(content);
@@ -60,22 +130,21 @@ FocusScope {
     function revealComparisonFocus(item) {
         if (!item || !item.activeFocus || !page.visible || page.modalOpen)
             return;
-        let inComparison = false;
-        for (let ancestor = item; ancestor && ancestor !== content; ancestor = ancestor.parent) {
-            if (ancestor.objectName === "stockComparison") {
-                inComparison = true;
+        let belongs = false;
+        for (let ancestor = item; ancestor; ancestor = ancestor.parent) {
+            if (ancestor === content) {
+                belongs = true;
                 break;
             }
         }
-        if (!inComparison)
+        if (!belongs)
             return;
         const top = item.mapToItem(scroll, 0, 0).y;
         const maximum = Math.max(0, scroll.contentHeight - scroll.height);
         if (top < 0 || top + item.height > scroll.height) {
             stockScrollMotion.stop();
             scroll.cancelFlick();
-            scroll.contentY = Math.max(0, Math.min(maximum,
-                scroll.contentY + (top < 0 ? top - 8 : top + item.height - scroll.height + 8)));
+            scroll.contentY = Math.max(0, Math.min(maximum, scroll.contentY + (top < 0 ? top - 8 : top + item.height - scroll.height + 8)));
         }
     }
     function scheduleComparisonFocusReveal() {
@@ -101,6 +170,8 @@ FocusScope {
     Connections {
         target: inventory
         function onChanged() {
+            if (page.pendingOverviewTarget)
+                Qt.callLater(page.finishOverviewNavigation);
             if (page.pendingAlertTarget)
                 Qt.callLater(page.finishAlertNavigation);
             if (page.pendingComparisonFocus)
@@ -140,8 +211,13 @@ FocusScope {
         sequence: "Ctrl+F"
         enabled: page.visible && page.state.loaded && !page.modalOpen && !hostWindow.globalModalOpen
         onActivated: {
-            page.navigate("overview");
+            page.navigationRevision++;
+            page.navigating = false;
+            stockScrollMotion.stop();
+            scroll.cancelFlick();
+            scroll.contentY = 0;
             stockSearch.focusSearch();
+            Qt.callLater(() => page.revealComparisonFocus(stockSearch));
         }
     }
     NumberAnimation {
@@ -152,9 +228,12 @@ FocusScope {
         easing.type: Easing.OutCubic
     }
     onVisibleChanged: if (!visible) {
+        navigationRevision++;
+        navigating = false;
         stockScrollMotion.stop();
         pendingAlertTarget = null;
         pendingComparisonFocus = null;
+        pendingOverviewTarget = null;
     }
     Connections {
         target: Ui.Theme
@@ -172,6 +251,8 @@ FocusScope {
         onWidthChanged: page.scheduleComparisonFocusReveal()
         onHeightChanged: page.scheduleComparisonFocusReveal()
         onContentHeightChanged: page.scheduleComparisonFocusReveal()
+        onContentYChanged: if (!page.navigating)
+            page.sectionScroll[page.activeSection] = contentY
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.vertical: ScrollBar {
@@ -184,15 +265,16 @@ FocusScope {
             width: scroll.width - 2 * x
             spacing: 18
             GridLayout {
+                id: stockPageHeader
                 Layout.fillWidth: true
-                columns: page.width < 720 ? 1 : 2
+                columns: page.width < 720 || width < stockHeaderActions.fourActionWidth + 220 ? 1 : 2
                 rowSpacing: 12
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 4
                     Text {
                         Layout.fillWidth: true
-                        text: page.state.loaded ? "Saldo atual · " + page.state.asOf : "Estoque e rotatividade"
+                        text: page.state.loaded ? page.activeSection === "monthly" ? "Estoque · mês a mês" : page.activeSection === "products" ? "Estoque · produtos" : "Panorama do estoque" : "Estoque e rotatividade"
                         textFormat: Text.PlainText
                         color: Ui.Theme.text
                         font.pixelSize: page.width < 600 ? 21 : 25
@@ -201,7 +283,7 @@ FocusScope {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: page.state.loaded ? "Panorama atual e investigação mensal de estoque e vendas" : platform.development ? "Abra uma base de teste neste perfil separado." : "Preparando a base de estoque da LIARTE."
+                        text: page.state.loaded ? "Base em " + page.state.asOf + " · " + (page.activeSection === "monthly" ? "Fechamentos e vendas no período selecionado" : page.activeSection === "products" ? "Saldos atuais e desempenho por produto" : "Saldos atuais e evolução dos fechamentos") : platform.development ? "Abra uma base de teste neste perfil separado." : "Preparando a base de estoque da LIARTE."
                         textFormat: Text.PlainText
                         color: Ui.Theme.muted
                         font.pixelSize: 12
@@ -211,16 +293,18 @@ FocusScope {
                 GridLayout {
                     id: stockHeaderActions
                     objectName: "stockHeaderActions"
+                    readonly property real fourActionWidth: 4 * Math.ceil(Math.max(openBase.naturalWidth, exportStock.visible ? exportStock.naturalWidth : 0, restoreStock.implicitWidth, stockMethodologyAction.implicitWidth)) + 3 * columnSpacing
                     Layout.alignment: Qt.AlignRight
-                    Layout.fillWidth: page.width < 720
+                    Layout.fillWidth: stockPageHeader.columns === 1
                     Layout.minimumWidth: 0
-                    columns: page.width < 720 ? 2 : 4
+                    columns: content.width >= fourActionWidth ? 4 : 2
                     columnSpacing: 8
                     rowSpacing: 8
                     Ui.ActionButton {
                         id: openBase
                         objectName: "openStockBase"
-                        text: page.state.loaded ? "Atualizar base" : "Abrir base"
+                        text: page.width < 720 ? "Base" : page.state.loaded ? "Atualizar base" : "Abrir base"
+                        Accessible.name: page.state.loaded ? "Atualizar base de estoque" : "Abrir base de estoque"
                         iconName: "folder"
                         primary: !page.state.loaded
                         Layout.fillWidth: stockHeaderActions.columns === 2
@@ -229,9 +313,11 @@ FocusScope {
                         onClicked: sourceDialog.open()
                     }
                     Ui.ActionButton {
+                        id: exportStock
                         objectName: "stockExportButton"
                         visible: page.state.loaded
-                        text: "Baixar Excel"
+                        text: page.width < 720 ? "Excel" : "Baixar Excel"
+                        Accessible.name: "Baixar Excel do estoque"
                         iconName: "download"
                         Layout.fillWidth: stockHeaderActions.columns === 2
                         Layout.minimumWidth: 0
@@ -239,6 +325,7 @@ FocusScope {
                         onClicked: saveStockDialog.open()
                     }
                     Ui.ActionButton {
+                        id: restoreStock
                         objectName: "stockRestoreButton"
                         text: page.width < 600 ? "" : "Restaurar"
                         iconName: "refresh"
@@ -250,6 +337,7 @@ FocusScope {
                         ToolTip.text: page.backupState.available ? "Restaurar base anterior" : "As bases anteriores ficam disponíveis após atualizar a base neste computador."
                     }
                     Ui.ActionButton {
+                        id: stockMethodologyAction
                         objectName: "stockMethodologyButton"
                         text: ""
                         iconName: "info"
@@ -343,37 +431,75 @@ FocusScope {
                     }
                 }
             }
+            RowLayout {
+                objectName: "stockSectionNavigation"
+                visible: page.state.loaded && page.width < 900
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                spacing: 8
+                Repeater {
+                    model: [
+                        {
+                            key: "overview",
+                            label: "Panorama"
+                        },
+                        {
+                            key: "monthly",
+                            label: "Mês a mês"
+                        },
+                        {
+                            key: "products",
+                            label: "Produtos"
+                        }
+                    ]
+                    Ui.ActionButton {
+                        required property var modelData
+                        objectName: "stockSection_" + modelData.key
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        text: modelData.label
+                        primary: page.activeSection === modelData.key
+                        subtle: page.activeSection !== modelData.key
+                        Accessible.name: "Abrir " + modelData.label + " do estoque"
+                        onClicked: page.navigate(modelData.key)
+                    }
+                }
+            }
             Rectangle {
+                objectName: "stockFilterBar"
                 visible: page.state.loaded
                 Layout.fillWidth: true
-                implicitHeight: filterContent.implicitHeight + 32
+                implicitHeight: filterContent.implicitHeight + 28
                 radius: Ui.Theme.radius
                 color: Ui.Theme.surface
                 border.color: Ui.Theme.softLine
                 ColumnLayout {
                     id: filterContent
-                    x: 16
-                    y: 16
-                    width: parent.width - 32
-                    spacing: 14
+                    x: 14
+                    y: 14
+                    width: parent.width - 28
+                    spacing: 10
                     enabled: page.controlsEnabled
                     GridLayout {
                         id: quickStockGrid
+                        readonly property real cellWidth: Math.max(0, (width - (columns - 1) * columnSpacing) / columns)
                         Layout.fillWidth: true
-                        columns: page.width < 850 ? 2 : 4
-                        columnSpacing: 12
-                        rowSpacing: 12
+                        Layout.minimumWidth: 0
+                        columns: width >= 700 ? 4 : 2
+                        columnSpacing: 10
+                        rowSpacing: 10
                         ColumnLayout {
                             Layout.columnSpan: 2
-                            Layout.preferredWidth: (quickStockGrid.width - (quickStockGrid.columns - 1) * 12) / quickStockGrid.columns * 2 + 12
+                            Layout.preferredWidth: 2 * quickStockGrid.cellWidth + quickStockGrid.columnSpacing
                             Layout.fillWidth: true
                             Layout.minimumWidth: 0
                             spacing: 5
                             Text {
+                                Layout.fillWidth: true
                                 text: "Produto"
                                 color: Ui.Theme.muted
                                 font.pixelSize: 11
-                                font.weight: Font.DemiBold
+                                wrapMode: Text.WordWrap
                             }
                             Ui.StockSearch {
                                 id: stockSearch
@@ -382,123 +508,97 @@ FocusScope {
                                 Layout.minimumWidth: 0
                             }
                         }
-                        Ui.StockFilter {
-                            fieldKey: "branch"
-                            Layout.preferredWidth: (quickStockGrid.width - (quickStockGrid.columns - 1) * 12) / quickStockGrid.columns
+                        ColumnLayout {
+                            Layout.preferredWidth: quickStockGrid.cellWidth
                             Layout.fillWidth: true
                             Layout.minimumWidth: 0
+                            spacing: 5
+                            Text {
+                                Layout.fillWidth: true
+                                text: "Filial"
+                                color: Ui.Theme.muted
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                            }
+                            Ui.AppCombo {
+                                objectName: "stockFilter_branch"
+                                Layout.fillWidth: true
+                                Layout.minimumWidth: 0
+                                model: page.branchOption.values
+                                currentIndex: Math.max(0, model.findIndex(option => option.value === (page.state.selection.branch || "")))
+                                Accessible.name: "Filial do estoque"
+                                onActivated: inventory.setFilter("branch", currentValue)
+                            }
                         }
-                        Ui.StockFilter {
-                            fieldKey: "warehouse"
-                            Layout.preferredWidth: (quickStockGrid.width - (quickStockGrid.columns - 1) * 12) / quickStockGrid.columns
+                        Ui.ActionButton {
+                            objectName: "stockRefineFilters"
+                            Layout.preferredWidth: quickStockGrid.cellWidth
                             Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                    }
-                    GridLayout {
-                        visible: page.advanced
-                        Layout.fillWidth: true
-                        columns: page.width < 700 ? 2 : 5
-                        columnSpacing: 12
-                        rowSpacing: 12
-                        Ui.StockFilter {
-                            fieldKey: "group"
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                        Ui.StockFilter {
-                            fieldKey: "kind"
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                        Ui.StockFilter {
-                            fieldKey: "abc"
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                        Ui.StockFilter {
-                            fieldKey: "activity"
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                        Ui.StockFilter {
-                            fieldKey: "balance"
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                    }
-                    GridLayout {
-                        id: stockPeriodGrid
-                        Layout.fillWidth: true
-                        columns: page.width < 1050 ? 2 : 4
-                        columnSpacing: 12
-                        rowSpacing: 12
-                        Ui.StockFilter {
-                            fieldKey: "start"
-                            Layout.preferredWidth: (stockPeriodGrid.width - (stockPeriodGrid.columns - 1) * 12) / stockPeriodGrid.columns
-                            title: "Histórico · mês inicial"
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                        Ui.StockFilter {
-                            fieldKey: "end"
-                            Layout.preferredWidth: (stockPeriodGrid.width - (stockPeriodGrid.columns - 1) * 12) / stockPeriodGrid.columns
-                            title: "Histórico · mês final"
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                        Ui.StockFilter {
-                            fieldKey: "unit"
-                            Layout.preferredWidth: (stockPeriodGrid.width - (stockPeriodGrid.columns - 1) * 12) / stockPeriodGrid.columns
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 0
-                        }
-                        RowLayout {
-                            Layout.columnSpan: page.width < 650 ? 2 : 1
-                            Layout.preferredWidth: (stockPeriodGrid.width - (stockPeriodGrid.columns - 1) * 12) / stockPeriodGrid.columns
                             Layout.minimumWidth: 0
                             Layout.alignment: Qt.AlignBottom
-                            Layout.fillWidth: true
-                            spacing: 4
-                            Ui.ActionButton {
-                                text: page.advanced ? "Menos filtros" : "Mais filtros"
-                                iconName: "filter"
-                                onClicked: page.advanced = !page.advanced
-                            }
-                            Ui.ActionButton {
-                                text: "Limpar"
-                                subtle: true
-                                Accessible.name: "Limpar todos os filtros de estoque"
-                                onClicked: inventory.resetFilters()
-                            }
+                            text: "Refinar recorte" + (page.advancedFilterCount ? " (" + page.advancedFilterCount + ")" : "")
+                            iconName: "filter"
+                            Accessible.name: "Refinar filtros e período do estoque"
+                            onClicked: stockFilters.open()
+                        }
+                    }
+                    Text {
+                        objectName: "stockAppliedScope"
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        text: (page.state.current ? "Histórico: " : "Último recorte concluído: ") + page.appliedPeriod() + " · " + (page.appliedSelection.unit || "Quantidades separadas por unidade") + (page.advancedFilterCount ? " · " + page.advancedFilterCount + " filtros adicionais" : "")
+                        textFormat: Text.PlainText
+                        color: Ui.Theme.muted
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                        Accessible.description: page.advancedFilterSummary
+                        ToolTip.visible: scopeHover.hovered && Boolean(page.advancedFilterSummary)
+                        ToolTip.text: page.advancedFilterSummary
+                        ToolTip.delay: 350
+                        HoverHandler {
+                            id: scopeHover
                         }
                     }
                 }
             }
-            GridLayout {
-                visible: page.state.loaded
+            Ui.StockOverview {
+                id: overviewSection
+                visible: page.state.loaded && page.activeSection === "overview"
                 Layout.fillWidth: true
-                columns: page.width >= 1150 ? 5 : page.width >= 880 ? 6 : page.width >= 560 ? 2 : 1
-                columnSpacing: 12
-                rowSpacing: 12
-                Repeater {
-                    model: page.view.metrics
-                    Ui.MetricCard {
-                        required property var modelData
-                        required property int index
-                        objectName: "stockMetric" + index
-                        Layout.columnSpan: page.width >= 880 && page.width < 1150 ? (index < 3 ? 2 : 3) : page.width >= 560 && page.width < 880 && index === 4 ? 2 : 1
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        metric: modelData
-                        emphasized: index === 0
-                        iconName: index === 0 ? "price" : "box"
-                    }
+                Layout.minimumWidth: 0
+                view: page.view
+                current: page.state.current
+                controlsEnabled: page.controlsEnabled && !page.state.busy
+                onChartRequested: stockChartDialog.open()
+                onProductSelected: code => {
+                    page.pendingOverviewTarget = {
+                        dimension: "product",
+                        key: code
+                    };
+                    inventory.setFilter("product", code);
+                    Qt.callLater(page.finishOverviewNavigation);
                 }
+                onActivitySelected: activity => {
+                    page.pendingOverviewTarget = {
+                        dimension: "activity",
+                        key: activity
+                    };
+                    inventory.setFilter("activity", activity);
+                    Qt.callLater(page.finishOverviewNavigation);
+                }
+            }
+            Ui.ActionButton {
+                objectName: "stockAlertsToggle"
+                visible: page.state.loaded && page.activeSection === "overview"
+                Layout.fillWidth: page.width < 600
+                Layout.minimumWidth: 0
+                text: page.showAlerts ? "Recolher alertas do estoque" : "Ver alertas do estoque"
+                iconName: "info"
+                onClicked: page.showAlerts = !page.showAlerts
             }
             Ui.StockAlerts {
                 id: stockAlerts
-                visible: page.state.loaded
+                visible: page.state.loaded && page.activeSection === "overview" && page.showAlerts
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
                 alertData: inventory.alerts
@@ -508,293 +608,18 @@ FocusScope {
                 controlsEnabled: page.controlsEnabled
                 onThresholdsApplied: (staleDays, coverageDays) => inventory.setAlertThresholds(staleDays, coverageDays)
                 onProductRequested: (code, branch, unit) => {
-                    page.pendingAlertTarget = {code: code, branch: branch, unit: unit};
+                    page.pendingAlertTarget = {
+                        code: code,
+                        branch: branch,
+                        unit: unit
+                    };
                     inventory.focusAlertProduct(code, branch, unit);
                     Qt.callLater(page.finishAlertNavigation);
                 }
             }
-            GridLayout {
-                visible: page.state.loaded
-                Layout.fillWidth: true
-                columns: width >= 1080 ? 2 : 1
-                columnSpacing: 16
-                rowSpacing: 16
-                Rectangle {
-                    id: stockHistoryCard
-                    objectName: "stockHistoryCard"
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.minimumWidth: 0
-                    Layout.preferredHeight: stockHistoryContent.implicitHeight + 36
-                    color: Ui.Theme.surface
-                    radius: Ui.Theme.radius
-                    border.color: Ui.Theme.softLine
-                    ColumnLayout {
-                        id: stockHistoryContent
-                        anchors.fill: parent
-                        anchors.margins: 18
-                        spacing: 7
-                        GridLayout {
-                            id: stockChartHeading
-                            Layout.fillWidth: true
-                            columns: width >= stockChartTitle.implicitWidth + stockChartMode.implicitWidth + openStockChart.implicitWidth + 24 ? 3 : 2
-                            rowSpacing: 8
-                            Text {
-                                id: stockChartTitle
-                                Layout.fillWidth: true
-                                Layout.columnSpan: stockChartHeading.columns === 2 ? 2 : 1
-                                text: "Evolução do estoque"
-                                color: Ui.Theme.text
-                                font.pixelSize: 15
-                                font.weight: Font.DemiBold
-                                wrapMode: Text.WordWrap
-                            }
-                            Ui.AppCombo {
-                                id: stockChartMode
-                                objectName: "stockChartMode"
-                                Layout.preferredWidth: 112
-                                model: [
-                                    {
-                                        value: "line",
-                                        label: "Linhas"
-                                    },
-                                    {
-                                        value: "column",
-                                        label: "Colunas"
-                                    }
-                                ]
-                                Accessible.name: "Tipo de gráfico de estoque"
-                            }
-                            Ui.ActionButton {
-                                id: openStockChart
-                                objectName: "openStockChart"
-                                text: "Ampliar"
-                                iconName: "chart"
-                                implicitWidth: Math.max(112, naturalWidth)
-                                Layout.minimumWidth: implicitWidth
-                                font.pixelSize: 11
-                                subtle: true
-                                onClicked: stockChartDialog.open()
-                            }
-                        }
-                        GridLayout {
-                            Layout.fillWidth: true
-                            columns: width >= 460 ? 2 : 1
-                            rowSpacing: 4
-                            Text {
-                                Layout.fillWidth: true
-                                Layout.minimumWidth: 0
-                                text: page.view.historySummary.value || "—"
-                                color: Ui.Theme.text
-                                font.pixelSize: 24
-                                minimumPixelSize: 18
-                                fontSizeMode: Text.HorizontalFit
-                                font.weight: Font.DemiBold
-                                textFormat: Text.PlainText
-                                ToolTip.visible: summaryHover.hovered
-                                ToolTip.text: page.view.historySummary.full || ""
-                                HoverHandler {
-                                    id: summaryHover
-                                }
-                            }
-                            Text {
-                                Layout.fillWidth: true
-                                text: page.view.historySummary.change || ""
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                                wrapMode: Text.WordWrap
-                                textFormat: Text.PlainText
-                            }
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: (page.view.historySummary.period || "") + " · " + page.view.historicalScope
-                            textFormat: Text.PlainText
-                            font.pixelSize: 11
-                            color: Ui.Theme.muted
-                            wrapMode: Text.WordWrap
-                        }
-                        Ui.StockPlot {
-                            id: stockTrend
-                            objectName: "stockTrend"
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.minimumHeight: 220
-                            Layout.preferredHeight: Math.min(330, Math.max(220, stockHistoryCard.width * 0.45))
-                            points: page.view.plotTrend || []
-                            mode: stockChartMode.currentValue || "line"
-                            showValues: stockValues.checked
-                            movingAverage: stockAverage.checked
-                        }
-                        GridLayout {
-                            id: stockChartLegend
-                            Layout.fillWidth: true
-                            columns: width >= 360 ? 3 : 2
-                            columnSpacing: 8
-                            rowSpacing: 4
-                            RowLayout {
-                                Layout.columnSpan: stockChartLegend.columns === 2 ? 2 : 1
-                                Rectangle {
-                                    width: 16
-                                    height: 3
-                                    radius: 1
-                                    color: Ui.Theme.accent
-                                }
-                                Text {
-                                    text: "Custo"
-                                    color: Ui.Theme.muted
-                                    font.pixelSize: 11
-                                }
-                            }
-                            Ui.StockToggle {
-                                id: stockAverage
-                                objectName: "stockAverage"
-                                text: "Média 3m"
-                                checked: true
-                                font.pixelSize: 11
-                                Accessible.name: "Exibir média móvel de três meses"
-                            }
-                            Ui.StockToggle {
-                                id: stockValues
-                                objectName: "stockValues"
-                                text: "Valores"
-                                font.pixelSize: 11
-                            }
-                        }
-                        Rectangle {
-                            Layout.fillWidth: true
-                            implicitHeight: stockTrendReadout.implicitHeight + 20
-                            radius: 7
-                            color: Ui.Theme.subtle
-                            Text {
-                                id: stockTrendReadout
-                                objectName: "stockTrendReadout"
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.top: parent.top
-                                anchors.margins: 10
-                                text: stockTrend.readout || "Passe o cursor ou use as setas. Meses sem fechamento permanecem em branco."
-                                textFormat: Text.PlainText
-                                color: Ui.Theme.muted
-                                font.pixelSize: 11
-                                wrapMode: Text.WordWrap
-                            }
-                        }
-                    }
-                }
-                Rectangle {
-                    objectName: "stockCapitalCard"
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.minimumWidth: 0
-                    Layout.preferredHeight: stockCapitalContent.implicitHeight + 36
-                    radius: Ui.Theme.radius
-                    color: Ui.Theme.surface
-                    border.color: Ui.Theme.softLine
-                    ColumnLayout {
-                        id: stockCapitalContent
-                        anchors.fill: parent
-                        anchors.margins: 18
-                        spacing: 7
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Capital por produto"
-                            color: Ui.Theme.text
-                            font.pixelSize: 15
-                            font.weight: Font.DemiBold
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: Math.min(8, page.view.ranking.length) + " maiores · custo e participação no capital positivo"
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            wrapMode: Text.WordWrap
-                        }
-                        Ui.StockBars {
-                            id: stockRanking
-                            objectName: "stockRanking"
-                            Layout.fillWidth: true
-                            rows: page.view.ranking.slice(0, 8)
-                            interactive: true
-                            onSelected: code => inventory.setFilter("product", code)
-                        }
-                        Item {
-                            Layout.fillHeight: true
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: stockRanking.rows.length ? "Acumulado: " + stockRanking.rows[stockRanking.rows.length - 1].cumulative + " · selecione um produto para analisar" : "Sem capital positivo no recorte"
-                            color: Ui.Theme.muted
-                            font.pixelSize: 11
-                            wrapMode: Text.WordWrap
-                            textFormat: Text.PlainText
-                        }
-                    }
-                }
-            }
-            Rectangle {
-                visible: page.state.loaded
-                Layout.fillWidth: true
-                implicitHeight: activityColumn.implicitHeight + 36
-                radius: Ui.Theme.radius
-                color: Ui.Theme.surface
-                border.color: Ui.Theme.softLine
-                ColumnLayout {
-                    id: activityColumn
-                    x: 18
-                    y: 18
-                    width: parent.width - 36
-                    spacing: 12
-                    Text {
-                        text: "Capital positivo por última venda"
-                        color: Ui.Theme.text
-                        font.pixelSize: 15
-                        font.weight: Font.DemiBold
-                    }
-                    GridLayout {
-                        Layout.fillWidth: true
-                        columns: page.width < 700 ? 2 : 4
-                        columnSpacing: 12
-                        rowSpacing: 12
-                        Repeater {
-                            model: page.view.activityChart
-                            Button {
-                                id: activityButton
-                                required property var modelData
-                                Layout.fillWidth: true
-                                implicitHeight: 64
-                                padding: 10
-                                onClicked: inventory.setFilter("activity", modelData.name)
-                                Accessible.name: modelData.name + ": " + modelData.display + ". Filtrar."
-                                background: Rectangle {
-                                    color: activityButton.hovered ? Ui.Theme.selected : Ui.Theme.subtle
-                                    radius: 7
-                                    border.color: activityButton.visualFocus ? Ui.Theme.accent : "transparent"
-                                }
-                                contentItem: ColumnLayout {
-                                    Text {
-                                        text: activityButton.modelData.name
-                                        color: Ui.Theme.muted
-                                        font.pixelSize: 11
-                                    }
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: activityButton.modelData.display
-                                        color: Ui.Theme.text
-                                        font.pixelSize: 16
-                                        font.weight: Font.DemiBold
-                                        fontSizeMode: Text.HorizontalFit
-                                        minimumPixelSize: 12
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
             Ui.StockMonthly {
                 id: monthlySection
-                visible: page.state.loaded
+                visible: page.state.loaded && page.activeSection === "monthly"
                 Layout.fillWidth: true
                 monthly: inventory.monthly
                 comparison: inventory.comparison
@@ -803,7 +628,10 @@ FocusScope {
                 controlsEnabled: page.controlsEnabled && page.state.current && !page.state.busy
                 onComparisonRequested: (base, target) => inventory.setComparisonMonths(base, target)
                 onComparisonFocusRequested: (dimension, key) => {
-                    page.pendingComparisonFocus = {dimension: dimension, key: key};
+                    page.pendingComparisonFocus = {
+                        dimension: dimension,
+                        key: key
+                    };
                     inventory.focusComparison(dimension, key);
                     Qt.callLater(page.finishComparisonNavigation);
                 }
@@ -811,206 +639,28 @@ FocusScope {
                 onUnitSelected: unit => inventory.setMonthlyUnit(unit)
                 onProductSelected: code => inventory.setFilter("product", code)
             }
-            ColumnLayout {
+            Ui.StockPositions {
                 id: positionsSection
-                visible: page.state.loaded
+                visible: page.state.loaded && page.activeSection === "products"
                 Layout.fillWidth: true
-                spacing: 10
-                GridLayout {
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: 0
-                    columns: width >= 760 ? 3 : 1
-                    columnSpacing: 10
-                    rowSpacing: 8
-                    Text {
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        text: "Posições de estoque"
-                        color: Ui.Theme.text
-                        font.pixelSize: 17
-                        font.weight: Font.DemiBold
-                        wrapMode: Text.WordWrap
-                    }
-                    Ui.ActionButton {
-                        objectName: "stockPerformanceOpen"
-                        Layout.fillWidth: parent.columns === 1
-                        Layout.minimumWidth: 0
-                        text: "Desempenho dos produtos"
-                        enabled: page.controlsEnabled && page.state.current && !page.state.busy
-                        iconName: "chart"
-                        onClicked: stockPerformance.open()
-                    }
-                    Ui.ActionButton {
-                        Layout.fillWidth: parent.columns === 1
-                        Layout.minimumWidth: 0
-                        text: "Detalhar produto"
-                        enabled: page.state.selectedRow >= 0 && page.state.current && page.state.task !== "load"
-                        iconName: "chart"
-                        onClicked: stockDetail.open()
-                    }
-                }
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Math.min(390, Math.max(180, page.height - 180))
-                    color: Ui.Theme.line
-                    clip: true
-                    HorizontalHeaderView {
-                        id: stockHeader
-                        enabled: page.state.current && page.state.task !== "load"
-                        anchors {
-                            top: parent.top
-                            left: parent.left
-                            right: parent.right
-                        }
-                        height: 40
-                        syncView: stockTable
-                        clip: true
-                        delegate: Rectangle {
-                            required property int column
-                            required property string display
-                            implicitWidth: stockTable.columnWidthProvider(column)
-                            implicitHeight: 40
-                            color: Ui.Theme.subtle
-                            Text {
-                                anchors.fill: parent
-                                anchors.margins: 10
-                                text: display + (page.state.sortColumn === column ? page.state.descending ? " ↓" : " ↑" : "")
-                                textFormat: Text.PlainText
-                                color: Ui.Theme.text
-                                font.pixelSize: 11
-                                font.weight: Font.DemiBold
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
-                            }
-                            TapHandler {
-                                onTapped: inventory.sortByColumn(column)
-                            }
-                            Accessible.role: Accessible.ColumnHeader
-                            Accessible.name: "Ordenar por " + display
-                            Accessible.onPressAction: inventory.sortByColumn(column)
-                        }
-                    }
-                    TableView {
-                        id: stockTable
-                        enabled: page.state.current && page.state.task !== "load"
-                        objectName: "stockTable"
-                        anchors {
-                            top: stockHeader.bottom
-                            bottom: parent.bottom
-                            left: parent.left
-                            right: parent.right
-                        }
-                        model: stockModel
-                        clip: true
-                        activeFocusOnTab: true
-                        Accessible.name: "Posições de estoque. Selecione com as setas e pressione Enter para detalhar."
-                        Keys.onPressed: event => {
-                            if (event.key === Qt.Key_Down) {
-                                const row = Math.min(stockModel.rowCount() - 1, page.state.selectedRow + 1);
-                                inventory.selectRow(row);
-                                positionViewAtRow(row, TableView.Contain);
-                            } else if (event.key === Qt.Key_Up) {
-                                const row = Math.max(0, page.state.selectedRow - 1);
-                                inventory.selectRow(row);
-                                positionViewAtRow(row, TableView.Contain);
-                            } else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && page.state.selectedRow >= 0)
-                                stockDetail.open();
-                            else
-                                event.accepted = false;
-                        }
-                        reuseItems: true
-                        property bool compactMode: preferences.state.compact
-                        onCompactModeChanged: forceLayout()
-                        rowSpacing: 1
-                        columnSpacing: 1
-                        boundsBehavior: Flickable.StopAtBounds
-                        columnWidthProvider: col => [120, 320, 80, 75, 65, 155, 180, 65, 120, 130, 130][col] || 120
-                        rowHeightProvider: row => compactMode ? 32 : 40
-                        ScrollBar.horizontal: ScrollBar {
-                            policy: ScrollBar.AsNeeded
-                        }
-                        ScrollBar.vertical: ScrollBar {
-                            policy: ScrollBar.AsNeeded
-                        }
-                        delegate: Rectangle {
-                            required property int row
-                            required property int column
-                            required property string display
-                            objectName: "stockCell_" + row + "_" + column
-                            implicitWidth: stockTable.columnWidthProvider(column)
-                            implicitHeight: preferences.state.compact ? 32 : 40
-                            color: page.state.selectedRow === row ? Ui.Theme.selected : row % 2 ? Ui.Theme.subtle : Ui.Theme.surface
-                            Text {
-                                id: stockCell
-                                anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
-                                text: display
-                                textFormat: Text.PlainText
-                                color: Ui.Theme.text
-                                font.pixelSize: 12
-                                verticalAlignment: Text.AlignVCenter
-                                horizontalAlignment: column >= 5 && column !== 7 && column !== 8 ? Text.AlignRight : Text.AlignLeft
-                                elide: Text.ElideRight
-                            }
-                            TapHandler {
-                                onTapped: {
-                                    inventory.selectRow(row);
-                                    stockTable.forceActiveFocus();
-                                }
-                                onDoubleTapped: {
-                                    inventory.selectRow(row);
-                                    stockDetail.open();
-                                }
-                            }
-                            HoverHandler {
-                                id: cellHover
-                            }
-                            ToolTip.visible: cellHover.hovered && stockCell.truncated
-                            ToolTip.text: display
-                            ToolTip.delay: 400
-                        }
-                    }
-                    Text {
-                        anchors.centerIn: parent
-                        visible: page.state.count === 0
-                        text: "Nenhuma posição encontrada. Ajuste os filtros."
-                        color: Ui.Theme.muted
-                        font.pixelSize: 12
-                    }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        Layout.fillWidth: true
-                        text: page.state.count + " posições"
-                        color: Ui.Theme.muted
-                        font.pixelSize: 12
-                    }
-                    Ui.ActionButton {
-                        text: ""
-                        iconName: "left"
-                        implicitWidth: 40
-                        enabled: page.state.page > 1
-                        Accessible.name: "Página anterior"
-                        onClicked: inventory.setPage(page.state.page - 1)
-                    }
-                    Text {
-                        text: page.state.page + " / " + page.state.pages
-                        color: Ui.Theme.text
-                        font.pixelSize: 12
-                    }
-                    Ui.ActionButton {
-                        text: ""
-                        iconName: "right"
-                        implicitWidth: 40
-                        enabled: page.state.page < page.state.pages
-                        Accessible.name: "Próxima página"
-                        onClicked: inventory.setPage(page.state.page + 1)
-                    }
-                }
+                Layout.minimumWidth: 0
+                state: page.state
+                tableModel: stockModel
+                controlsEnabled: page.controlsEnabled
+                compact: preferences.state.compact
+                viewportHeight: page.height
+                onPerformanceRequested: stockPerformance.open()
+                onDetailRequested: stockDetail.open()
+                onSortRequested: column => inventory.sortByColumn(column)
+                onRowSelected: row => inventory.selectRow(row)
+                onPageSelected: requestedPage => inventory.setPage(requestedPage)
             }
         }
+    }
+    Ui.StockFiltersDialog {
+        id: stockFilters
+        stockController: inventory
+        controlsEnabled: page.controlsEnabled
     }
     FileDialog {
         id: sourceDialog
@@ -1199,11 +849,11 @@ FocusScope {
         stock: true
         unit: "R$"
         contextLabel: (page.view.historySummary.period || "") + " · " + page.view.historicalScope
-        legendLabel: "Custo mensal" + (stockTrend.hasAverage ? " · média de 3 meses (tracejada)" : "")
+        legendLabel: "Custo mensal" + (overviewSection.chartHasAverage ? " · média de 3 meses (tracejada)" : "")
         points: page.view.plotTrend || []
-        mode: stockTrend.mode
-        movingAverage: stockTrend.movingAverage
-        showValues: stockTrend.showValues
+        mode: overviewSection.chartMode
+        movingAverage: overviewSection.chartMovingAverage
+        showValues: overviewSection.chartShowValues
     }
     Ui.StockPerformance {
         id: stockPerformance

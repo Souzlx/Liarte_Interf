@@ -13,7 +13,7 @@ import time
 import unittest
 from unittest.mock import patch
 from urllib.parse import urlsplit
-from PySide6.QtCore import QPointF, QObject, QCoreApplication, QEvent, QMetaObject, QUrl
+from PySide6.QtCore import Q_ARG, QPointF, QObject, QCoreApplication, QEvent, QMetaObject, Qt, QUrl
 from PySide6.QtTest import QTest
 from liarte_core.catalog import catalog
 from liarte_core.comex import ComexProvider, ComexError, integral, uf
@@ -28,6 +28,38 @@ from tests.test_qt import APP, pump, settled, click as native_click
 
 
 def click(window, item):
+    # Legacy business tests can request a control in another task. Prepare its
+    # owner explicitly; dedicated navigation tests exercise the actual buttons.
+    workspace = window.findChild(QObject, "importsWorkspace")
+    if workspace is not None and not item.isVisible():
+        ancestors = []
+        ancestor = item
+        while ancestor is not None:
+            ancestors.append(ancestor.objectName())
+            ancestor = ancestor.parentItem()
+        owner = None
+        if "recordsPanel" in ancestors or "documentsPanel" in ancestors:
+            owner = "records"
+        elif "buyingSection" in ancestors:
+            owner = "buying"
+        elif any(name in ancestors for name in ("trendPanel", "originsPanel", "metricsGrid")):
+            owner = "summary"
+        if owner is not None and workspace.property("activeSection") != owner:
+            QMetaObject.invokeMethod(
+                workspace, "navigate", Qt.ConnectionType.DirectConnection,
+                Q_ARG("QVariant", owner),
+            )
+        if "queryPanel" in ancestors:
+            workspace.setProperty("periodExpanded", True)
+        if "filterPanel" in ancestors:
+            workspace.setProperty("filtersExpanded", True)
+        if "documentsPanel" in ancestors:
+            workspace.setProperty("documentsExpanded", True)
+        if "originsPanel" in ancestors:
+            workspace.setProperty("primaryVisual", "origins")
+        elif "trendPanel" in ancestors:
+            workspace.setProperty("primaryVisual", "trend")
+        APP.processEvents()
     scroll = window.findChild(QObject, "contentScroll")
     if scroll is not None:
         top = scroll.mapToScene(QPointF(0, 0)).y()

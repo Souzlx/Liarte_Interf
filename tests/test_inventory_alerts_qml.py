@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from PySide6.QtCore import QObject, QPointF, QSettings, Qt
+from PySide6.QtCore import Q_ARG, QMetaObject, QObject, QPointF, QSettings, Qt
 from PySide6.QtTest import QSignalSpy, QTest
 
 from liarte_core.inventory import SCALE
@@ -62,6 +62,30 @@ class InventoryAlertQmlTests(unittest.TestCase):
         return result
 
     def reveal(self, item):
+        workspace = self.item("inventoryWorkspace")
+        owner = None
+        for ancestor in InventoryAlertQmlTests.ancestors(item):
+            name = ancestor.objectName()
+            if name == "stockMonthly" or name.startswith("stockCompare"):
+                owner = "monthly"
+                break
+            if name == "stockPositionsSection" or name in {"stockTable", "stockPerformanceOpen"}:
+                owner = "products"
+                break
+            if name == "stockOverviewSection" or name.startswith("stockAlert"):
+                owner = "overview"
+                break
+        if owner and workspace.property("activeSection") != owner:
+            QMetaObject.invokeMethod(
+                workspace, "navigate", Qt.ConnectionType.DirectConnection,
+                Q_ARG("QVariant", owner),
+            )
+            APP.processEvents()
+        if (
+            owner == "overview" and item.objectName().startswith("stockAlert")
+            and item.objectName() != "stockAlertsToggle" and not workspace.property("showAlerts")
+        ):
+            self.click_workspace(self.item("stockAlertsToggle"))
         scroll = self.item("stockScroll")
         point = item.mapToItem(scroll, QPointF())
         target = scroll.property("contentY") + point.y() - 30
@@ -69,6 +93,12 @@ class InventoryAlertQmlTests(unittest.TestCase):
         scroll.setProperty("contentY", max(0, min(maximum, target)))
         self.window.update()
         APP.processEvents()
+
+    @staticmethod
+    def ancestors(item):
+        while item is not None:
+            yield item
+            item = item.parentItem()
 
     def click_workspace(self, control):
         self.window.requestActivate()

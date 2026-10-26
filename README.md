@@ -20,6 +20,8 @@ Na análise mensal, o [comparador de dois meses](docs/COMPARADOR_MENSAL_ESTOQUE.
 
 Em Produtos, a análise de [desempenho e giro por produto](docs/DESEMPENHO_PRODUTOS.md) acrescenta rankings por unidade, janelas de 1/3/6 meses, histórico e hipóteses a verificar sobre as variações. Giro da fonte e cobertura estimada têm definições separadas; a base não informa idade dos lotes.
 
+A [interface organizada por tarefa](docs/GUIA_INTERFACE_MODULAR.md) separa as vistas de estoque e mercado, mantém filtros aplicados visíveis e apresenta detalhes sob demanda. A [análise dos PBIX enviados](docs/ANALISE_BI_E_EXPERIENCIA.md) documenta fórmulas e recortes que precisam de revisão antes de ampliar os indicadores financeiros.
+
 ## Executar os fontes
 
 Para continuar o desenvolvimento na sua máquina com VS Code e Codex, siga o [guia de desenvolvimento local no Windows](docs/DESENVOLVIMENTO_LOCAL_WINDOWS.md). O [resumo de continuidade](docs/CONTINUIDADE_LOCAL.md) registra o estado da instalação validada e os cuidados com o perfil de dados.

@@ -7,7 +7,7 @@ from threading import Event
 import unittest
 from unittest.mock import patch
 
-from PySide6.QtCore import QCoreApplication, QEvent, QObject, QPointF, Qt
+from PySide6.QtCore import Q_ARG, QCoreApplication, QEvent, QMetaObject, QObject, QPointF, Qt
 from PySide6.QtTest import QAbstractItemModelTester, QSignalSpy
 
 from liarte_core.domain import Period, Selection
@@ -154,6 +154,10 @@ class NavigationQtTests(unittest.TestCase):
         APP.processEvents()
         self.controller.queryPeriod("2026-04", "2026-09")
         settled(self.controller)
+        QMetaObject.invokeMethod(
+            self.window.findChild(QObject, "importsWorkspace"), "navigate",
+            Qt.ConnectionType.DirectConnection, Q_ARG("QVariant", "records"),
+        )
         # Worker completion can precede the polish that hides its progress block.
         rendered = QSignalSpy(self.window.frameSwapped)
         self.window.update()
@@ -365,6 +369,10 @@ class NavigationMunicipalTests(unittest.TestCase):
         self,
     ):
         self.load()
+        QMetaObject.invokeMethod(
+            self.item("importsWorkspace"), "navigate",
+            Qt.ConnectionType.DirectConnection, Q_ARG("QVariant", "records"),
+        )
         c = self.controller
         for dark, kind in (
             (True, "municipal"),
@@ -403,6 +411,10 @@ class NavigationMunicipalTests(unittest.TestCase):
 
     def test_table_has_no_residual_pixels_after_schema_changes(self):
         self.load()
+        QMetaObject.invokeMethod(
+            self.item("importsWorkspace"), "navigate",
+            Qt.ConnectionType.DirectConnection, Q_ARG("QVariant", "records"),
+        )
         c = self.controller
         c.setPreference("reducedMotion", True)
         for dark, kind in (

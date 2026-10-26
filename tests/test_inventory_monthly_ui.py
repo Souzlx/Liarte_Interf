@@ -41,6 +41,9 @@ class InventoryMonthlyUiTests(unittest.TestCase):
         return result
 
     def reveal(self, item):
+        self.item("inventoryWorkspace").setProperty("activeSection", "monthly")
+        self.item("stockMonthly").setProperty("rankingsExpanded", True)
+        APP.processEvents()
         scroll = self.item("stockScroll")
         point = item.mapToItem(scroll, QPointF())
         target = scroll.property("contentY") + point.y() - 90
@@ -126,6 +129,8 @@ class InventoryMonthlyUiTests(unittest.TestCase):
         write_snapshot(data, self.base)
         self.load()
         section = self.item("stockMonthly")
+        self.item("inventoryWorkspace").setProperty("activeSection", "monthly")
+        section.setProperty("rankingsExpanded", True)
         section.setProperty("rankingKey", "changes")
         APP.processEvents()
         self.assertEqual(self.item("stockMonthlyRow0Value").property("text"), "−R$ 30,00")
@@ -167,4 +172,25 @@ class InventoryMonthlyUiTests(unittest.TestCase):
         self.c.cancel()
         self.idle()
         self.assertEqual(self.c.monthly, before)
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_selected_chart_month_is_applied_only_by_the_explicit_action(self):
+        self.load()
+        selection = self.c.presentation["selection"]
+        period = self.c.monthly["period"]
+        plot = self.item("stockMonthlyPlot")
+        self.reveal(plot)
+        plot.forceActiveFocus(Qt.FocusReason.TabFocusReason)
+        QTest.keyClick(self.window, Qt.Key.Key_Home)
+        points = variant(plot.property("points"))
+        self.assertEqual(self.c.monthly["period"], period)
+        changes = QSignalSpy(self.c.analysisChanged)
+        action = self.item("stockMonthlyUseMonth")
+        self.reveal(action)
+        activated = QSignalSpy(action.clicked)
+        click(self.window, action)
+        self.assertEqual(activated.count(), 1)
+        self.assertEqual(self.c.monthly["period"], points[0]["period"])
+        self.assertEqual(self.c.presentation["selection"], selection)
+        self.assertEqual(changes.count(), 0)
         self.assertEqual(self.bundle.messages, [])

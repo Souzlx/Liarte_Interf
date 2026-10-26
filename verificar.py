@@ -107,9 +107,19 @@ def main():
     from tests.test_inventory_performance_qml import (
         InventoryPerformanceQmlTests, InventoryPerformanceWorkspaceTests,
     )
+    from tests.test_ux_chart_interactions import UXChartInteractionTests
+    from tests.test_ux_stock_filters import UXStockFilterControllerTests, UXStockFilterDialogTests
+    from tests.test_ux_navigation import (
+        InventoryWorkspaceNavigationTests, ImportsWorkspaceNavigationTests,
+    )
 
     suite = unittest.TestSuite()
     for case in (
+        UXChartInteractionTests,
+        UXStockFilterControllerTests,
+        UXStockFilterDialogTests,
+        InventoryWorkspaceNavigationTests,
+        ImportsWorkspaceNavigationTests,
         InventoryPerformanceTests,
         InventoryPerformanceExportTests,
         InventoryPerformanceUiTests,
