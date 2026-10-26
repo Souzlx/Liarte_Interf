@@ -38,7 +38,7 @@ class RuntimeProfileTests(unittest.TestCase):
     def setUp(self):
         self.temp = TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.directory = Path(self.temp.name)
+        self.directory = Path(self.temp.name).resolve()
         self.production = self.directory / "installed-profile"
         self.production.mkdir()
         (self.production / "untouched.txt").write_bytes(b"installed profile")
@@ -279,7 +279,7 @@ print(json.dumps(observed))
 class RuntimeProfileUiTests(unittest.TestCase):
     def setUp(self):
         self.temp = TemporaryDirectory()
-        self.directory = Path(self.temp.name)
+        self.directory = Path(self.temp.name).resolve()
         self.production = self.directory / "installed-profile"
         self.production.mkdir()
         write_snapshot(sample(), self.production / "estoque/base.liarte")

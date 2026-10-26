@@ -13,10 +13,11 @@ FocusScope {
     readonly property var detail: inventory.detail
     readonly property var backupState: inventory.backupState
     property bool advanced: false
-    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || monthlySection.modalOpen
+    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
     readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 || scroll.contentHeight > scroll.height && scroll.atYEnd ? "products" : scroll.contentY >= monthlySection.y - 80 ? "monthly" : "overview"
     property var lastFocusedControl: null
+    property var pendingAlertTarget: null
 
     function visibleControl(item) {
         if (!item || !item.visible || !item.enabled || item.width <= 0 || item.height <= 0)
@@ -55,6 +56,27 @@ FocusScope {
         else
             page.forceActiveFocus();
     }
+    function finishAlertNavigation() {
+        if (!pendingAlertTarget)
+            return;
+        if (!visible || state.error.length > 0) {
+            pendingAlertTarget = null;
+            return;
+        }
+        if (!state.current || state.busy)
+            return;
+        const target = pendingAlertTarget;
+        pendingAlertTarget = null;
+        if (state.selection.product === target.code && state.selection.branch === target.branch && state.selection.unit === target.unit)
+            navigate("products");
+    }
+    Connections {
+        target: inventory
+        function onChanged() {
+            if (page.pendingAlertTarget)
+                Qt.callLater(page.finishAlertNavigation);
+        }
+    }
     Connections {
         target: page.hostWindow
         function onActiveFocusItemChanged() {
@@ -84,8 +106,10 @@ FocusScope {
         duration: Ui.Theme.motion
         easing.type: Easing.OutCubic
     }
-    onVisibleChanged: if (!visible)
-        stockScrollMotion.stop()
+    onVisibleChanged: if (!visible) {
+        stockScrollMotion.stop();
+        pendingAlertTarget = null;
+    }
     Connections {
         target: Ui.Theme
         function onMotionEnabledChanged() {
@@ -421,6 +445,23 @@ FocusScope {
                         emphasized: index === 0
                         iconName: index === 0 ? "price" : "box"
                     }
+                }
+            }
+            Ui.StockAlerts {
+                id: stockAlerts
+                visible: page.state.loaded
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                alertData: inventory.alerts
+                settings: inventory.alertSettings
+                current: page.state.current
+                busy: page.state.busy
+                controlsEnabled: page.controlsEnabled
+                onThresholdsApplied: (staleDays, coverageDays) => inventory.setAlertThresholds(staleDays, coverageDays)
+                onProductRequested: (code, branch, unit) => {
+                    page.pendingAlertTarget = {code: code, branch: branch, unit: unit};
+                    inventory.focusAlertProduct(code, branch, unit);
+                    Qt.callLater(page.finishAlertNavigation);
                 }
             }
             GridLayout {

@@ -14,6 +14,8 @@ A versão estável **5.3.0** promove a RC3 validada pelo usuário, com gráficos
 
 A prévia **5.3.1-rc.1** acrescenta Setup Windows e restauração de bases anteriores de Estoque. [Baixar o Setup](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.1/LIARTE_Desktop_5.3.1-rc.1_Setup.exe) · [Pacotes e checksums da prévia](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.1). Veja o [guia de instalação e restauração](docs/INSTALACAO_531_RC1.md) e as [notas da prévia](docs/RELEASE_5.3.1-rc.1.md). A geração e os testes do Setup usam um [workflow separado](.github/workflows/installer.yml).
 
+Os fontes em desenvolvimento também incluem [alertas configuráveis de estoque](docs/ALERTAS_ESTOQUE.md), com investigação por produto, filial e unidade e exportação completa em Excel. Essa melhoria ainda não faz parte dos pacotes publicados acima.
+
 ## Executar os fontes
 
 Para continuar o desenvolvimento na sua máquina com VS Code e Codex, siga o [guia de desenvolvimento local no Windows](docs/DESENVOLVIMENTO_LOCAL_WINDOWS.md). O [resumo de continuidade](docs/CONTINUIDADE_LOCAL.md) registra o estado da instalação validada e os cuidados com o perfil de dados.
