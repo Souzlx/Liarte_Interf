@@ -6,6 +6,9 @@ ColumnLayout {
     id: section
     objectName: "stockMonthly"
     required property var monthly
+    property var comparison: ({})
+    property var comparisonState: ({})
+    property bool comparisonEnabled: true
     property bool controlsEnabled: true
     property string metricKey: "cost"
     property string rankingKey: "sellers"
@@ -54,6 +57,8 @@ ColumnLayout {
     signal monthSelected(string period)
     signal unitSelected(string unit)
     signal productSelected(string code)
+    signal comparisonRequested(string base, string target)
+    signal comparisonFocusRequested(string dimension, string key)
     spacing: 14
 
     function optionIndex(options, value) {
@@ -69,6 +74,7 @@ ColumnLayout {
 
     GridLayout {
         Layout.fillWidth: true
+        Layout.minimumWidth: 0
         columns: width >= 760 ? 3 : 1
         columnSpacing: 12
         rowSpacing: 12
@@ -96,12 +102,17 @@ ColumnLayout {
             Layout.fillWidth: parent.columns === 1
             Layout.preferredWidth: parent.columns === 1 ? -1 : 180
             Layout.minimumWidth: 0
+            Layout.alignment: Qt.AlignBottom
             spacing: 5
             Text {
+                objectName: "stockMonthlyMonthLabel"
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: "Mês em análise"
                 color: Theme.muted
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
             }
             AppCombo {
                 id: monthCombo
@@ -119,12 +130,17 @@ ColumnLayout {
             Layout.fillWidth: parent.columns === 1
             Layout.preferredWidth: parent.columns === 1 ? -1 : 154
             Layout.minimumWidth: 0
+            Layout.alignment: Qt.AlignBottom
             spacing: 5
             Text {
+                objectName: "stockMonthlyUnitLabel"
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: "Unidade das quantidades"
                 color: Theme.muted
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
             }
             AppCombo {
                 id: unitCombo
@@ -283,6 +299,15 @@ ColumnLayout {
                 }
             }
         }
+    }
+    StockComparison {
+        Layout.fillWidth: true
+        Layout.minimumWidth: 0
+        comparison: section.comparison
+        comparisonState: section.comparisonState
+        controlsEnabled: section.comparisonEnabled
+        onComparisonRequested: (base, target) => section.comparisonRequested(base, target)
+        onComparisonFocusRequested: (dimension, key) => section.comparisonFocusRequested(dimension, key)
     }
     Rectangle {
         objectName: "stockMonthlyChartCard"

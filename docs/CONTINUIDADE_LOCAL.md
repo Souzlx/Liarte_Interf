@@ -11,6 +11,7 @@ Resumo para continuidade do Codex na nuvem ou no computador local. Os arquivos d
 - Na validação final da prévia, o CI Linux aprovou 815 testes. Os quatro builds Windows aprovaram 814 testes e ignoraram um teste exclusivo de POSIX em cada execução. Os executáveis e o ciclo real do Setup também passaram.
 - O ZIP e o Setup publicados foram baixados e verificados separadamente: SHA-256, CRC/manifesto do ZIP e cabeçalho PE do Setup. O Setup não tem assinatura digital de editor.
 - O perfil separado de desenvolvimento foi integrado pelo PR #2, no commit `4d8c9cb`. Depois disso, o usuário pediu explicitamente para continuar o projeto na nuvem.
+- Os alertas foram conferidos pelo usuário e o PR #3 foi integrado em `e637efd`. Sua validação final aprovou 883 testes Linux e quatro builds Windows, cada um com 882 testes aprovados e um skip POSIX, além dos autotestes dos executáveis.
 
 ## Fontes e referências
 
@@ -43,8 +44,10 @@ Mantenha os testes de janela compacta e fontes largas. A primeira execução Win
 
 ## Próximo trabalho
 
-A preparação local com `.venv`, demonstração e suíte offline foi realizada após a validação da instalação pelo usuário. O pedido atual é continuar na nuvem, preservando esse trabalho já integrado. A evolução dos alertas está na branch `feat/stock-alerts`; conferir o estado do Git e os resultados de validação ao retomá-la. O perfil separado continua disponível para os testes com persistência e dados sintéticos.
+A preparação local com `.venv`, demonstração e suíte offline foi realizada após a validação da instalação pelo usuário. O pedido atual é continuar na nuvem. Após conferir os alertas, o usuário autorizou o passo 3: comparador de dois meses, com contribuições por produto e filial. A implementação está na branch `feat/monthly-stock-comparison`, baseada no PR #3 já integrado. O perfil separado continua disponível para testes com persistência e dados sintéticos.
 
 O trabalho retomado na nuvem acrescenta alertas de estoque com limites configuráveis: tempo sem venda acima de 90 dias e cobertura abaixo de 30 dias como padrões, além de uma categoria separada sem venda registrada. O painel reutiliza a análise local, agrupa produto/filial/unidade e exporta a lista completa. As regras e os limites estão no [guia de alertas](ALERTAS_ESTOQUE.md). Essa alteração nos fontes não representa uma nova publicação dos pacotes 5.3.0 ou 5.3.1-rc.1.
+
+O [comparador mensal](COMPARADOR_MENSAL_ESTOQUE.md) reutiliza `stockRows` e `saleRows` do cache mensal completo. A reconciliação de estoque separa variação pareada e registros só em um fechamento; não interpretar ausência como saldo zero nem como prova de movimento físico. Quantidades e vendas ficam separadas por unidade. A tela usa apresentações limitadas; o Excel recebe o resultado completo aceito. Trocar meses não relê a base e não apaga a sessão de análise.
 
 Siga o [passo a passo do Windows](DESENVOLVIMENTO_LOCAL_WINDOWS.md) para preparar a sessão.

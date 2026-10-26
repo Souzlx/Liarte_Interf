@@ -491,6 +491,7 @@ def export_inventory(
     *,
     monthly=None,
     alerts=None,
+    comparison=None,
 ):
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -588,6 +589,12 @@ def export_inventory(
         sales.cell(n, 3).number_format = "#,##0.000"
     table_layouts = _append_monthly_sheets(workbook, monthly, cancel)
     table_layouts.update(_append_alert_sheets(workbook, alerts, selection, cancel))
+    if comparison is not None:
+        from .inventory_compare_export import append_comparison_sheets
+
+        table_layouts.update(
+            append_comparison_sheets(workbook, comparison, data, selection, cancel)
+        )
     rules = workbook.create_sheet("Leitura dos indicadores")
     rules.append(["Indicador", "Definição"])
     for entry in (
@@ -729,6 +736,38 @@ def export_inventory(
         ("Recorte", "; ".join(f"{k}={v}" for k, v in asdict(selection).items() if v)),
     ):
         rules.append(entry)
+    if comparison is not None:
+        for entry in (
+            (
+                "Comparação mensal · par escolhido",
+                f"Base: {comparison['base']}; comparado: {comparison['target']}. "
+                "Meses arbitrários do recorte, inclusive ordem invertida. "
+                "Um intervalo entre os meses não é interpolado.",
+            ),
+            (
+                "Comparação mensal · disponibilidade",
+                "Estoque exige dois fechamentos conhecidos e completos; vendas exigem dois "
+                "meses observados e completos, independentemente dos fechamentos. "
+                "Meses parciais ou sem observação mantêm a diferença indisponível. "
+                "Percentuais são calculados somente com valor da base positivo.",
+            ),
+            (
+                "Comparação mensal · reconciliação",
+                "Diferença total observada = diferença nas posições pareadas + valor dos "
+                "registros só no mês comparado − valor dos registros só na base. "
+                "O pareamento de estoque conserva produto, filial, armazém e unidade. "
+                "Ausência de posição não representa saldo zero; mudanças de registros "
+                "não comprovam compras, consumo, transferências ou suas causas.",
+            ),
+            (
+                "Comparação mensal · contribuições",
+                "Inclui todos os grupos, além do limite visual da interface. Produto e "
+                "Filial são perspectivas independentes da mesma diferença e não devem ser "
+                "somadas. Estoque a custo reúne todas as unidades selecionadas; quantidades "
+                "e vendas permanecem separadas por unidade. Valores desconhecidos ficam vazios.",
+            ),
+        ):
+            rules.append(entry)
     edge = Side(style="thin", color="E3E9EF")
     alignment = Alignment(vertical="center", wrap_text=True)
     normal_font = Font(name="Calibri", size=11, color="20334A")

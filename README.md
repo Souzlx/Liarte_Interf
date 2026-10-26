@@ -16,6 +16,8 @@ A prévia **5.3.1-rc.1** acrescenta Setup Windows e restauração de bases anter
 
 Os fontes em desenvolvimento também incluem [alertas configuráveis de estoque](docs/ALERTAS_ESTOQUE.md), com investigação por produto, filial e unidade e exportação completa em Excel. Essa melhoria ainda não faz parte dos pacotes publicados acima.
 
+Na análise mensal, o [comparador de dois meses](docs/COMPARADOR_MENSAL_ESTOQUE.md) permite investigar a diferença de estoque e vendas por produto ou filial, separando posições comparáveis e mudanças de cobertura dos registros.
+
 ## Executar os fontes
 
 Para continuar o desenvolvimento na sua máquina com VS Code e Codex, siga o [guia de desenvolvimento local no Windows](docs/DESENVOLVIMENTO_LOCAL_WINDOWS.md). O [resumo de continuidade](docs/CONTINUIDADE_LOCAL.md) registra o estado da instalação validada e os cuidados com o perfil de dados.

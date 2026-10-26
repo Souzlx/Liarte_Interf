@@ -18,6 +18,7 @@ FocusScope {
     readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 || scroll.contentHeight > scroll.height && scroll.atYEnd ? "products" : scroll.contentY >= monthlySection.y - 80 ? "monthly" : "overview"
     property var lastFocusedControl: null
     property var pendingAlertTarget: null
+    property var pendingComparisonFocus: null
 
     function visibleControl(item) {
         if (!item || !item.visible || !item.enabled || item.width <= 0 || item.height <= 0)
@@ -56,6 +57,33 @@ FocusScope {
         else
             page.forceActiveFocus();
     }
+    function revealComparisonFocus(item) {
+        if (!item || !item.activeFocus || !page.visible || page.modalOpen)
+            return;
+        let inComparison = false;
+        for (let ancestor = item; ancestor && ancestor !== content; ancestor = ancestor.parent) {
+            if (ancestor.objectName === "stockComparison") {
+                inComparison = true;
+                break;
+            }
+        }
+        if (!inComparison)
+            return;
+        const top = item.mapToItem(scroll, 0, 0).y;
+        const maximum = Math.max(0, scroll.contentHeight - scroll.height);
+        if (top < 0 || top + item.height > scroll.height) {
+            stockScrollMotion.stop();
+            scroll.cancelFlick();
+            scroll.contentY = Math.max(0, Math.min(maximum,
+                scroll.contentY + (top < 0 ? top - 8 : top + item.height - scroll.height + 8)));
+        }
+    }
+    function scheduleComparisonFocusReveal() {
+        Qt.callLater(() => {
+            if (page.hostWindow)
+                page.revealComparisonFocus(page.hostWindow.activeFocusItem);
+        });
+    }
     function finishAlertNavigation() {
         if (!pendingAlertTarget)
             return;
@@ -75,7 +103,23 @@ FocusScope {
         function onChanged() {
             if (page.pendingAlertTarget)
                 Qt.callLater(page.finishAlertNavigation);
+            if (page.pendingComparisonFocus)
+                Qt.callLater(page.finishComparisonNavigation);
         }
+    }
+    function finishComparisonNavigation() {
+        if (!pendingComparisonFocus)
+            return;
+        if (state.error.length && !state.busy) {
+            pendingComparisonFocus = null;
+            return;
+        }
+        if (!state.current || state.busy)
+            return;
+        const target = pendingComparisonFocus;
+        pendingComparisonFocus = null;
+        if (state.selection[target.dimension] === target.key)
+            navigate("monthly");
     }
     Connections {
         target: page.hostWindow
@@ -86,6 +130,7 @@ FocusScope {
             for (let ancestor = item; ancestor; ancestor = ancestor.parent) {
                 if (ancestor === content) {
                     page.lastFocusedControl = item;
+                    Qt.callLater(() => page.revealComparisonFocus(item));
                     return;
                 }
             }
@@ -109,6 +154,7 @@ FocusScope {
     onVisibleChanged: if (!visible) {
         stockScrollMotion.stop();
         pendingAlertTarget = null;
+        pendingComparisonFocus = null;
     }
     Connections {
         target: Ui.Theme
@@ -123,6 +169,9 @@ FocusScope {
         anchors.fill: parent
         contentWidth: width
         contentHeight: content.implicitHeight + 48
+        onWidthChanged: page.scheduleComparisonFocusReveal()
+        onHeightChanged: page.scheduleComparisonFocusReveal()
+        onContentHeightChanged: page.scheduleComparisonFocusReveal()
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         ScrollBar.vertical: ScrollBar {
@@ -186,7 +235,7 @@ FocusScope {
                         iconName: "download"
                         Layout.fillWidth: stockHeaderActions.columns === 2
                         Layout.minimumWidth: 0
-                        enabled: !page.state.busy && page.state.current
+                        enabled: !page.state.busy && page.state.current && inventory.comparisonState.current
                         onClicked: saveStockDialog.open()
                     }
                     Ui.ActionButton {
@@ -748,7 +797,16 @@ FocusScope {
                 visible: page.state.loaded
                 Layout.fillWidth: true
                 monthly: inventory.monthly
+                comparison: inventory.comparison
+                comparisonState: inventory.comparisonState
+                comparisonEnabled: page.controlsEnabled && page.state.current && (!page.state.busy || page.state.task === "comparison")
                 controlsEnabled: page.controlsEnabled && page.state.current && !page.state.busy
+                onComparisonRequested: (base, target) => inventory.setComparisonMonths(base, target)
+                onComparisonFocusRequested: (dimension, key) => {
+                    page.pendingComparisonFocus = {dimension: dimension, key: key};
+                    inventory.focusComparison(dimension, key);
+                    Qt.callLater(page.finishComparisonNavigation);
+                }
                 onMonthSelected: period => inventory.setMonthlyPeriod(period)
                 onUnitSelected: unit => inventory.setMonthlyUnit(unit)
                 onProductSelected: code => inventory.setFilter("product", code)
