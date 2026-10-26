@@ -74,6 +74,7 @@ ColumnLayout {
 
     GridLayout {
         Layout.fillWidth: true
+        Layout.minimumWidth: 0
         columns: width >= 760 ? 3 : 1
         columnSpacing: 12
         rowSpacing: 12
@@ -101,12 +102,17 @@ ColumnLayout {
             Layout.fillWidth: parent.columns === 1
             Layout.preferredWidth: parent.columns === 1 ? -1 : 180
             Layout.minimumWidth: 0
+            Layout.alignment: Qt.AlignBottom
             spacing: 5
             Text {
+                objectName: "stockMonthlyMonthLabel"
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: "Mês em análise"
                 color: Theme.muted
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
             }
             AppCombo {
                 id: monthCombo
@@ -124,12 +130,17 @@ ColumnLayout {
             Layout.fillWidth: parent.columns === 1
             Layout.preferredWidth: parent.columns === 1 ? -1 : 154
             Layout.minimumWidth: 0
+            Layout.alignment: Qt.AlignBottom
             spacing: 5
             Text {
+                objectName: "stockMonthlyUnitLabel"
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 text: "Unidade das quantidades"
                 color: Theme.muted
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
             }
             AppCombo {
                 id: unitCombo

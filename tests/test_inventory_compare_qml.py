@@ -297,6 +297,23 @@ class InventoryComparisonQmlTests(unittest.TestCase):
         self.assertEqual((self.c.comparison["base"], self.c.comparison["target"]), ("2026-01", "2026-03"))
         self.assertEqual(self.bundle.messages, [])
 
+    def test_monthly_unit_selector_stays_visible_with_wide_labels(self):
+        self.load()
+        for name in ("stockMonthlyMonthLabel", "stockMonthlyUnitLabel"):
+            label = self.item(name)
+            font = label.property("font")
+            font.setStretch(300)
+            label.setProperty("font", font)
+        for width, height in ((1380, 900), (900, 700), (500, 400)):
+            with self.subTest(width=width):
+                self.window.resize(width, height)
+                self.assertTrue(pump(lambda: abs(self.window.contentItem().width() - width) < 1))
+                self.select_combo("stockMonthlyMonth", self.c.monthly["period"])
+                self.assertTrue(self.visible_in_scroll(self.item("stockMonthlyMonth")))
+                self.select_combo("stockMonthlyUnit", "KG")
+                self.assertTrue(self.visible_in_scroll(self.item("stockMonthlyUnit")))
+        self.assertEqual(self.bundle.messages, [])
+
     def test_compact_wide_controls_fit_and_tab_reveals_the_comparison_inputs(self):
         self.load()
         for name in (
