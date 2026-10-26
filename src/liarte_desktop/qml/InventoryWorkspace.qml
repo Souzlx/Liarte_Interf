@@ -13,7 +13,7 @@ FocusScope {
     readonly property var detail: inventory.detail
     readonly property var backupState: inventory.backupState
     property bool advanced: false
-    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen
+    readonly property bool modalOpen: sourceDialog.visible || saveStockDialog.visible || stockDetail.visible || stockPerformance.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
     readonly property string activeSection: scroll.contentY >= positionsSection.y - 80 || scroll.contentHeight > scroll.height && scroll.atYEnd ? "products" : scroll.contentY >= monthlySection.y - 80 ? "monthly" : "overview"
     property var lastFocusedControl: null
@@ -235,7 +235,7 @@ FocusScope {
                         iconName: "download"
                         Layout.fillWidth: stockHeaderActions.columns === 2
                         Layout.minimumWidth: 0
-                        enabled: !page.state.busy && page.state.current && inventory.comparisonState.current
+                        enabled: !page.state.busy && page.state.current && inventory.comparisonState.current && !inventory.performance.state.busy
                         onClicked: saveStockDialog.open()
                     }
                     Ui.ActionButton {
@@ -816,16 +816,33 @@ FocusScope {
                 visible: page.state.loaded
                 Layout.fillWidth: true
                 spacing: 10
-                RowLayout {
+                GridLayout {
                     Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    columns: width >= 760 ? 3 : 1
+                    columnSpacing: 10
+                    rowSpacing: 8
                     Text {
                         Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         text: "Posições de estoque"
                         color: Ui.Theme.text
                         font.pixelSize: 17
                         font.weight: Font.DemiBold
+                        wrapMode: Text.WordWrap
                     }
                     Ui.ActionButton {
+                        objectName: "stockPerformanceOpen"
+                        Layout.fillWidth: parent.columns === 1
+                        Layout.minimumWidth: 0
+                        text: "Desempenho dos produtos"
+                        enabled: page.controlsEnabled && page.state.current && !page.state.busy
+                        iconName: "chart"
+                        onClicked: stockPerformance.open()
+                    }
+                    Ui.ActionButton {
+                        Layout.fillWidth: parent.columns === 1
+                        Layout.minimumWidth: 0
                         text: "Detalhar produto"
                         enabled: page.state.selectedRow >= 0 && page.state.current && page.state.task !== "load"
                         iconName: "chart"
@@ -1187,6 +1204,12 @@ FocusScope {
         mode: stockTrend.mode
         movingAverage: stockTrend.movingAverage
         showValues: stockTrend.showValues
+    }
+    Ui.StockPerformance {
+        id: stockPerformance
+        performance: inventory.performance
+        controlsEnabled: page.controlsEnabled && page.state.current && !page.state.busy
+        onProductFocusRequested: (code, unit) => inventory.focusPerformanceProduct(code, unit)
     }
     Ui.AppDialog {
         id: stockDetail

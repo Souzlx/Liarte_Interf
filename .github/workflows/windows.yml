@@ -58,6 +58,7 @@ jobs:
               "tests.test_runtime_profile",
               "tests.test_inventory_alerts_qml",
               "tests.test_inventory_compare_qml",
+              "tests.test_inventory_performance_qml",
           ])
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(0 if result.wasSuccessful() else 1)

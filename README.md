@@ -18,6 +18,8 @@ Os fontes em desenvolvimento também incluem [alertas configuráveis de estoque]
 
 Na análise mensal, o [comparador de dois meses](docs/COMPARADOR_MENSAL_ESTOQUE.md) permite investigar a diferença de estoque e vendas por produto ou filial, separando posições comparáveis e mudanças de cobertura dos registros.
 
+Em Produtos, a análise de [desempenho e giro por produto](docs/DESEMPENHO_PRODUTOS.md) acrescenta rankings por unidade, janelas de 1/3/6 meses, histórico e hipóteses a verificar sobre as variações. Giro da fonte e cobertura estimada têm definições separadas; a base não informa idade dos lotes.
+
 ## Executar os fontes
 
 Para continuar o desenvolvimento na sua máquina com VS Code e Codex, siga o [guia de desenvolvimento local no Windows](docs/DESENVOLVIMENTO_LOCAL_WINDOWS.md). O [resumo de continuidade](docs/CONTINUIDADE_LOCAL.md) registra o estado da instalação validada e os cuidados com o perfil de dados.

@@ -55,6 +55,7 @@ from liarte_core.inventory_backup import (
 )
 from liarte_core.query import Cancelled, checkpoint
 from .inventory_compare_view import prepare_comparison
+from .inventory_performance import InventoryPerformanceController
 
 LOGGER = logging.getLogger("liarte.desktop")
 # A timed-out shutdown must retain its QObject tree until QThread.finished.
@@ -688,6 +689,11 @@ class InventoryController(QObject):
         self._comparison_applied = ("", "")
         self._comparison_pending = False
         self._comparison_error = ""
+        self._performance = InventoryPerformanceController(self)
+        self._performance_source = None
+        self._performance_shutdown_complete = False
+        self._performance.shutdownFinished.connect(self._performance_stopped)
+        self.changed.connect(self._sync_performance)
         self.changed.connect(self.comparisonChanged.emit)
         self._debounce = QTimer(self)
         self._debounce.setSingleShot(True)
@@ -767,6 +773,47 @@ class InventoryController(QObject):
     @Property("QVariantMap", notify=monthlyChanged)
     def monthly(self):
         return self._monthly_view
+
+    @Property(QObject, constant=True)
+    def performance(self):
+        return self._performance
+
+    @Slot()
+    def _sync_performance(self):
+        ready = (
+            not self._closed and self._task != "load"
+            and self._selection == self._applied_selection
+            and not self._pending and not self._debounce.isActive()
+            and bool(self._monthly_data)
+        )
+        source = (id(self._monthly_data), self._applied_selection) if ready else None
+        if source != self._performance_source:
+            self._performance_source = source
+            self._performance.set_source(
+                self._monthly_data if ready else None,
+                self._applied_selection if ready else None,
+            )
+
+    @Slot(str, str)
+    def focusPerformanceProduct(self, code, unit):
+        if (
+            self._closed or self._thread or not self.state["current"]
+            or not self._performance.state["current"]
+            or (self._performance.detail.get("code"), self._performance.detail.get("unit"))
+            != (code, unit)
+        ):
+            return
+        updated = replace(self._selection, product=code, unit=unit, search="")
+        if updated == self._selection:
+            return
+        self._selection = updated
+        self._generation += 1
+        self._pending = True
+        self._error = ""
+        self._page = 1
+        self._debounce.start()
+        self.changed.emit()
+        self.backupChanged.emit()
 
     @Property("QVariantMap", notify=comparisonChanged)
     def comparison(self):
@@ -1710,6 +1757,7 @@ class InventoryController(QObject):
             or self._debounce.isActive()
             or self._data is None
             or self._analysis is None
+            or self._performance.state["busy"]
             or not self.state["current"]
             or self._comparison_result is not None and not self.comparisonState["current"]
             or not url.isLocalFile()
@@ -1720,11 +1768,21 @@ class InventoryController(QObject):
             path = path.with_suffix(".xlsx")
         data, analysis, selected = self._data, self._analysis, self._selection
         monthly, alerts, comparison = self._monthly_data, self._alerts, self._comparison_result
+        performance, performance_detail = self._performance.export_snapshot()
+        performance_window = self._performance.state["window"]
 
         def action(cancel, progress):
+            from liarte_core.inventory_performance import analyze_product_performance
+
+            product_report = performance
+            if product_report is None:
+                product_report = analyze_product_performance(
+                    monthly, selected, window=performance_window, cancel=cancel
+                )
             export_inventory(
                 data, analysis, selected, path, cancel,
                 monthly=monthly, alerts=alerts, comparison=comparison,
+                performance=product_report, performance_detail=performance_detail,
             )
             return ("export",)
 
@@ -1754,6 +1812,7 @@ class InventoryController(QObject):
             return True
         self._closed = True
         self.cancel()
+        self._performance_shutdown_complete = self._performance.shutdown(wait_ms=wait_ms)
         thread = self._thread
         if thread is not None:
             thread.quit()
@@ -1767,10 +1826,19 @@ class InventoryController(QObject):
             self._finished()
         else:
             self._complete_shutdown()
-        return True
+        if not self._shutdown_complete:
+            self.setParent(None)
+            _SHUTTING_DOWN.add(self)
+        return self._shutdown_complete
+
+    @Slot()
+    def _performance_stopped(self):
+        self._performance_shutdown_complete = True
+        if self._closed and self._thread is None:
+            self._complete_shutdown()
 
     def _complete_shutdown(self):
-        if self._shutdown_complete:
+        if self._shutdown_complete or not self._performance_shutdown_complete:
             return
         self._discard_staged_cache()
         self._shutdown_complete = True
