@@ -32,6 +32,8 @@ FocusScope {
         return false;
     }
     function restoreFocus() {
+        if (!visible || modalOpen)
+            return;
         if (!viewState.loaded) {
             queryPanel.focusQuery();
             return;
@@ -55,6 +57,7 @@ FocusScope {
             const item = window.hostWindow.activeFocusItem;
             if (window.visible && !window.modalOpen && item && window.belongsToWorkspace(item))
                 window.sectionFocus[window.activeSection] = item;
+            window.scheduleFocusReveal();
         }
     }
     readonly property var viewState: controller.presentation
@@ -187,6 +190,22 @@ FocusScope {
         else if (point.y + item.height > contentScroll.contentY + contentScroll.height)
             contentScroll.contentY = Math.min(maximum, point.y + Math.min(item.height, contentScroll.height) - contentScroll.height + 12);
     }
+    function revealFocusedControl() {
+        if (!visible || modalOpen)
+            return;
+        const item = hostWindow.activeFocusItem;
+        for (let ancestor = item; ancestor; ancestor = ancestor.parent) {
+            if (ancestor === body) {
+                reveal(item);
+                return;
+            }
+        }
+    }
+    function scheduleFocusReveal() {
+        // Wrapped headers and nested layouts can move the focused control after
+        // navigation has already assigned focus. Follow their settled geometry.
+        Qt.callLater(window.revealFocusedControl);
+    }
     Connections {
         target: controller
         function onPresentationChanged() {
@@ -262,6 +281,9 @@ FocusScope {
         contentWidth: width
         contentHeight: body.implicitHeight + 48
         boundsBehavior: Flickable.StopAtBounds
+        onWidthChanged: window.scheduleFocusReveal()
+        onHeightChanged: window.scheduleFocusReveal()
+        onContentHeightChanged: window.scheduleFocusReveal()
         onMovementStarted: navigation.stop()
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded

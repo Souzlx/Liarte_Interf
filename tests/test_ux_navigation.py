@@ -64,6 +64,18 @@ class _NavigationActions:
         self.assertLessEqual(point.x() + control.width(), viewport.width() + 1, control.objectName())
         self.assertLessEqual(point.y() + control.height(), viewport.height() + 1, control.objectName())
 
+    def focused_and_visible_in(self, control, viewport):
+        # Focus can be assigned before a queued Qt Quick layout has wrapped its
+        # preceding controls. Render it and inspect the resulting viewport too.
+        frame = self.window.grabWindow()
+        point = control.mapToItem(viewport, QPointF())
+        return (
+            not frame.isNull() and control.hasActiveFocus() and control.isVisible()
+            and point.x() >= -1 and point.y() >= -1
+            and point.x() + control.width() <= viewport.width() + 1
+            and point.y() + control.height() <= viewport.height() + 1
+        )
+
 
 class InventoryWorkspaceNavigationTests(_NavigationActions, unittest.TestCase):
     navigation_prefix = "stockJump_"
@@ -238,8 +250,18 @@ class ImportsWorkspaceNavigationTests(_NavigationActions, unittest.TestCase):
         QTest.keyClick(self.window, Qt.Key.Key_F, Qt.KeyboardModifier.ControlModifier)
         self.assertTrue(pump(lambda: self.workspace.property("activeSection") == "records"))
         search = self.item("searchBox")
-        self.assertTrue(pump(search.hasActiveFocus))
         scroll = self.item("contentScroll")
+        self.assertTrue(pump(lambda: self.focused_and_visible_in(search, scroll)))
+        self.assert_visible_in(search, scroll)
+        # A later relayout must keep the keyboard search usable without another
+        # shortcut. This also covers headers wrapping with Windows font metrics.
+        self.workspace.setProperty("periodExpanded", True)
+        self.render()
+        self.assertTrue(pump(lambda: self.focused_and_visible_in(search, scroll)))
+        self.assert_visible_in(search, scroll)
+        self.window.resize(500, 340)
+        self.render()
+        self.assertTrue(pump(lambda: self.focused_and_visible_in(search, scroll)))
         self.assert_visible_in(search, scroll)
         self.assertEqual(self.transport.calls, calls)
         self.assertEqual(self.bundle.messages, [])
