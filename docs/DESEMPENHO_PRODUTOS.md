@@ -1,18 +1,29 @@
 # Desempenho e giro dos produtos
 
-Em **Estoque > Produtos**, abra **Desempenho dos produtos**. Escolha a unidade de medida, a janela de **1, 3 ou 6 meses**, a ordenação e, se desejar, o código ou nome. Pressione **Aplicar**. A busca e a paginação pertencem a essa lista e preservam os filtros gerais, o comparador mensal e a tabela de posições.
+Em **Estoque > Produtos**, abra **Desempenho dos produtos**. Escolha a unidade de medida, a janela de **1, 3 ou 6 meses**, o critério em **Ordenar por** e, se desejar, o código ou nome. Nos indicadores que permitem as duas direções, use **Maior primeiro** ou **Menor primeiro** para alternar. Pressione **Aplicar**: as escolhas são provisórias até essa confirmação. A busca e a paginação pertencem a essa lista e preservam os filtros gerais, o comparador mensal e a tabela de posições.
 
 ![Ranking por unidade e janelas de vendas](images/desempenho-lista.png)
 
 [Investigação mensal de um produto](images/desempenho-produto.png) · [Apresentação compacta](images/desempenho-compacto.png). As capturas usam dados sintéticos processados pelo cálculo e controller reais, com Qt em Linux. Fontes e escala do monitor influenciam a aparência nativa no Windows.
+
+[Lista com ordenação de giro e direção](images/estoque-ordenacao-giro.png) · [Ordenação das posições de estoque](images/estoque-ordenacao-posicoes.png).
 
 | Ordenação | Produtos incluídos |
 | --- | --- |
 | Mais vendidos | Quantidade líquida positiva, do maior para o menor valor na janela recente |
 | Menor venda com saldo | Quantidade líquida não negativa e fechamento-alvo positivo, do menor para o maior valor |
 | Maior queda nas vendas | Diferenças negativas entre janelas completas, sem janelas com saldo líquido negativo |
-| Menor giro da fonte | Mediana dos giros válidos das posições com saldo positivo no fechamento-alvo |
-| Todos os produtos | Todos os produtos e unidades observados no recorte; útil para procurar devoluções, histórico insuficiente e itens sem fechamento |
+| Giro mensal da fonte (mediana) | Mediana dos giros válidos das posições com saldo positivo no fechamento-alvo; maior ou menor primeiro |
+| Estoque a custo no fechamento | Valor a custo do fechamento-alvo; maior ou menor primeiro |
+| Saldo no fechamento | Quantidade na unidade escolhida no fechamento-alvo; maior ou menor primeiro |
+| Cobertura estimada | Dias estimados segundo as condições descritas abaixo; maior ou menor primeiro |
+| Todos os produtos | Todos os produtos observados na unidade escolhida; útil para procurar devoluções, histórico insuficiente e itens sem fechamento |
+
+Os três rankings de vendas mantêm suas próprias regras de inclusão e direção. Para giro, valor a custo, saldo, cobertura e produto, a direção pode ser invertida. **Todos os produtos** também permite alternar a ordem alfabética dos nomes. O critério aplicado e seu valor aparecem na lista; escolher outra opção ainda não aplicada não muda os resultados apresentados.
+
+**Contexto e critérios** mostra ou recolhe o escopo e as definições detalhadas. Período, ordenação aplicada e avisos essenciais de meses parciais ou histórico insuficiente permanecem visíveis.
+
+A ordenação usa toda a lista filtrada antes de mostrar a página. Valores ausentes ou inelegíveis ficam ao final nas duas direções; zero permanece um valor conhecido. Giro ou cobertura negativos não são classificados como indicadores baixos válidos. Valores negativos de saldo ou custo permanecem numéricos e rastreáveis. Ao aplicar outra ordenação, a lista volta à primeira página.
 
 Quantidades de KG, L, UN e outras unidades não são somadas nem comparadas entre si. O filtro geral de unidade restringe o recorte; o seletor dentro da janela organiza a apresentação. A lista inclui produtos apenas históricos, mesmo sem saldo atual, e apresenta dez produtos por página.
 

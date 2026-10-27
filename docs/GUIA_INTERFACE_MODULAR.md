@@ -24,6 +24,14 @@ Na análise mensal, use o cursor ou as setas para consultar o gráfico. **Analis
 
 Em Produtos, **Desempenho dos produtos** oferece rankings por unidade, janelas consecutivas de 1, 3 ou 6 meses e investigação individual. A seleção nessa lista não altera os filtros gerais. Use **Filtrar este produto** para aplicar essa mudança explicitamente. Veja as definições no [guia de desempenho](DESEMPENHO_PRODUTOS.md).
 
+Na lista **Posições de estoque**, use **Ordenar por** para escolher giro mensal da fonte, valor a custo, saldo, última venda, dias da fonte ou um dos campos de identificação. O botão ao lado indica a direção, como **Maior giro primeiro**, e permite invertê-la. Os cabeçalhos da tabela e esse controle compartilham a mesma ordenação. Trocar de vista preserva a escolha.
+
+[Ver a ordenação das posições](images/estoque-ordenacao-posicoes.png) · [Ver a lista de produtos por giro](images/estoque-ordenacao-giro.png). As duas capturas usam dados sintéticos.
+
+A ordenação considera todas as posições do recorte antes da paginação e volta à primeira página ao ser aplicada. Saldos são agrupados por unidade e ordenados dentro de cada grupo; para uma comparação direta, escolha a unidade em **Refinar recorte**. Valores ausentes ficam ao final nas duas direções. Giros e dias negativos da fonte continuam disponíveis para conferência, depois dos indicadores elegíveis. **Sem venda registrada** não é uma venda antiga nem a idade física do estoque.
+
+O Excel inclui todas as posições do recorte na ordem aplicada, sem se limitar à página visível. A aba **Desempenho dos produtos** mantém sua abrangência própria: todos os produtos e unidades do recorte, independentemente da busca, ordenação ou página da lista de desempenho.
+
 ## Importações e mercado
 
 | Vista | Para que serve |

@@ -13,9 +13,44 @@ ColumnLayout {
     property bool compact: false
     property real viewportHeight: 700
     property alias table: stockTable
+    readonly property bool modalOpen: sortChoice.popup.visible
+    readonly property var sortOptions: [
+        {value: 9, label: "Giro mensal da fonte", descending: true},
+        {value: 6, label: "Valor em estoque a custo", descending: true},
+        {value: 5, label: "Saldo por unidade", descending: true},
+        {value: 8, label: "Última venda", descending: false},
+        {value: 10, label: "Dias de estoque da fonte", descending: true},
+        {value: 1, label: "Nome do produto", descending: false},
+        {value: 0, label: "Código do produto", descending: false},
+        {value: 2, label: "Filial", descending: false},
+        {value: 3, label: "Armazém", descending: false},
+        {value: 4, label: "Unidade de medida", descending: false},
+        {value: 7, label: "Curva ABC", descending: false}
+    ]
+    readonly property string directionLabel: {
+        const descending = Boolean(state.descending);
+        switch (state.sortColumn) {
+        case 9: return descending ? "Maior giro primeiro" : "Menor giro primeiro";
+        case 6: return descending ? "Maior valor primeiro" : "Menor valor primeiro";
+        case 5: return descending ? "Maior saldo primeiro" : "Menor saldo primeiro";
+        case 8: return descending ? "Venda mais recente" : "Venda mais antiga";
+        case 10: return descending ? "Mais dias primeiro" : "Menos dias primeiro";
+        default: return descending ? "Z → A" : "A → Z";
+        }
+    }
+    readonly property string orderingContext: {
+        if (state.sortColumn === 5)
+            return "Compare saldos dentro de cada unidade de medida.";
+        if (state.sortColumn === 9 || state.sortColumn === 10)
+            return "Indicadores ausentes ou negativos ficam ao final; os valores originais são preservados.";
+        if (state.sortColumn === 8)
+            return "Sem venda registrada fica ao final. Última venda não mede a idade dos lotes.";
+        return "";
+    }
     signal performanceRequested
     signal detailRequested
     signal sortRequested(int column)
+    signal sortSelected(int column, bool descending)
     signal rowSelected(int row)
     signal pageSelected(int page)
     Layout.fillWidth: true
@@ -23,19 +58,33 @@ ColumnLayout {
     GridLayout {
         Layout.fillWidth: true
         Layout.minimumWidth: 0
-        columns: width >= 760 ? 3 : 1
+        columns: width >= Math.max(760, performanceAction.naturalWidth + detailAction.naturalWidth + 260) ? 3 : 1
         columnSpacing: 10
         rowSpacing: 8
-        Text {
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.minimumWidth: 0
-            text: "Posições de estoque"
-            color: Theme.text
-            font.pixelSize: 17
-            font.weight: Font.DemiBold
-            wrapMode: Text.WordWrap
+            spacing: 3
+            Text {
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                text: "Posições de estoque"
+                color: Theme.text
+                font.pixelSize: 17
+                font.weight: Font.DemiBold
+                wrapMode: Text.WordWrap
+            }
+            Text {
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                text: "Saldos atuais por produto, filial e armazém"
+                color: Theme.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
         }
         ActionButton {
+            id: performanceAction
             objectName: "stockPerformanceOpen"
             Layout.fillWidth: parent.columns === 1
             Layout.minimumWidth: 0
@@ -46,6 +95,8 @@ ColumnLayout {
             onClicked: root.performanceRequested()
         }
         ActionButton {
+            id: detailAction
+            objectName: "stockPositionDetail"
             Layout.fillWidth: parent.columns === 1
             Layout.minimumWidth: 0
             text: "Detalhar produto"
@@ -53,6 +104,68 @@ ColumnLayout {
             iconName: "chart"
             onClicked: root.detailRequested()
         }
+    }
+    GridLayout {
+        objectName: "stockPositionsSortBar"
+        Layout.fillWidth: true
+        Layout.minimumWidth: 0
+        columns: width >= Math.max(560, sortDirection.naturalWidth + 320) ? 2 : 1
+        columnSpacing: 12
+        rowSpacing: 8
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            spacing: 5
+            Text {
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                text: "Ordenar por"
+                color: Theme.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
+            AppCombo {
+                id: sortChoice
+                objectName: "stockPositionsSort"
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                model: root.sortOptions
+                currentIndex: Math.max(0, root.sortOptions.findIndex(option => option.value === root.state.sortColumn))
+                enabled: root.controlsEnabled && root.state.current && !root.state.busy
+                hoverEnabled: true
+                Accessible.name: "Ordenar posições de estoque por"
+                Accessible.description: "A ordenação considera todas as posições do recorte antes da paginação."
+                ToolTip.visible: hovered
+                ToolTip.text: currentText
+                ToolTip.delay: 450
+                onActivated: index => root.sortSelected(model[index].value, model[index].descending)
+            }
+        }
+        ActionButton {
+            id: sortDirection
+            objectName: "stockPositionsSortDirection"
+            Layout.fillWidth: parent.columns === 1
+            Layout.minimumWidth: 0
+            Layout.alignment: Qt.AlignBottom
+            text: root.directionLabel
+            enabled: root.controlsEnabled && root.state.current && !root.state.busy
+            Accessible.name: "Inverter ordenação: " + root.directionLabel
+            Accessible.description: "Alterna a direção do critério selecionado e volta à primeira página."
+            ToolTip.visible: hovered || activeFocus
+            ToolTip.text: "Inverter ordenação: " + root.directionLabel
+            ToolTip.delay: 450
+            onClicked: root.sortSelected(root.state.sortColumn, !root.state.descending)
+        }
+    }
+    Text {
+        objectName: "stockPositionsSortContext"
+        Layout.fillWidth: true
+        Layout.minimumWidth: 0
+        text: root.orderingContext
+        visible: text.length > 0
+        color: Theme.muted
+        font.pixelSize: 11
+        wrapMode: Text.WordWrap
     }
     Rectangle {
         Layout.fillWidth: true
@@ -72,12 +185,14 @@ ColumnLayout {
             clip: true
             delegate: Rectangle {
                 id: headerCell
+                objectName: "stockHeader_" + column
                 required property int column
                 required property string display
                 implicitWidth: stockTable.columnWidthProvider(headerCell.column)
                 implicitHeight: 40
                 color: Theme.subtle
                 Text {
+                    objectName: "stockHeaderText_" + headerCell.column
                     anchors.fill: parent
                     anchors.margins: 10
                     text: headerCell.display + (root.state.sortColumn === headerCell.column ? root.state.descending ? " ↓" : " ↑" : "")

@@ -35,6 +35,7 @@ from liarte_core.inventory import (
     StockSelection,
     analyze_inventory,
     compact_money,
+    folded,
     money,
     month_range,
     month_end,
@@ -222,10 +223,15 @@ class _CheckedRows:
         return _checked(self.rows, self.cancel)
 
 
+def _position_identity(row):
+    balance = row.balance
+    return balance.product, balance.branch, balance.warehouse, balance.unit
+
+
 def _order_rows(rows, column, descending, cancel=None):
-    def key(row):
+    def value(row):
         b = row.balance
-        value = (
+        current = (
             b.product,
             row.name,
             b.branch,
@@ -234,19 +240,32 @@ def _order_rows(rows, column, descending, cancel=None):
             b.quantity,
             b.cost,
             row.abc,
-            row.last_sale or date.min,
+            row.last_sale,
             row.turnover,
             row.source_days,
         )[column]
-        return (
-            value is not None,
-            value if value is not None else -1,
-            b.product,
-            b.branch,
-            b.warehouse,
-        )
+        if column == 7 and current in ("", "—"):
+            return None
+        return folded(current) if column == 1 else current
 
-    ordered = tuple(sorted(_checked(rows, cancel), key=key, reverse=descending))
+    # First fix ties independently of direction, then sort only eligible values.
+    # A missing date is not an old sale; negative source ratios remain visible
+    # after the eligible values rather than ranking as unusually low turnover.
+    tied = sorted(_checked(rows, cancel), key=_position_identity)
+    eligible, invalid, missing = [], [], []
+    for row in _checked(tied, cancel):
+        current = value(row)
+        if current is None:
+            missing.append(row)
+        elif column in (9, 10) and current < 0:
+            invalid.append(row)
+        else:
+            eligible.append(row)
+    eligible.sort(key=value, reverse=descending)
+    if column == 5:
+        # Keep quantities with different units in separate ordered groups.
+        eligible.sort(key=lambda row: row.balance.unit)
+    ordered = tuple(chain(eligible, invalid, missing))
     if cancel is not None:
         checkpoint(cancel)
     return ordered
@@ -1567,7 +1586,8 @@ class InventoryController(QObject):
             if result[0] == "sort":
                 self._ordered = result[1]
                 self._applied_sort = result[2]
-                self._publish_rows()
+                self._page = 1
+                self._publish_rows(preserve_selection=True)
             elif result[0] == "backups":
                 self._backup_entries, self._backup_error = result[1:]
                 self._prune_preserve_ids.clear()
@@ -1683,40 +1703,65 @@ class InventoryController(QObject):
         elif self._prune_requested:
             self._refresh_backups(clear_notice=False)
 
-    def _publish_rows(self):
+    def _publish_rows(self, *, preserve_selection=False):
         """Commit just one page; callers prepare the complete ordering separately."""
         if not self._analysis:
             return
+        selected_identity = (
+            _position_identity(self.table.rows[self._selected_index])
+            if preserve_selection and 0 <= self._selected_index < len(self.table.rows)
+            else None
+        )
         self._page = min(self._page, max(1, (len(self._ordered) + 49) // 50))
         self.table.setRows(self._ordered[(self._page - 1) * 50 : self._page * 50])
-        self._selected_index = -1
-        self._detail = {}
+        self._selected_index = next(
+            (index for index, row in enumerate(self.table.rows)
+             if _position_identity(row) == selected_identity),
+            -1,
+        )
+        if self._selected_index < 0:
+            self._detail = {}
         self.detailChanged.emit()
 
     @Slot(int)
     def sortByColumn(self, column):
+        if not isinstance(column, int) or isinstance(column, bool):
+            return
+        descending = not self._descending if column == self._sort else column in (5, 6, 9, 10)
+        self.sortPositions(column, descending)
+
+    @Slot(int, bool)
+    def sortPositions(self, column, descending):
         if (
-            not 0 <= column < len(HEADERS)
+            not isinstance(column, int)
+            or isinstance(column, bool)
+            or not isinstance(descending, bool)
+            or not 0 <= column < len(HEADERS)
             or self._closed
             or self._thread
             or self._pending
             or self._debounce.isActive()
             or not self._analysis
+            or not self._is_current()
+            or (column, descending) == self._applied_sort
         ):
             return
-        self._descending = not self._descending if column == self._sort else column in (5, 6, 9, 10)
+        self._descending = descending
         self._sort = column
-        self._page = 1
-        rows, descending = self._analysis.rows, self._descending
+        rows = self._analysis.rows
         if len(rows) <= 50:
             # A single visible page is bounded GUI work and preserves immediate sorting.
             self._ordered = _order_rows(rows, column, descending)
             self._applied_sort = (column, descending)
-            self._publish_rows()
+            self._page = 1
+            self._publish_rows(preserve_selection=True)
         else:
 
             def action(cancel, progress):
-                return ("sort", _order_rows(rows, column, descending, cancel), (column, descending))
+                return (
+                    "sort", _order_rows(rows, column, descending, cancel),
+                    (column, descending),
+                )
 
             self._start(action, "sort")
         self.changed.emit()
@@ -1868,7 +1913,8 @@ class InventoryController(QObject):
         path = Path(url.toLocalFile())
         if path.suffix.lower() != ".xlsx":
             path = path.with_suffix(".xlsx")
-        data, analysis, selected = self._data, self._analysis, self._selection
+        data, selected = self._data, self._selection
+        analysis = replace(self._analysis, rows=self._ordered)
         monthly, alerts, comparison = self._monthly_data, self._alerts, self._comparison_result
         performance, performance_detail = self._performance.export_snapshot()
         performance_window = self._performance.state["window"]

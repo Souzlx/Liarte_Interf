@@ -12,7 +12,7 @@ FocusScope {
     readonly property var view: inventory.analysis
     readonly property var detail: inventory.detail
     readonly property var backupState: inventory.backupState
-    readonly property bool modalOpen: sourceDialog.visible || stockFilters.visible || saveStockDialog.visible || stockDetail.visible || stockPerformance.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen
+    readonly property bool modalOpen: sourceDialog.visible || stockFilters.visible || saveStockDialog.visible || stockDetail.visible || stockPerformance.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen || positionsSection.modalOpen
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
     property string activeSection: "overview"
     property var sectionScroll: ({
@@ -652,6 +652,7 @@ FocusScope {
                 onPerformanceRequested: stockPerformance.open()
                 onDetailRequested: stockDetail.open()
                 onSortRequested: column => inventory.sortByColumn(column)
+                onSortSelected: (column, descending) => inventory.sortPositions(column, descending)
                 onRowSelected: row => inventory.selectRow(row)
                 onPageSelected: requestedPage => inventory.setPage(requestedPage)
             }
