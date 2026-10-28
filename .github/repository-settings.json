@@ -1,0 +1,127 @@
+{
+  "repository": "Souzlx/Liarte_Interf",
+  "settings": {
+    "description": "Aplicativo desktop para análise de estoque, giro de produtos e importações Comex Stat, com interface Qt e exportações Excel, PDF e Power BI.",
+    "homepage": "https://github.com/Souzlx/Liarte_Interf/releases",
+    "has_wiki": false,
+    "has_projects": false,
+    "delete_branch_on_merge": true,
+    "allow_update_branch": true,
+    "allow_merge_commit": true,
+    "allow_squash_merge": true,
+    "allow_rebase_merge": false
+  },
+  "topics": [
+    "python",
+    "pyside6",
+    "qt-quick",
+    "windows",
+    "inventory-management",
+    "data-analysis",
+    "business-intelligence",
+    "comex-stat"
+  ],
+  "labels": [
+    {
+      "name": "accessibility",
+      "color": "f143ab",
+      "description": "Acessibilidade e navegação assistiva."
+    },
+    {
+      "name": "bug",
+      "color": "d73a4a",
+      "description": "Falha ou comportamento incorreto."
+    },
+    {
+      "name": "documentation",
+      "color": "0075ca",
+      "description": "Guias, exemplos e documentação."
+    },
+    {
+      "name": "duplicate",
+      "color": "cfd3d7",
+      "description": "Problema ou proposta já registrado."
+    },
+    {
+      "name": "enhancement",
+      "color": "a2eeef",
+      "description": "Melhoria ou nova funcionalidade."
+    },
+    {
+      "name": "good first issue",
+      "color": "7057ff",
+      "description": "Tarefa adequada para a primeira contribuição."
+    },
+    {
+      "name": "help wanted",
+      "color": "008672",
+      "description": "Contribuição adicional bem-vinda."
+    },
+    {
+      "name": "invalid",
+      "color": "e4e669",
+      "description": "Relato inválido ou sem relação com o projeto."
+    },
+    {
+      "name": "question",
+      "color": "d876e3",
+      "description": "Dúvida de instalação, uso ou desenvolvimento."
+    },
+    {
+      "name": "wontfix",
+      "color": "ffffff",
+      "description": "Demanda que não será implementada neste projeto."
+    },
+    {
+      "name": "area: estoque",
+      "color": "0e8a16",
+      "description": "Estoque, vendas, giro, alertas e comparação mensal."
+    },
+    {
+      "name": "area: importacoes",
+      "color": "1d76db",
+      "description": "Comex Stat, mercado e consultas de importações."
+    },
+    {
+      "name": "area: interface",
+      "color": "5319e7",
+      "description": "Interface Qt, filtros, gráficos e acessibilidade."
+    },
+    {
+      "name": "area: distribuicao",
+      "color": "bfd4f2",
+      "description": "Pacotes Windows, Setup, atualização e releases."
+    },
+    {
+      "name": "area: ci",
+      "color": "006b75",
+      "description": "GitHub Actions e verificações automatizadas."
+    },
+    {
+      "name": "maintenance",
+      "color": "fef2c0",
+      "description": "Organização, ferramentas e manutenção do repositório."
+    }
+  ],
+  "branch_protection": {
+    "branch": "main",
+    "required_status_checks": {
+      "strict": true,
+      "contexts": [
+        "tests",
+        "repository"
+      ]
+    },
+    "enforce_admins": true,
+    "required_pull_request_reviews": {
+      "dismiss_stale_reviews": true,
+      "require_code_owner_reviews": false,
+      "required_approving_review_count": 0
+    },
+    "restrictions": null,
+    "required_conversation_resolution": true,
+    "allow_force_pushes": false,
+    "allow_deletions": false
+  },
+  "private_vulnerability_reporting": true
+}

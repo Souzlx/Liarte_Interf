@@ -10,6 +10,16 @@ env/
 /.liarte-desktop-env.anterior-*/
 /.liarte-dev-profile/
 
+# Bases de trabalho e segredos locais; a base canônica já versionada é preservada.
+*.pbix
+*.pbit
+*.liarte
+!/src/liarte_core/data/*.liarte
+!/tests/fixtures/*.liarte
+.env
+.env.*
+!.env.example
+
 # Caches e resultados de ferramentas
 .pytest_cache/
 .ruff_cache/

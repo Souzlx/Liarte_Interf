@@ -2,7 +2,7 @@
 
 O projeto deve ser aberto a partir de um clone do repositório. A pasta instalada pelo Setup contém o aplicativo distribuído; utilize outra pasta para editar os fontes.
 
-O fluxo recomendado é VS Code com a extensão oficial Codex, publicada pela OpenAI, e um ambiente Python local ao projeto. O GitHub continua guardando o histórico e executando o CI. A confirmação de uso da prévia 5.3.1-rc.1 foi recebida do usuário; isso está registrado no [resumo de continuidade](CONTINUIDADE_LOCAL.md).
+O fluxo recomendado é VS Code com a extensão oficial Codex, publicada pela OpenAI, e um ambiente Python local ao projeto. O GitHub continua guardando o histórico e executando o CI. Consulte o [estado atual](STATUS.md) para as versões publicadas e o [resumo de continuidade](CONTINUIDADE_LOCAL.md) para o histórico das validações já concluídas.
 
 ## 1. Preparar as ferramentas
 
@@ -100,7 +100,7 @@ Cole esta mensagem inicial:
 ```text
 Estamos continuando o projeto Souzlx/Liarte_Interf no meu Windows.
 Leia README.md, docs/CONTINUIDADE_LOCAL.md e docs/DESENVOLVIMENTO_LOCAL_WINDOWS.md.
-A instalação 5.3.1-rc.1 foi validada por mim. Estou na branch desenvolvimento-local.
+Estou na branch desenvolvimento-local. Mantenha a instalação de uso diário separada.
 Primeiro confira git status e o ambiente .venv e prepare as dependências se necessário.
 Use iniciar.py --profile-dir .liarte-dev-profile --demo para desenvolver com persistência
 separada, e execute os testes apropriados.
@@ -121,4 +121,4 @@ Quando precisar conferir o aplicativo congelado, execute no ambiente Windows pre
 .\.venv\Scripts\python.exe tools/build_windows.py
 ```
 
-Para criar o Setup, instale também Inno Setup 6.3 ou superior e siga o [guia de instalação](INSTALACAO_531_RC1.md). Ele não é necessário para editar os fontes ou executar os testes comuns. O teste destrutivo de instalação/desinstalação do CI recusa perfis normais de usuário e não deve ser adaptado para rodar na sua instalação de uso diário.
+Para criar o Setup, instale também Inno Setup 6.3 ou superior e siga o [guia de instalação](INSTALACAO_531_RC2.md). Ele não é necessário para editar os fontes ou executar os testes comuns. O teste destrutivo de instalação/desinstalação do CI recusa perfis normais de usuário e não deve ser adaptado para rodar na sua instalação de uso diário.

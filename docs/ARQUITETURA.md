@@ -1,183 +1,103 @@
-# Arquitetura — 5.1.0-rc.3
+# Arquitetura
 
-Cliente modular PySide6/Qt Quick, com Início, navegação central e Importações. A composição e as preferências compartilhadas estão descritas em NUCLEO_CENTRAL_510.md. Sem navegador, WebView ou servidor HTTP local. Comex é
-a fonte padrão. Dados sintéticos só são usados explicitamente em --demo, testes
-e autoteste offline do pacote. Não são apresentados como resultado de consulta real.
+Referência da implementação consolidada na **5.3.1-rc.2**. O LIARTE é um cliente desktop PySide6/Qt Quick. Importações consulta o Comex Stat; Estoque analisa arquivos locais. O cadastro de módulos descreve disponibilidade do produto, não permissões ou autenticação corporativa.
+
+```mermaid
+flowchart LR
+    QML[Interface Qt Quick] --> Controllers[Controladores PySide6]
+    Controllers -->|tarefas em workers| Core[Domínio e adaptadores]
+    Core -->|consulta explícita| API[API Comex Stat]
+    Core -->|leitura offline| Files[PBIX e snapshots de Estoque]
+    Core --> Documents[Excel, PDF e projeto Power BI]
+    Controllers --> Models[Estado e modelos de apresentação]
+    Models --> QML
+```
+
+## Camadas e responsabilidades
+
+| Caminho | Responsabilidade |
+| --- | --- |
+| `src/liarte_core/` | Contratos, validação, cálculos, consultas, IO e escopo das exportações, sem dependência da interface Qt. |
+| `src/liarte_desktop/` | Composição da aplicação, controladores, workers, modelos Qt, perfis, identidade e integração com Windows. |
+| `src/liarte_desktop/qml/` | Navegação, controles, diálogos, gráficos e componentes de apresentação. |
+| `src/liarte_engine/` | Transporte, documentos e componentes de compatibilidade extraídos do motor original. |
+| `tools/` | Preparação do ambiente, compilação, empacotamento e verificação da distribuição. |
+| `tests/` | Testes de domínio, IO, exportações, interface, concorrência e distribuição. |
+
+### Importações e mercado
+
+- `comex.py` adapta os dados reais para os contratos de `domain.py`; `comex_api.py` implementa o cliente direto e as pausas da fonte.
+- `query.py` filtra, agrega, ordena e pagina o snapshot aceito. Busca, ordenação e paginação não fazem uma nova consulta à API.
+- `procurement.py` calcula referências de compra, médias ponderadas e comparações no mesmo recorte observado.
+- `exports.py` captura o escopo aceito e delega a geração dos documentos ao motor.
+- `controller.py`, `jobs.py` e `table_model.py` coordenam as tarefas e publicam apresentações limitadas para QML.
+
+O fluxo normal do desktop usa a API diretamente, sem iniciar servidor HTTP local, central automática ou downloads CSV alternativos. Implementações anteriores de central e acesso automático permanecem para compatibilidade, ferramentas explícitas e regressões; não definem o modo padrão da aplicação atual.
+
+As bases geral e municipal têm contratos separados. A geral identifica NCM e valores CIF; a municipal utiliza SH4 e FOB. Não se reconstrói NCM ou CIF a partir da base municipal. Valores monetários são tratados em unidades inteiras de centavo, preservando a precisão dos totais. Referências unitárias exigem peso válido e escopo comparável.
+
+Uma consulta explícita obtém e valida os dados da API antes de publicar o novo snapshot. Metadados e pausas podem ser persistidos; respostas de consultas anteriores em disco não substituem a API no cliente direto. Tentativas e esperas são limitadas, cooperam com o cancelamento e respeitam HTTP 429. O transporte Windows preserva a verificação HTTPS pelo sistema operacional.
+
+### Estoque e produtos
 
 | Componente | Responsabilidade |
 | --- | --- |
-| liarte_core/modules.py | Cadastro dos módulos disponíveis e planejados. |
-| liarte_desktop/platform.py e preferences.py | Navegação e preferências compartilhadas. |
-| Main.qml, HomePage.qml e ImportsWorkspace.qml | Estrutura central, Início e espaço persistente de Importações. |
-| liarte_core/catalog.py e catalog.json | Cadastro interno e proveniência. |
-| liarte_core/domain.py | Períodos, seleções, registros geral/municipal, validação e formatos. |
-| liarte_core/comex.py | Disponibilidade, extração real, conversão exata e snapshot completo. |
-| liarte_core/procurement.py | Agregações históricas por mês/origem, médias ponderadas, variações e completude das janelas. |
-| liarte_core/query.py | Filtros, agregações, séries, busca, ordenação e paginação locais. |
-| liarte_core/exports.py | Captura de escopo, temporários, publicação e auditoria. |
-| liarte_engine/ | Motor extraído da 4.7.2: API, validação, cache e documentos. |
-| liarte_desktop/controller.py e jobs.py | Estado desejado/aplicado, workers e sinais Qt. |
-| liarte_desktop/table_model.py | QAbstractTableModel, somente a página atual na thread visual. |
-| liarte_desktop/qml/ | Layout, filtros, diálogos, foco, ícones e gráficos 2D. |
-| branding.py e qt_runtime.py | Marca original e busca restrita das DLLs Qt no Windows. |
-| identity.py e windows_identity.py | Título público, AppID estável e IPropertyStore dos atalhos, sem dependência adicional. |
-| analytics.py | Formatos e séries da análise, com custo limitado por meses e origens. |
-| windows_shell.py | Pastas Windows conhecidas, atalhos próprios e marcador idempotente. |
-| tools/preparation.py e assistente.py | Ambiente isolado, trava, autoteste e confirmação de abertura. |
-| tools/build_windows.py | Onedir, avisos/licenças, testes, smoke e publicação com backup. |
-| build_installer.py e INSTALADOR_LIARTE.iss | Setup por usuário, atualização e desinstalação. |
+| `inventory.py` e `inventory_io.py` em `liarte_core` | Contratos tipados, análise do saldo e leitura/validação de PBIX ou `.liarte`. |
+| `inventory_monthly.py` | Fechamentos e vendas mensais, com lacunas e unidades preservadas. |
+| `inventory_alerts.py` | Regras de alerta, elegibilidade e agrupamento por produto, filial e unidade. |
+| `inventory_compare.py` | Comparação entre dois meses e contribuições sobre posições comparáveis. |
+| `inventory_performance.py` em `liarte_core` | Janelas de vendas, desempenho e investigação por produto sobre o cache mensal. |
+| `inventory_backup.py` | Cópias anteriores, conferência de integridade, restauração e retenção. |
+| `inventory.py` em `liarte_desktop` | Coordenação de fontes, filtros, análises, tabelas, exportação e restauração. |
+| `inventory_compare_view.py` e `inventory_performance.py` em `liarte_desktop` | Apresentações e tarefas especializadas de comparação e desempenho. |
 
-## Fonte, precisão e cache
+A leitura do PBIX utiliza os dados e metadados gravados no arquivo; não executa M, DAX, SQL ou conexões do modelo. O snapshot integrado só é usado quando não há uma base local válida com preferência. Os arquivos de origem não são modificados.
 
-Metadados geral/municipal são independentes. POSTs de dados são espaçados, não
-disparados em paralelo. Cada mês tem validação/cache próprios. Ambas as bases
-devem estar completas antes de publicar o snapshot imutável. O cadastro inteiro
-é consultado uma vez por período; filtros/páginas usam o snapshot local.
+Quantidades de Estoque usam milionésimos da unidade original; custos usam centavos de real. Quantidades de unidades diferentes não são somadas. Giro e dias da fonte não são somados entre posições. A mediana do giro elegível não representa um giro consolidado, e cobertura estimada não mede a idade dos lotes.
 
-Availability registra disponibilidade, atualização, horário e uso de metadados
-armazenados. Revisão composta geral/municipal participa do cache. Há limite de
-tamanho/tempo de leitura, timeout e retentativas limitadas, inclusive para 429.
-Esperas cooperam com o Event de cancelamento; socket bloqueado pode aguardar o
-timeout. Não há promessa de cancelamento instantâneo de toda operação de rede.
+Fechamento ausente permanece desconhecido. Comparações separam posições pareadas de registros presentes somente em um dos meses. Filtros ABC, última venda e sinal de saldo selecionam a coorte atual, sem reconstruir sua classificação histórica. As definições completas ficam nos guias de [análise mensal](ANALISE_MENSAL_530_RC2.md), [comparação](COMPARADOR_MENSAL_ESTOQUE.md) e [desempenho](DESEMPENHO_PRODUTOS.md).
 
-ImportRecord mantém NCM, UF/URF, país, centavos FOB/frete/seguro/CIF e kg.
-MunicipalRecord mantém SH4, município fiscal, UF, país, FOB e kg; não fornece
-CIF válido nem reconstrói NCM/URF. As 27 siglas, ND e EX têm tratamento explícito.
-UF desconhecida, precisão inesperada ou CIF divergente interrompem o lote.
+## Estado, tarefas e publicação
 
-DatasetQuery usa LRU limitado a quatro recortes, seis visões e um índice de busca.
-Predicados são preparados uma vez: união dentro da dimensão, interseção entre
-dimensões. Ordenação em blocos de 4.096 com merge cooperativo e Fraction para
-preços. Agregação/ordenação precedem paginação. Busca não altera indicadores.
-Zero kg não provoca divisão por zero. Totais não passam por float.
+Somente a thread Qt publica modelos e apresentações. Workers preparam dados, análises e documentos e emitem progresso, resultado ou erro. Cada operação tem cancelamento cooperativo e identificação de geração; resultados obsoletos não substituem o estado aceito. O fechamento aguarda o término das tarefas.
 
-## Estado e tarefas
+Escolhas desejadas e aplicadas são distintas. Os filtros avançados do Estoque são validados e aplicados em conjunto; nas Importações, as seleções mantêm confirmação por campo. Falhas e cancelamentos preservam o resultado anterior identificado, sem relabelar dados antigos como resultado de uma nova escolha.
 
-Somente slots do controlador na thread Qt alteram modelo/apresentação. Workers
-emitem progresso/resultado/erro. Disponibilidade, consulta e exportação possuem
-ciclos de vida próprios; o fechamento espera seu término. Callbacks de rede e
-documento não manipulam QML. Respostas obsoletas são descartadas.
+O Estoque expõe `presentation` e opções limitadas para o estado de interface, mantendo séries e análises em apresentações próprias. Comparação e desempenho reutilizam o cache mensal. As tabelas recebem somente a página visível; a ordenação considera o recorte completo antes da paginação e não relê a fonte.
 
-Seleção desejada e aplicada são distintas; debounce consolida alterações rápidas.
-O último resultado aceito permanece identificado durante atualização. Cancelamento
-restaura seus filtros/controles; falha não publica dados parciais. presentation e
-analysis possuem sinais distintos para evitar redesenhar gráficos ao mudar linha.
+Valores ausentes ficam ao final nas ordenações. Saldos de posições são agrupados por unidade; indicadores negativos da fonte permanecem rastreáveis depois dos valores elegíveis. Seleção e retorno ao detalhe usam a identidade do produto ou da posição, evitando reaproveitar um índice que passou a representar outro item.
 
-ExportRequest captura snapshot, período e seleção. Excel/BI usam base completa;
-PDF usa filtros e busca de toda a tabela. Temporários ficam no volume do destino;
-validação antecede os.replace. Cancelamento/falha preservam arquivo anterior.
-Manifesto SHA-256, período e atualização da fonte fica no perfil; falha de auditoria
-não invalida um documento que já foi salvo corretamente.
+Exportações capturam referências aceitas antes de iniciar o worker. A aba de posições do Estoque segue a ordem aplicada e inclui todo o recorte; a aba de desempenho mantém todos os produtos/unidades do recorte, independentemente da busca ou página da lista. Nas Importações, Excel e projeto Power BI usam o escopo definido para essas exportações, e PDF utiliza o recorte filtrado documentado. Temporários são validados antes da publicação no destino; falha ou cancelamento não substitui silenciosamente o arquivo anterior.
 
-## Documentos, interface e distribuição
+## Interface e perfil de execução
 
-Motor da 4.7.2 preservado com imports relativos, cancelamento injetável e ajuste
-Decimal no PDF. Organização das planilhas, cabeçalhos curtos, grades, alinhamento
-vertical central, UF sigla, Base municipal E=64 e abas mensais foram mantidos.
-PDF: título Importações filtradas, nomes comerciais, países diretos, portos,
-corte estrito >1.000 kg antes da consolidação e exclusão de aeroportos.
-BI gera PBIP/TMDL/PBIR; referências são conferidas, mas renderização requer Desktop.
+`Main.qml` compõe navegação, Início e espaços de trabalho persistentes. `ImportsWorkspace.qml` organiza Resumo, Compras e Registros; `InventoryWorkspace.qml` organiza Panorama, Análise mensal e Produtos. Componentes em `qml/components/` separam consultas, filtros, tabelas e painéis de análise.
 
-Janela reorganiza a partir de 500 × 400 lógicos com rolagem. Filtros pesquisáveis
-multisseleção têm aplicação explícita/tooltip. Meses cabem por extenso. Ícones
-vetoriais e animações curtas respeitam redução de movimento. Texto de dados é
-PlainText; Narrador e múltiplos monitores precisam de Windows real.
+A navegação muda o conteúdo apresentado e preserva filtros, mês, página e seleções da sessão. Gráficos usam Canvas e itens do scene graph; unidades, escalas, lacunas e denominadores permanecem explícitos. A interface respeita redução de movimento, oferece navegação por teclado e se reorganiza em janelas compactas. Texto recebido das fontes é apresentado como texto simples.
 
-Preferências QSettings e cache/logs ficam no perfil, fora da instalação. Somente
-tema/densidade/movimento são migrados da F1 quando não há preferências novas.
-O cliente é local; cache não é banco corporativo nem backup de relatórios.
+Preferências, dados, logs e backups ficam fora da pasta do programa. `runtime_profile.py` oferece `--profile-dir` para um perfil de desenvolvimento separado, sem reaproveitar a instalação diária. Um perfil novo não importa automaticamente dados ou preferências do perfil normal.
 
-Assistente usa ambiente filho isolado, verifica versões, testa Qt/documentos e
-aguarda confirmação da janela. Reparo automático é limitado. Onedir mantém
-bibliotecas separadas e coleta apenas recursos Qt necessários. Licenças e smoke
-são obrigatórios antes de publicar. A versão portátil anterior tem backup/rollback.
+Antes de substituir uma base local válida, o aplicativo guarda sua versão anterior. A restauração confere conteúdo e integridade e também preserva a base atual válida. A retenção padrão é de dez cópias válidas recentes. O guard de publicação do cache é uma proteção otimista contra alteração concorrente, não uma transação de banco corporativo entre computadores.
 
-Inno Setup usa AppId separado da 4.7.2, perfil externo e escolha na desinstalação.
-Atalhos usam SHGetKnownFolderPath para Desktop/Programs redirecionados; sucesso
-só é registrado depois da existência dos dois arquivos. Recriação protege atalhos
-alheios; não há toast recorrente. Testes de Windows são simulados, não execução.
+## Compilação e entrega
 
-## Reproduzir e evoluir
+`tools/assistente.py` e `tools/preparation.py` preparam um ambiente isolado e validam runtime e recursos. `tools/build_windows.py` executa a suíte, gera o portátil PyInstaller em modo onedir, reúne licenças e confere o executável nativo. O pacote inclui Python e dependências.
 
-Ambiente preparado: python verificar.py --headless --volume.
-Fonte real: python verificar_comex.py --inicio 2026-07 --fim 2026-09.
-A segunda operação usa internet e grava relatório em logs; revisões oficiais
-podem alterar atualização e totais. O script respeita espaçamento/limites da fonte.
+`tools/build_installer.py` compila o Setup a partir de um bundle validado, conferindo versão, manifesto e checksums. `INSTALADOR_LIARTE.iss` mantém AppId, perfil e atalhos estáveis e usa o mutex compartilhado com `installation_guard.py`. A instalação é por usuário; a remoção preserva os dados por padrão.
 
-Serviço central, identidade, permissões, Protheus, SQL Server e tarefas multiusuário
-devem ser implementados em camadas próprias nas próximas fases. Não há credenciais
-do ERP distribuídas neste cliente.
+O workflow de instalador executa os quatro builds Windows antes de instalar, atualizar e remover o aplicativo em perfil descartável. Na RC2, o ensaio de atualização parte da 5.3.0. Tags e arquivos de releases anteriores não são substituídos. Veja as [evidências da entrega](EVIDENCIAS_INSTALADOR_531_RC2.json) e as [licenças dos componentes](LICENCAS.md).
 
-## Componentes de apresentação RC2
+## Referências e reprodução
 
-MetricCard exibe valores finais com transição curta de opacidade, sem contagem
-numérica artificial. OriginChart desenha participação proporcional ao total de
-todas as origens e limita a apresentação a seis. FilterChip remove uma dimensão
-sem alterar outras; MultiCombo mantém aplicação explícita e busca.
+- [Desenvolvimento local](DESENVOLVIMENTO_LOCAL_WINDOWS.md): preparação e perfil separado.
+- [Guia da interface](GUIA_INTERFACE_MODULAR.md): tarefas e comportamento dos controles.
+- [Cliente direto RC9](NOVO_CLIENTE_API_520_RC9.md): evolução do acesso ao Comex.
+- [Núcleo central 5.1](NUCLEO_CENTRAL_510.md): registro histórico da composição inicial.
 
-LinePlot separa grade, curva e guia de hover. O Canvas da curva tem geometria fixa;
-o efeito de revelação altera apenas o recorte no scene graph. Hover move itens
-simples e não repinta a curva. Redução de movimento interrompe os efeitos em curso.
-Reorganização de layout não é animada, preservando foco e leitura durante resize.
+```sh
+python verificar.py --headless --volume
+```
 
-A tela inicial omite indicadores/gráficos vazios e não exibe a contagem fictícia
-inicial do antigo demonstrador. Informação técnica de versão/fonte/metodologia
-fica em Ajuda ou diagnóstico. O texto visual de erros de rede é simplificado;
-a mensagem integral continua no controlador/log. Erros de validação de métricas
-continuam explícitos, sem esconder divergências.
+Essa suíte é offline e não consulta a fonte real. `verificar_comex.py` é uma ferramenta separada de ensaio explícito com acesso à internet e resultados sujeitos à disponibilidade e à revisão dos dados oficiais.
 
-
-## Referências de compra (RC3)
-
-ProcurementBuilder é acumulado no mesmo percurso dos registros selecionados e
-finalizado no worker antes da busca/paginação. Procurement e Aggregate são
-imutáveis e fazem parte do _Scope LRU. Cancelamento é conferido também na
-finalização. Meses e origens vêm exclusivamente do recorte, sem buscar dados
-fora do intervalo para completar médias. Alterar busca/ordenação/página reutiliza
-a mesma agregação; o controlador mantém uma única apresentação formatada em cache.
-
-Valor/peso móvel usam soma/3 dos três meses; preço móvel usa soma de valores/soma
-de kg, exigindo peso positivo nos três meses. Variação é (atual/anterior - 1) × 100;
-base zero/ausente não define percentual. A base municipal só fornece FOB, kg e SH4.
-Pesos zero mantêm os valores oficiais nos totais e geram sinalização de qualidade;
-preço só existe se o peso total do agregado é positivo. Nenhuma previsão é produzida.
-
-As séries QML têm escala e unidade explícitas, nulos preservados, traçado com
-lacunas e média móvel no mesmo Canvas. A animação modifica apenas o recorte do
-scene graph. O comparador inicia com oito países e permite ordenar/expandir a lista; seu limiar
-local não altera o recorte, a referência agregada, tabela ou documentos.
-
-ApplicationName/organização/perfil, AppID de Shell e GUID do instalador não foram
-renomeados. ApplicationDisplayName e título usam Liarte Importações. SetIcon é
-chamado antes de mostrar a janela. O mesmo ICO é incorporado pelo PyInstaller.
-Atalhos WScript são identificados por IPropertyStore com COM inicializado na
-thread responsável, HRESULT conferido e limpeza balanceada. O marcador só é
-publicado depois de ambos os atalhos e propriedades terem sido gravados.
-
-
-## Experiência de uso (RC4)
-
-Origin inclui meses com kg positivo; Procurement preserva o nome de um produto
-único. A apresentação mantém todas as origens e calcula ranks de preço com
-Fraction. QML filtra/ordena esse conjunto antes de exibir oito/mais linhas.
-Metadados de cobertura são descritivos e não afetam os totais.
-
-Atalhos de período só alteram o rascunho. Navegação anima contentY sem executar
-cálculos de dados por quadro; movimento reduzido interrompe a animação. Baixar
-no topo delega à mesma função de diálogo/exportação usada anteriormente.
-
-LinePlot conserva uma pintura por atualização de série; marcador/foco/leitura
-usam itens do scene graph. A escala é local, explícita, comum às duas linhas;
-eixos cortados não usam área. TrendDialog só instancia linhas ao abrir e usa
-unidades completas; copyTrendData copia valores formatados com cabeçalhos corretos.
-Acessibilidade Qt oferece nome do valor atual e instruções curtas. Nenhuma dessas
-ações lê novamente a fonte ou muda os filtros/escopo dos documentos.
-
-
-## RC5: preparação, instalação e movimentos
-
-O assistente serializa a preparação por trava do sistema operacional. Um SHA-256 de código/recursos/requisitos/runtime identifica uma verificação completa reutilizável por até sete dias; versões instaladas e handshake da janela são conferidos sempre. Falhas invalidam a marca. Build e reparo sempre repetem o teste. A saída do Setup é compilada/validada em estágio privado e publicada por substituição no mesmo volume. A versão vem do módulo do aplicativo, sem importar Qt.
-
-No Windows, installation_guard mantém um handle CreateMutexW tipado até o fim do processo; o Inno usa o mesmo nome em AppMutex. A referência não restringe múltiplas janelas. SetupMutex impede instalações simultâneas. AppId/perfil/atalhos permanecem estáveis. A validação Windows nativa ainda é uma etapa de homologação.
-
-Theme.motionEnabled considera movimento reduzido e janela visível/não minimizada. Animações terminam no valor final quando inativas; TaskProgress interpola apenas a geometria, preservando value e acessibilidade reais. Os filtros inicializam no aboutToShow, antes de receber digitação. A logo do PDF é o recurso desktop já incluído no bundle, acessado por Path sem dependência de Qt no gerador. Não há alteração na paginação ou geometria da tabela.
+Integração direta com ERP, autenticação corporativa, autorização no servidor e indicadores financeiros adicionais não fazem parte do contrato atual. Não há credenciais do ERP distribuídas pelo aplicativo.
