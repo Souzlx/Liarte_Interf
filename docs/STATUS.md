@@ -1,47 +1,53 @@
-# Estado atual — 5.2.0-rc.4
+# Estado do projeto
 
-O acesso individual ao Comex Stat passou a ser **automático**. Ao consultar, o
-programa prepara e reutiliza uma fila local, sem abrir outra janela ou exigir
-arquivo de conexão, porta, comandos ou serviço Windows. Instâncias do mesmo
-usuário no computador compartilham a fila; outra pode assumir quando o hospedeiro
-sai. O atendimento automático é restrito ao loopback, com chave local protegida
-por DPAPI no Windows. Conexão remota já configurada continua prioritária.
+O LIARTE é um aplicativo desktop em Python e Qt Quick para analisar importações pelo Comex Stat e Estoque a partir de uma base local. Os módulos disponíveis são **Importações** e **Estoque**. Crédito permanece cadastrado como planejado, sem funcionalidade publicada.
 
-Uma pausa real da fonte fica em disco e aparece como contagem regressiva na tela.
-Novas consultas são impedidas durante o prazo. As tentativas permanecem limitadas
-e canceláveis. Quando falta Retry-After HTTP e o corpo repete uma orientação curta
-como 10 segundos, o programa aplica recuo conservador de pelo menos 60 segundos.
-O diagnóstico registra status HTTP observado, código interpretado e trecho limitado
-da resposta, sem presumir um limite por IP.
+## Versões disponíveis
 
-**470 testes passaram em Python 3.14; 469, em Python 3.12**, incluindo 17 regressões
-da automação, eleição entre dez instâncias, reutilização em outro processo,
-recuperação de hospedeiro, 429/403, cancelamento, pausa e um ensaio com 100 mil
-registros. Quatro layouts novos sem avisos QML. Wheel construído e conferido com
-fontes, recursos e base integrada.
+| Canal | Versão | Distribuição |
+| --- | --- | --- |
+| Prévia atual | [5.3.1-rc.2](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2) | Setup Windows, ZIP portátil e checksums |
+| Estável | [5.3.0](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.0) | ZIP portátil e checksums |
 
-Na validação real, setembro/2026 para NCM 29161220 e SH4 municipal 2916 terminou
-com os totais conferidos (18 e 216 registros, em universos estatísticos distintos).
-O teste de janeiro a setembro com os 35 NCMs recebeu 429, e outra tentativa foi
-recusada. Uma observação direta confirmou HTTP 429 da API, sem Retry-After HTTP,
-com mensagem de tentar novamente em 10 segundos. Portanto, **a restrição da fonte
-não é declarada removida**. O comportamento cliente foi corrigido; a disponibilidade
-externa e a rede da empresa não são garantidas por esses testes.
+A RC2 foi publicada a partir de `c0aa4a49c83e4e5637d51073e19e0faedd62da59`. Commits posteriores de documentação não alteram os pacotes dessa tag. Os arquivos anteriores continuam disponíveis no histórico de releases.
 
-Cálculos, conversão, conciliação, catálogo, estoque e geradores de Excel/PDF/Power BI
-foram preservados. A base de 21/10/2026 permanece idêntica, com 1.784 posições e
-R$ 14.088.617,67. Importações e Estoque continuam integrados; Crédito é planejado.
+Para instalar ou atualizar, utilize o [guia da RC2](INSTALACAO_531_RC2.md). Os pacotes compilados incluem Python, Qt e as dependências; a execução dos fontes exige um ambiente de desenvolvimento separado.
 
-Uso: [ACESSO_AUTOMATICO_520_RC4.md](ACESSO_AUTOMATICO_520_RC4.md).
-Evidências: [EVIDENCIAS_AUTOMATICO_520_RC4.json](EVIDENCIAS_AUTOMATICO_520_RC4.json).
-Fonte real: [CONSULTA_REAL_AUTOMATICO_520_RC4.json](CONSULTA_REAL_AUTOMATICO_520_RC4.json).
-Preservação: [PRESERVACAO_AUTOMATICO_520_RC4.json](PRESERVACAO_AUTOMATICO_520_RC4.json).
+## O que a RC2 inclui
 
-Computadores diferentes ainda precisam de um ponto comum de rede. O guia RC3 é
-histórico para a central remota; suas etapas não são necessárias no uso individual
-desta revisão. O programa não descobre servidores corporativos por suposição.
+- Vistas por tarefa: Panorama, Análise mensal e Produtos no Estoque; Resumo, Compras e Registros nas Importações.
+- Filtros aplicados explicitamente, gráficos interativos e preservação da sessão ao navegar.
+- Alertas configuráveis, comparação de dois meses e investigação do desempenho por produto.
+- Ordenações crescentes e decrescentes de indicadores, valores ausentes ao final e quantidades separadas por unidade.
+- Setup por usuário, atualização com preservação do perfil e restauração de bases anteriores de Estoque.
 
-O ZIP contém código, testes, base e assistentes, sem novo Setup Windows compilado.
-Teste os fontes abrindo INICIAR_DESKTOP.cmd na pasta nova. O executável instalado
-só muda após recompilar e instalar o Setup atualizado. Testes Qt feitos em Linux/
-offscreen; instalação, DPAPI, Shell e rede Windows precisam de homologação local.
+O [guia da interface](GUIA_INTERFACE_MODULAR.md) e as [notas da prévia](RELEASE_5.3.1-rc.2.md) detalham essas funcionalidades.
+
+## Validação da entrega
+
+| Verificação | Resultado registrado |
+| --- | --- |
+| CI Linux | 1.061 testes aprovados, sem skips |
+| Windows, Python 3.11–3.14 | Quatro suítes com 1.060 aprovados e um teste exclusivo POSIX ignorado em cada uma |
+| Executáveis empacotados | Autotestes de interface, temas, documentos e backups aprovados, sem avisos QML |
+| Setup | Instalação, atalhos, atualização sobre a 5.3.0, preservação de dados e desinstalação aprovados no runner Windows |
+| Downloads publicados | SHA-256, CRC e 1.408 arquivos do manifesto interno conferidos |
+
+As [evidências da publicação](EVIDENCIAS_INSTALADOR_531_RC2.json), a [matriz Windows](VALIDACAO_WINDOWS_531_RC2.json) e o [autoteste do instalador](AUTOTESTE_INSTALADOR_531_RC2.json) identificam o código, os cenários e os artefatos verificados. Os ensaios usam dados sintéticos e perfil descartável; não equivalem à homologação da rede ou de todas as configurações dos computadores da empresa.
+
+## Fontes e limites dos indicadores
+
+O desktop consulta diretamente a API do Comex Stat quando uma consulta é solicitada. Navegar, filtrar e ordenar os resultados aceitos usa os dados já carregados. Pausas HTTP 429 são respeitadas e apresentadas na interface; a disponibilidade do serviço externo não é garantida pelo aplicativo.
+
+O Estoque utiliza PBIX ou snapshots `.liarte`, sem executar conexões ou expressões do PBIX. O pacote inclui uma base datada de **21/10/2026**; a última base válida importada localmente pelo usuário tem preferência. Não há conexão ao vivo com o ERP.
+
+Giro da fonte, cobertura estimada e tempo desde a última venda são conceitos distintos. Quantidades de unidades diferentes não são somadas. Custo não representa faturamento, e a base atual não permite determinar a idade física dos lotes. Veja as [definições de desempenho](DESEMPENHO_PRODUTOS.md) e a [análise do BI](ANALISE_BI_E_EXPERIENCIA.md).
+
+## Referências
+
+- [Arquitetura atual](ARQUITETURA.md).
+- [Desenvolvimento local no Windows](DESENVOLVIMENTO_LOCAL_WINDOWS.md).
+- [Continuidade e decisões registradas](CONTINUIDADE_LOCAL.md).
+- [Histórico do acesso automático RC4](ACESSO_AUTOMATICO_520_RC4.md) e [evolução do cliente direto RC9](NOVO_CLIENTE_API_520_RC9.md).
+
+Os documentos com versões antigas no nome registram o estado daquela entrega. Não devem ser interpretados como instruções da versão atual.

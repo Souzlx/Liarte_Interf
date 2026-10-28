@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Guias de uso e suporte
+    url: https://github.com/Souzlx/Liarte_Interf/blob/main/SUPPORT.md
+    about: Instalação, atualização, indicadores e informações para pedir ajuda.
+  - name: Downloads da LIARTE
+    url: https://github.com/Souzlx/Liarte_Interf/releases
+    about: Instalador, pacote portátil, notas das versões e checksums.

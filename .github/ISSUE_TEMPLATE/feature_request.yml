@@ -1,0 +1,33 @@
+name: Sugerir uma melhoria
+description: Proponha uma melhoria de análise, interface ou fluxo de trabalho.
+title: "[Melhoria]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Explique a necessidade com exemplos sintéticos. As opções abaixo ajudam a entender a ideia; preencha o que souber.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Qual tarefa ou decisão você quer facilitar?
+      description: Descreva a situação atual e a dificuldade encontrada.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Como gostaria que funcionasse?
+      description: Conte o comportamento desejado e o benefício esperado.
+  - type: textarea
+    id: indicators
+    attributes:
+      label: Informações e indicadores envolvidos
+      description: Se envolver análise, informe período, unidade, recorte e definição esperada. Pode ser por produto, filial, armazém ou mês.
+      placeholder: "Ex.: comparar o giro mensal da fonte dos produtos em KG, dentro de uma filial."
+  - type: textarea
+    id: examples
+    attributes:
+      label: Exemplos ou referências
+      description: Opcional. Use capturas sem dados empresariais, desenhos ou exemplos sintéticos.

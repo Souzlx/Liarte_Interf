@@ -1,0 +1,54 @@
+name: Relatar um problema
+description: Falhas na instalação, nas consultas, na interface ou nas exportações.
+title: "[Problema]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Descreva o que aconteceu, mesmo que não tenha todas as informações abaixo.
+        Use exemplos sintéticos e capturas sem dados da empresa. Não anexe PBIX, bases, credenciais ou logs completos.
+  - type: textarea
+    id: problem
+    attributes:
+      label: O que aconteceu?
+      description: Conte o que tentava fazer, o resultado esperado e o que apareceu.
+    validations:
+      required: true
+  - type: dropdown
+    id: distribution
+    attributes:
+      label: Como você abre o aplicativo?
+      options:
+        - Setup Windows
+        - ZIP portátil
+        - Fontes em desenvolvimento
+        - Não sei
+      default: 3
+  - type: input
+    id: version
+    attributes:
+      label: Versão da LIARTE
+      description: Disponível em Ajuda, se o aplicativo abrir.
+      placeholder: "Ex.: 5.3.1-rc.2"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      description: Se possível, informe a sequência de ações e os filtros envolvidos.
+      placeholder: |
+        1. Abri Estoque > Produtos.
+        2. Escolhi...
+        3. O aplicativo...
+  - type: input
+    id: environment
+    attributes:
+      label: Sistema e tela
+      description: Informe o Windows e, para falhas visuais, a escala da tela. Nos fontes, acrescente o Python se souber.
+      placeholder: "Ex.: Windows 11, escala 125%, Setup"
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Mensagem ou captura do erro
+      description: Opcional. Compartilhe apenas o trecho necessário, sem dados da empresa ou credenciais.

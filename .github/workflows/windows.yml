@@ -9,6 +9,9 @@ on:
         required: false
 permissions:
   contents: read
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: windows-2025
