@@ -49,4 +49,4 @@ A tela resume até oito linhas de cada lista. **Baixar Excel** inclui as abas **
 
 A escolha dos meses é aplicada em uma tarefa cancelável sobre o cache mensal. Página, detalhe e mês em análise são preservados. Um pedido mais recente substitui o anterior; cancelar restaura o par concluído. Em caso de falha, os resultados anteriores permanecem identificados, e é possível tentar novamente. A exportação aguarda uma comparação atual para evitar misturar pares de meses.
 
-Esta melhoria está nos fontes em desenvolvimento e não atualiza automaticamente os instaladores publicados anteriormente.
+Esta melhoria integra a prévia **5.3.1-rc.2**. Use o Setup ou o ZIP dessa versão; veja as [notas da prévia](RELEASE_5.3.1-rc.2.md) e o [guia de instalação](INSTALACAO_531_RC2.md).

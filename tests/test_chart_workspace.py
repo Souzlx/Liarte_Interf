@@ -2,7 +2,7 @@
 
 import unittest
 
-from PySide6.QtCore import QPointF, Qt
+from PySide6.QtCore import Q_ARG, QMetaObject, QPointF, Qt
 from PySide6.QtTest import QTest
 
 from tests import test_home_indicators as home_tests
@@ -17,6 +17,18 @@ class ChartWorkspaceTests(unittest.TestCase):
     load_inventory = home_tests.HomeIndicatorsTests.load_inventory
     inventory_idle = home_tests.HomeIndicatorsTests.inventory_idle
     render = home_tests.HomeIndicatorsTests.render
+
+    def show_import_visual(self, visual):
+        workspace = self.item("importsWorkspace")
+        QMetaObject.invokeMethod(workspace, "navigate", Qt.ConnectionType.DirectConnection,
+                                 Q_ARG("QVariant", "summary"))
+        workspace.setProperty("primaryVisual", visual)
+        self.render()
+
+    def show_stock_visual(self, visual):
+        choice = self.item("stockOverviewMeasure")
+        choice.setProperty("currentIndex", 0 if visual == "history" else 1)
+        self.render()
 
     def inside(self, child, parent):
         point = child.mapToItem(parent, QPointF())
@@ -42,12 +54,17 @@ class ChartWorkspaceTests(unittest.TestCase):
         for width in (500, 760, 1120, 1380):
             with self.subTest(width=width):
                 self.window.resize(width, 900)
-                self.render()
+                self.show_import_visual("trend")
                 chart, panel = self.item("monthlyChart"), self.item("trendPanel")
+                self.assertTrue(panel.isVisible())
+                self.assertFalse(self.item("originsPanel").isVisible())
                 self.assertGreaterEqual(chart.height(), 220)
                 self.inside(chart, panel)
                 self.inside(self.item("trendReadout"), panel)
                 self.inside(self.item("openTrendChart"), panel)
+                self.show_import_visual("origins")
+                self.assertTrue(self.item("originsPanel").isVisible())
+                self.assertFalse(panel.isVisible())
                 self.inside(self.item("originChart"), self.item("originsPanel"))
         self.assertEqual(self.controller.table.rows, original)
         self.assertEqual(self.transport.calls, calls)
@@ -81,12 +98,17 @@ class ChartWorkspaceTests(unittest.TestCase):
         for width in (500, 760, 1120, 1380):
             with self.subTest(width=width):
                 self.window.resize(width, 900)
-                self.render()
+                self.show_stock_visual("history")
+                self.assertTrue(self.item("stockHistoryCard").isVisible())
+                self.assertFalse(self.item("stockCapitalCard").isVisible())
                 self.inside(self.item("stockTrend"), self.item("stockHistoryCard"))
                 self.assertGreaterEqual(self.item("stockTrend").height(), 220)
                 self.inside(self.item("stockTrendReadout"), self.item("stockHistoryCard"))
-                self.inside(self.item("stockRanking"), self.item("stockCapitalCard"))
                 self.inside(self.item("openStockChart"), self.item("stockHistoryCard"))
+                self.show_stock_visual("capital")
+                self.assertTrue(self.item("stockCapitalCard").isVisible())
+                self.assertFalse(self.item("stockHistoryCard").isVisible())
+                self.inside(self.item("stockRanking"), self.item("stockCapitalCard"))
         self.assertEqual(self.inventory.state["selection"], selected)
         self.assertEqual(self.bundle.messages, [])
 

@@ -128,6 +128,12 @@ class WorkspaceUiTests(unittest.TestCase):
 
     def test_price_header_sorts_by_exact_price_not_by_visual_column_index(self):
         self.load()
+        test_comex.click(self.window, self.item("jump_records"))
+        table = self.item("recordsTable")
+        self.assertTrue(pump(lambda: table.isVisible() and table.width() > 0))
+        widths = self.controller.table.viewColumns
+        table.setProperty("contentX", max(0, sum(item["width"] + 1 for item in widths[:5]) - table.width() / 2))
+        self.assertFalse(self.window.grabWindow().isNull())
         self.assertEqual(self.controller.table.viewColumns[5]["source"], 11)
         test_comex.click(self.window, self.item("tableHeader5"))
         settled(self.controller)
@@ -181,6 +187,20 @@ class WorkspaceUiTests(unittest.TestCase):
         self.controller.setFilters("country", ["China"])
         settled(self.controller)
         before = self.controller.analysis
+        collapsed_height = self.item("filterPanel").height()
+        test_comex.click(self.window, self.item("toggleFilters"))
+        self.assertTrue(pump(lambda: self.item("productFilter").isVisible()))
+        previous = None
+
+        def expanded_layout_is_stable():
+            nonlocal previous
+            image = self.window.grabWindow()
+            height = self.item("filterPanel").height()
+            stable = height == previous
+            previous = height
+            return stable and height > collapsed_height and not image.isNull()
+
+        self.assertTrue(pump(expanded_layout_is_stable))
         height = self.item("filterPanel").height()
         test_comex.click(self.window, self.item("toggleFilters"))
         APP.processEvents()

@@ -12,20 +12,25 @@ Rectangle {
         })
     property bool emphasized: false
     property string iconName: "chart"
+    readonly property var displayMetric: Object.assign({label: "", value: "—", detail: "", full: ""}, metric || {})
+    readonly property string completeText: [displayMetric.label + ": " + displayMetric.value, displayMetric.detail, displayMetric.full, issue].filter(Boolean).join("\n")
+    readonly property bool informationVisible: (hover.hovered || activeFocus) && visible
+    activeFocusOnTab: true
     implicitHeight: 118
     radius: Theme.radius
     color: emphasized ? Theme.hero : Theme.surface
-    border.color: emphasized ? Theme.hero : Theme.softLine
+    border.color: activeFocus ? Theme.accent : emphasized ? Theme.hero : Theme.softLine
+    border.width: activeFocus ? 2 : 1
     Accessible.role: Accessible.StaticText
-    Accessible.name: metric.label + ": " + metric.value + ". " + metric.detail
-    readonly property string issue: metric.issue || ""
-    Accessible.description: [metric.full, issue].filter(Boolean).join(" ")
+    Accessible.name: displayMetric.label + ": " + displayMetric.value + ". " + displayMetric.detail
+    readonly property string issue: displayMetric.issue || ""
     HoverHandler {
         id: hover
     }
-    ToolTip.visible: hover.hovered
-    ToolTip.text: [metric.full, issue].filter(Boolean).join("\n")
-    ToolTip.delay: 450
+    Accessible.description: completeText
+    ToolTip.visible: informationVisible
+    ToolTip.text: completeText
+    ToolTip.delay: activeFocus ? 0 : 450
     onVisibleChanged: {
         if (!visible) {
             fade.stop();
@@ -41,7 +46,7 @@ Rectangle {
             Text {
                 textFormat: Text.PlainText
                 Layout.fillWidth: true
-                text: card.metric.label
+                text: card.displayMetric.label
                 color: card.emphasized ? Theme.heroMuted : Theme.muted
                 font.pixelSize: 12
                 elide: Text.ElideRight
@@ -59,7 +64,7 @@ Rectangle {
             objectName: card.objectName + "Value"
             textFormat: Text.PlainText
             Layout.fillWidth: true
-            text: card.metric.value
+            text: card.displayMetric.value
             color: card.emphasized ? "#ffffff" : Theme.text
             font.pixelSize: 28
             minimumPixelSize: 17
@@ -84,7 +89,7 @@ Rectangle {
         Text {
             textFormat: Text.PlainText
             Layout.fillWidth: true
-            text: card.metric.detail
+            text: card.displayMetric.detail
             color: card.emphasized ? Theme.heroMuted : Theme.muted
             font.pixelSize: 11
             elide: Text.ElideRight

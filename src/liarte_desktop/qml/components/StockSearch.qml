@@ -17,9 +17,9 @@ FocusScope {
         input.selectAll();
     }
     function sync() {
-        const selection = inventory.state.selection;
+        const selection = inventory.presentation.selection;
         const code = selection.product || "";
-        const expected = code ? inventory.state.productLabel : selection.search || "";
+        const expected = code ? inventory.presentation.productLabel : selection.search || "";
         if (code !== selectedCode || input.text !== expected) {
             selectedCode = code;
             input.text = expected;

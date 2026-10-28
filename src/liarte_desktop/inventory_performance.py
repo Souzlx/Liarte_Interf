@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import logging
+import math
+import re
 from dataclasses import dataclass
 from decimal import Decimal
 from threading import Event
 
 from PySide6.QtCore import QObject, Property, QThread, Signal, Slot
 
-from liarte_core.inventory import SCALE, folded, number
+from liarte_core.inventory import SCALE, folded, money, number
 from liarte_core.inventory_performance import (
     analyze_product_performance,
     product_performance_detail,
@@ -19,7 +21,18 @@ from liarte_core.query import Cancelled, checkpoint
 LOGGER = logging.getLogger("liarte.desktop")
 _SHUTTING_DOWN = set()
 PAGE_SIZE = 10
-_SORTS = {"most", "least", "decline", "turnover", "all"}
+_METRICS = {
+    "turnover": "Giro mensal da fonte · mediana",
+    "stockCost": "Estoque a custo no fechamento",
+    "stockQuantity": "Saldo no fechamento",
+    "coverage": "Cobertura estimada",
+    "name": "Produto",
+}
+_METRIC_ORDERS = {
+    f"metric:{field}:{direction}": (field, direction == "desc")
+    for field in _METRICS for direction in ("asc", "desc")
+}
+_SORTS = {"most", "least", "decline", "turnover", "all"} | _METRIC_ORDERS.keys()
 _WINDOWS = (1, 3, 6)
 _STATUS = {
     "insufficient": "Histórico insuficiente",
@@ -48,9 +61,20 @@ def _evolution(row):
     return text
 
 
-def _present_row(row):
+def _metric_value(row, field):
+    value = row.get(field)
+    if field == "name":
+        return folded(str(value or "")) if value else None
+    if value is None or not isinstance(value, int) and not math.isfinite(value):
+        return None
+    if field in {"turnover", "coverage"} and value < 0:
+        return None
+    return value
+
+
+def _present_row(row, field=None):
     giro = row.get("turnover")
-    return {
+    result = {
         "code": row["code"],
         "name": row["name"],
         "unit": row["unit"],
@@ -61,6 +85,18 @@ def _present_row(row):
         "stock": "Estoque no fechamento: " + _quantity(row.get("stockQuantity"), row["unit"])
         if row.get("stockQuantity") is not None else "Sem fechamento",
     }
+    if field and field != "name":
+        value = _metric_value(row, field)
+        display = (
+            "Sem giro elegível" if field == "turnover" else "Indisponível"
+        ) if value is None else (
+            money(value) if field == "stockCost" else
+            _quantity(value, row["unit"]) if field == "stockQuantity" else
+            number(value, 2) + " x/mês" if field == "turnover" else
+            number(value, 1) + " dias"
+        )
+        result.update(sortField=field, sortLabel=_METRICS[field], sortValue=display)
+    return result
 
 
 def _list_rows(report, unit, order, query, cancel):
@@ -90,7 +126,17 @@ def _list_rows(report, unit, order, query, cancel):
         if order == "turnover" and row.get("turnover") is None:
             continue
         rows.append(row)
-    if order == "all":
+    metric = _METRIC_ORDERS.get(order)
+    if metric:
+        field, descending = metric
+        # Stable identity ties and absent/ineligible values stay at the end in
+        # either direction. Sort every matching summary before slicing a page.
+        rows.sort(key=lambda row: (row["code"], row["unit"], row["name"]))
+        known = [row for row in rows if _metric_value(row, field) is not None]
+        missing = [row for row in rows if _metric_value(row, field) is None]
+        known.sort(key=lambda row: _metric_value(row, field), reverse=descending)
+        rows = known + missing
+    elif order == "all":
         rows.sort(key=lambda row: (row["code"], row["name"]))
     else:
         field = {"most": "sold", "least": "sold", "decline": "change", "turnover": "turnover"}[order]
@@ -101,20 +147,38 @@ def _list_rows(report, unit, order, query, cancel):
     return tuple(rows), lookup
 
 
-def _summary(report, rows, page, cancel):
+def _summary(report, rows, page, cancel, order=""):
     page = max(1, min(page, max(1, (len(rows) + PAGE_SIZE - 1) // PAGE_SIZE)))
     prepared = []
     for row in rows[(page - 1) * PAGE_SIZE:page * PAGE_SIZE]:
         checkpoint(cancel)
-        prepared.append(_present_row(row))
-    notice = report.get("reason", "")
-    if report.get("notice"):
-        notice = (notice + " " + report["notice"]).strip()
+        metric = _METRIC_ORDERS.get(order)
+        prepared.append(_present_row(row, metric[0] if metric else None))
+    reason = report.get("reason", "").strip()
+    reason_parts = set(re.split(r"(?<=[.!?])\s+", reason))
+    notice = " ".join(
+        part for part in re.split(r"(?<=[.!?])\s+", report.get("notice", "").strip())
+        if part and part not in reason_parts
+    )
+    metric = _METRIC_ORDERS.get(order)
+    order_label = ""
+    if metric:
+        field, descending = metric
+        direction = ("Z–A" if descending else "A–Z") if field == "name" else (
+            "Maior primeiro" if descending else "Menor primeiro"
+        )
+        order_label = _METRICS[field] + " · " + direction
+        if field != "name":
+            order_label += " · Valores ausentes ou inelegíveis ao final."
+    elif order == "all":
+        order_label = "Todos os produtos · Código crescente"
     return {
         "scope": report.get("scope", ""),
         "periodLabel": report.get("targetLabel", ""),
         "comparisonLabel": report.get("targetLabel", "") + " vs. " + report.get("baseLabel", ""),
         "notice": notice,
+        "reason": reason,
+        "orderLabel": order_label,
         "rows": prepared,
     }, page
 
@@ -394,7 +458,7 @@ class InventoryPerformanceController(QObject):
             units = tuple(accepted.get("units", ()))
             focused = unit if unit in units else selected.unit if selected.unit in units else units[0] if units else ""
             rows, lookup = _list_rows(accepted, focused, order, query, cancel)
-            summary, page = _summary(accepted, rows, requested_page, cancel)
+            summary, page = _summary(accepted, rows, requested_page, cancel, order)
             return _Result("list", (focused, window, order, query), accepted, units, rows, lookup, summary, page)
 
         self._start(action, "list")
@@ -424,6 +488,11 @@ class InventoryPerformanceController(QObject):
         if result.task == "detail":
             self._detail, self._raw_detail = result.detail or {}, result.raw_detail
         else:
+            keep_detail = bool(
+                self._detail and self._report is result.report and self._applied
+                and result.options[:2] == self._applied[:2]
+                and result.options[3] == self._applied[3]
+            )
             self._report = result.report
             self._cache[result.options[1]] = result.report
             self._unit, self._window, self._sort, self._query = result.options
@@ -433,8 +502,9 @@ class InventoryPerformanceController(QObject):
             self._rows, self._lookup = result.rows, result.lookup or {}
             self._summary, self._page = result.summary or {}, result.page
             self._applied_page = self._page
-            self._detail = {}
-            self._raw_detail = None
+            if not keep_detail:
+                self._detail = {}
+                self._raw_detail = None
         self.changed.emit()
 
     @Slot(str)

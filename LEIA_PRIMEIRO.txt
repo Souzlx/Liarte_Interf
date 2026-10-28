@@ -1,9 +1,11 @@
-LIARTE — 5.3.1-rc.1
+LIARTE — 5.3.1-rc.2
 Importações e Estoque na mesma plataforma nativa
 
 NESTA VERSÃO
-Prévia com instalador Setup e cópias das bases anteriores de Estoque.
-Consulte docs/INSTALACAO_531_RC1.md para instalação, atualização e restauração.
+Prévia com Setup atualizado, alertas e comparação mensal de Estoque,
+desempenho por produto e interface organizada por tarefa. As listas permitem
+ordenar giro, saldo, capital e cobertura em direções explícitas.
+Consulte docs/INSTALACAO_531_RC2.md para instalação, atualização e restauração.
 Correções da auditoria: exportação mensal mais rápida, validação e recuperação
 de arquivos, cancelamento, ordenação/paginação e foco/rolagem aprimorados.
 Consulte docs/CORRECOES_AUDITORIA_530_RC3.md para alterações e limites.
@@ -95,7 +97,7 @@ Feche a versão anterior, extraia todo o ZIP em uma pasta nova e abra o
 LIARTE_Desktop.exe dessa pasta. Nos fontes, use INICIAR_DESKTOP.cmd e aguarde
 o assistente. Depois, selecione o período e consulte normalmente.
 Um atalho de um executável antigo não é atualizado apenas por extrair este ZIP.
-Confira a versão 5.3.1-rc.1 em Ajuda. O ZIP portátil e o Setup são distribuições distintas.
+Confira a versão 5.3.1-rc.2 em Ajuda. O ZIP portátil e o Setup são distribuições distintas.
 
 INTERFACE, GRÁFICOS E ANÁLISE MENSAL — PRÉVIA 5.3
 - Início reúne indicadores dos módulos já carregados, com período, base e moeda.

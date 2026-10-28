@@ -10,15 +10,20 @@ from tests.test_qt import APP, settled
 class ProcurementUiTests(unittest.TestCase):
     setUp = test_comex.RealQtTests.setUp
     tearDown = test_comex.RealQtTests.tearDown
-    load = test_comex.RealQtTests.load
     item = test_interface.InterfaceTests.item
+
+    def load(self):
+        test_comex.RealQtTests.load(self)
+        test_comex.click(self.window, self.item("jump_buying"))
 
     def test_all_metric_choices_are_local_and_preserve_documents_and_filters(self):
         self.load()
+        test_comex.click(self.window, self.item("jump_summary"))
         calls = len(self.transport.calls)
         original = self.controller.analysis
         selection = self.controller._selection
         choices = self.item("trendMetric")
+        self.assertTrue(choices.isVisible())
         for key in ("value", "price", "fob", "freight", "weight"):
             for index in range(choices.property("count")):
                 choices.setProperty("currentIndex", index)
@@ -51,6 +56,7 @@ class ProcurementUiTests(unittest.TestCase):
 
     def test_municipal_chart_choices_remove_freight_and_keep_fob_basis(self):
         self.load()
+        test_comex.click(self.window, self.item("jump_summary"))
         choice = self.item("trendMetric")
         choice.setProperty("currentIndex", 3)
         choice.setProperty("selectedMetricKey", "freight")
@@ -77,6 +83,7 @@ class ProcurementUiTests(unittest.TestCase):
 
     def test_price_chart_keeps_missing_values_and_low_prices_distinct(self):
         self.load()
+        test_comex.click(self.window, self.item("jump_summary"))
         chart = self.item("monthlyChart")
         chart.setProperty(
             "points",

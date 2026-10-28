@@ -85,7 +85,7 @@ class HomeIndicatorsTests(unittest.TestCase):
         before = self.inventory.analysis["metrics"]
         home = self.item("homePage")
         summary = variant(home.property("summaryCards"))[0]
-        self.assertEqual(summary["metrics"], [before[0], before[4]])
+        self.assertEqual(summary["metrics"], [before[0], before[1]])
         self.assertIn(self.inventory.state["asOf"], summary["period"])
         self.assertIn("R$", summary["basis"])
         entered, release = Event(), Event()
@@ -102,14 +102,14 @@ class HomeIndicatorsTests(unittest.TestCase):
                 self.assertTrue(pump(entered.is_set))
                 self.assertIn("último resultado", self.item("homeSummaryStatus_inventory").property("text"))
                 self.assertEqual(variant(home.property("summaryCards"))[0]["metrics"],
-                                 [before[0], before[4]])
+                                 [before[0], before[1]])
                 release.set()
                 self.inventory_idle()
         finally:
             release.set()
         summary = variant(home.property("summaryCards"))[0]
         after = self.inventory.analysis["metrics"]
-        self.assertEqual(summary["metrics"], [after[0], after[4]])
+        self.assertEqual(summary["metrics"], [after[0], after[1]])
         self.assertNotEqual(after[0]["value"], before[0]["value"])
         self.assertEqual(self.transport.calls, [])
         self.assertEqual(self.bundle.messages, [])

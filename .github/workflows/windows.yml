@@ -59,6 +59,13 @@ jobs:
               "tests.test_inventory_alerts_qml",
               "tests.test_inventory_compare_qml",
               "tests.test_inventory_performance_qml",
+              "tests.test_ux_stock_filters",
+              "tests.test_ux_navigation",
+              "tests.test_ux_chart_interactions",
+              "tests.test_stock_sorting",
+              "tests.test_stock_sorting_qml",
+              "tests.test_performance_sorting",
+              "tests.test_comex.RealQtTests.test_native_save_dialog_opens_with_the_right_format",
           ])
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(0 if result.wasSuccessful() else 1)

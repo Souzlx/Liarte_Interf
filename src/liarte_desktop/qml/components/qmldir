@@ -5,6 +5,15 @@ StockBars 1.0 StockBars.qml
 StockMonthly 1.0 StockMonthly.qml
 StockComparison 1.0 StockComparison.qml
 StockPerformance 1.0 StockPerformance.qml
+StockOverview 1.0 StockOverview.qml
+StockPositions 1.0 StockPositions.qml
+StockFiltersDialog 1.0 StockFiltersDialog.qml
+ImportQueryPanel 1.0 ImportQueryPanel.qml
+ImportFilters 1.0 ImportFilters.qml
+ImportTrendPanel 1.0 ImportTrendPanel.qml
+ImportBuyingPanel 1.0 ImportBuyingPanel.qml
+ImportRecordsPanel 1.0 ImportRecordsPanel.qml
+ImportDocumentsPanel 1.0 ImportDocumentsPanel.qml
 StockAlerts 1.0 StockAlerts.qml
 singleton Theme 1.0 Theme.qml
 ActionButton 1.0 ActionButton.qml

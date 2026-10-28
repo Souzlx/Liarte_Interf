@@ -31,7 +31,19 @@ AppDialog {
         },
         {
             value: "turnover",
-            label: "Menor giro da fonte (mediana)"
+            label: "Giro mensal da fonte (mediana)"
+        },
+        {
+            value: "stockCost",
+            label: "Estoque a custo no fechamento"
+        },
+        {
+            value: "stockQuantity",
+            label: "Saldo no fechamento"
+        },
+        {
+            value: "coverage",
+            label: "Cobertura estimada"
         },
         {
             value: "all",
@@ -44,7 +56,15 @@ AppDialog {
     property string draftQuery: ""
     property string syncedChoice: ""
     property string measure: "sales"
-    property int inspectedRow: -1
+    property string inspectedCode: ""
+    property string inspectedUnit: ""
+    property bool contextExpanded: false
+    readonly property string criticalReason: typeof summary.reason === "string" ? summary.reason : String(summary.notice || "")
+    readonly property string contextNotice: typeof summary.reason === "string" ? String(summary.notice || "") : ""
+    readonly property string draftSortField: sortField(draftSort)
+    readonly property bool directionAvailable: draftSort === "turnover" || draftSort.startsWith("metric:")
+    readonly property bool draftDescending: draftSort.endsWith(":desc") || draftSort === "most"
+    readonly property string directionLabel: draftSort === "all" ? "Código crescente" : draftSortField === "name" ? (draftDescending ? "Z–A" : "A–Z") : (draftDescending ? "Maior primeiro" : "Menor primeiro")
     readonly property var seriesKinds: detail.seriesKinds || []
     readonly property string effectiveMeasure: seriesKinds.some(item => item.value === measure) ? measure : seriesKinds.length ? seriesKinds[0].value : "sales"
     readonly property var series: (detail.series || {})[effectiveMeasure] || ({})
@@ -61,6 +81,27 @@ AppDialog {
     }
     function optionIndex(options, value) {
         return Math.max(0, options.findIndex(item => String(item.value) === String(value)));
+    }
+    function sortField(order) {
+        if (order.startsWith("metric:"))
+            return order.split(":")[1];
+        return order === "all" ? "name" : order === "turnover" ? "turnover" : "";
+    }
+    function sortOption(order) {
+        const field = sortField(order);
+        return field === "name" ? "all" : field || order;
+    }
+    function chooseSort(option) {
+        if (["turnover", "stockCost", "stockQuantity", "coverage"].includes(option))
+            draftSort = "metric:" + option + ":desc";
+        else if (option === "all")
+            draftSort = "metric:name:asc";
+        else
+            draftSort = option;
+    }
+    function reverseDirection() {
+        if (directionAvailable)
+            draftSort = "metric:" + draftSortField + ":" + (draftDescending ? "asc" : "desc");
     }
     function syncDrafts() {
         const applied = choice(viewState.unit, viewState.window, viewState.sort, viewState.query);
@@ -88,7 +129,8 @@ AppDialog {
     function returnToList() {
         performance.closeDetail();
         Qt.callLater(() => {
-            const item = productRows.itemAt(inspectedRow);
+            const index = (summary.rows || []).findIndex(row => row.code === inspectedCode && row.unit === inspectedUnit);
+            const item = index >= 0 ? productRows.itemAt(index) : null;
             if (item && item.enabled) {
                 item.forceActiveFocus(Qt.BacktabFocusReason);
                 dialog.reveal(item);
@@ -140,7 +182,7 @@ AppDialog {
             Text {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                text: "Compare produtos da mesma unidade e investigue sua evolução mensal. A busca e a paginação desta lista não alteram os filtros do estoque. O Excel do estoque inclui todos os produtos do recorte na janela aplicada."
+                text: "Compare produtos da mesma unidade e investigue sua evolução mensal. As opções desta lista não alteram os filtros do estoque."
                 textFormat: Text.PlainText
                 color: Theme.muted
                 font.pixelSize: 12
@@ -209,7 +251,7 @@ AppDialog {
                         objectName: "stockPerformanceSortLabel"
                         Layout.fillWidth: true
                         Layout.minimumWidth: 0
-                        text: "Ordenar produtos"
+                        text: "Ordenar por"
                         color: Theme.muted
                         font.pixelSize: 11
                         wrapMode: Text.WordWrap
@@ -219,12 +261,23 @@ AppDialog {
                         Layout.fillWidth: true
                         Layout.minimumWidth: 0
                         model: dialog.sorts
-                        currentIndex: dialog.optionIndex(model, dialog.draftSort)
+                        currentIndex: dialog.optionIndex(model, dialog.sortOption(dialog.draftSort))
                         enabled: dialog.controlsEnabled && !dialog.viewState.busy
                         Accessible.name: "Ordenação do desempenho dos produtos"
-                        onActivated: index => dialog.draftSort = String(model[index].value)
+                        onActivated: index => dialog.chooseSort(String(model[index].value))
                     }
                 }
+            }
+            ActionButton {
+                objectName: "stockPerformanceDirection"
+                visible: dialog.directionAvailable
+                Layout.minimumWidth: 0
+                Layout.fillWidth: parent.width < 500
+                text: dialog.directionLabel
+                enabled: dialog.controlsEnabled && !dialog.viewState.busy && dialog.directionAvailable
+                Accessible.name: "Direção da ordenação dos produtos: " + dialog.directionLabel
+                Accessible.description: dialog.directionAvailable ? "Inverte a ordem do indicador escolhido. Use Aplicar para atualizar a lista." : "Este ranking tem direção própria; escolha um indicador para inverter a ordem."
+                onClicked: dialog.reverseDirection()
             }
             GridLayout {
                 Layout.fillWidth: true
@@ -299,8 +352,42 @@ AppDialog {
                 objectName: "stockPerformanceScope"
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-            text: [dialog.summary.comparisonLabel || dialog.summary.periodLabel, dialog.summary.scope, dialog.summary.notice].filter(Boolean).join("\n")
+                text: [dialog.summary.comparisonLabel || dialog.summary.periodLabel, dialog.summary.orderLabel].filter(Boolean).join("\n")
                 visible: text.length > 0
+                textFormat: Text.PlainText
+                color: Theme.muted
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
+            Text {
+                objectName: "stockPerformanceReason"
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                text: dialog.criticalReason
+                visible: text.length > 0
+                textFormat: Text.PlainText
+                color: Theme.text
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
+            ActionButton {
+                objectName: "stockPerformanceContextToggle"
+                Layout.minimumWidth: 0
+                Layout.fillWidth: parent.width < 500
+                text: "Contexto e critérios"
+                checkable: true
+                checked: dialog.contextExpanded
+                visible: Boolean(dialog.summary.scope || dialog.contextNotice)
+                Accessible.name: "Contexto e critérios do desempenho dos produtos"
+                Accessible.description: "Mostra ou recolhe filiais, escopo e critérios da comparação."
+                onClicked: dialog.contextExpanded = checked
+            }
+            Text {
+                objectName: "stockPerformanceContext"
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                text: [dialog.summary.scope, dialog.contextNotice].filter(Boolean).join("\n")
+                visible: dialog.contextExpanded && text.length > 0
                 textFormat: Text.PlainText
                 color: Theme.muted
                 font.pixelSize: 12
@@ -326,9 +413,10 @@ AppDialog {
                         padding: 12
                         hoverEnabled: true
                         enabled: dialog.canInspect
-                        Accessible.name: modelData.code + ". " + modelData.name + ". Vendas: " + modelData.sold + ". Evolução: " + modelData.evolution + ". Giro da fonte, mediana: " + modelData.turnover + ". " + (modelData.status || "") + ". Investigar produto."
+                        Accessible.name: modelData.code + ". " + modelData.name + ". " + (modelData.sortValue ? modelData.sortLabel + ": " + modelData.sortValue + ". " : "") + "Vendas: " + modelData.sold + ". Evolução: " + modelData.evolution + ". Giro da fonte, mediana: " + modelData.turnover + ". " + (modelData.status || "") + ". Investigar produto."
                         onClicked: {
-                            dialog.inspectedRow = index;
+                            dialog.inspectedCode = modelData.code;
+                            dialog.inspectedUnit = modelData.unit;
                             dialog.performance.investigate(modelData.code, modelData.unit);
                         }
                         background: Rectangle {
@@ -354,7 +442,7 @@ AppDialog {
                                 objectName: product.objectName + "Value"
                                 Layout.fillWidth: true
                                 Layout.minimumWidth: 0
-                                text: "Vendas: " + (product.modelData.sold || "—") + " · Evolução: " + (product.modelData.evolution || "—") + " · Giro da fonte (mediana): " + (product.modelData.turnover || "—")
+                                text: product.modelData.sortValue ? product.modelData.sortLabel + ": " + product.modelData.sortValue : "Vendas: " + (product.modelData.sold || "—") + " · Evolução: " + (product.modelData.evolution || "—") + " · Giro da fonte (mediana): " + (product.modelData.turnover || "—")
                                 textFormat: Text.PlainText
                                 color: Theme.text
                                 font.pixelSize: 12
@@ -364,7 +452,7 @@ AppDialog {
                                 objectName: product.objectName + "Detail"
                                 Layout.fillWidth: true
                                 Layout.minimumWidth: 0
-                                text: [product.modelData.stock, product.modelData.status].filter(Boolean).join(" · ")
+                                text: [product.modelData.sortValue ? "Vendas: " + (product.modelData.sold || "—") : "", product.modelData.sortField === "stockQuantity" ? "" : product.modelData.stock, product.modelData.status].filter(Boolean).join(" · ")
                                 visible: text.length > 0
                                 textFormat: Text.PlainText
                                 color: Theme.muted

@@ -12,6 +12,7 @@ ColumnLayout {
     property bool controlsEnabled: true
     property string metricKey: "cost"
     property string rankingKey: "sellers"
+    property bool rankingsExpanded: false
     readonly property bool modalOpen: expandedChart.visible
     readonly property var kinds: monthly.seriesKinds || []
     readonly property string effectiveMetric: kinds.some(k => k.value === metricKey) ? metricKey : kinds.length ? kinds[0].value : "cost"
@@ -406,10 +407,31 @@ ColumnLayout {
                     wrapMode: Text.WordWrap
                 }
             }
+            ActionButton {
+                objectName: "stockMonthlyUseMonth"
+                Layout.alignment: Qt.AlignRight
+                Layout.minimumWidth: 0
+                text: "Analisar este mês"
+                subtle: true
+                enabled: section.controlsEnabled && monthlyPlot.activeIndex >= 0 && monthlyPlot.activeIndex < (section.series.points || []).length
+                Accessible.name: "Usar o mês selecionado no gráfico para a análise de estoque"
+                onClicked: section.monthSelected(section.series.points[monthlyPlot.activeIndex].period)
+            }
         }
+    }
+    ActionButton {
+        objectName: "stockMonthlyRankingToggle"
+        Layout.fillWidth: true
+        Layout.minimumWidth: 0
+        text: section.rankingsExpanded ? "Recolher produtos deste mês" : "Explorar produtos deste mês"
+        iconName: "grid"
+        subtle: true
+        Accessible.description: section.rankingsExpanded ? "Listas de produtos expandidas" : "Abre rankings e variações do mês em análise"
+        onClicked: section.rankingsExpanded = !section.rankingsExpanded
     }
     Rectangle {
         objectName: "stockMonthlyRankingCard"
+        visible: section.rankingsExpanded
         Layout.fillWidth: true
         Layout.minimumWidth: 0
         implicitHeight: rankingContent.implicitHeight + 36

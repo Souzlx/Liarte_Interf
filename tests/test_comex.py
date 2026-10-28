@@ -13,8 +13,8 @@ import time
 import unittest
 from unittest.mock import patch
 from urllib.parse import urlsplit
-from PySide6.QtCore import QPointF, QObject, QCoreApplication, QEvent, QMetaObject, QUrl
-from PySide6.QtTest import QTest
+from PySide6.QtCore import Q_ARG, QPointF, QObject, QCoreApplication, QEvent, QMetaObject, Qt, QUrl
+from PySide6.QtTest import QSignalSpy, QTest
 from liarte_core.catalog import catalog
 from liarte_core.comex import ComexProvider, ComexError, integral, uf
 from liarte_core.domain import Period, Selection
@@ -28,18 +28,91 @@ from tests.test_qt import APP, pump, settled, click as native_click
 
 
 def click(window, item):
-    scroll = window.findChild(QObject, "contentScroll")
-    if scroll is not None:
-        top = scroll.mapToScene(QPointF(0, 0)).y()
-        y = item.mapToScene(QPointF(0, 0)).y()
-        if y < top or y + item.height() > top + scroll.height():
-            offset = scroll.property("contentY") + y - top - 60
-            scroll.setProperty(
-                "contentY",
-                max(0, min(offset, scroll.property("contentHeight") - scroll.height())),
+    # Legacy business tests can request a control in another task. Prepare its
+    # owner explicitly; dedicated navigation tests exercise the actual buttons.
+    workspace = window.findChild(QObject, "importsWorkspace")
+    if workspace is not None and not item.isVisible():
+        ancestors = []
+        ancestor = item
+        while ancestor is not None:
+            ancestors.append(ancestor.objectName())
+            ancestor = ancestor.parentItem()
+        owner = None
+        if "recordsPanel" in ancestors or "documentsPanel" in ancestors:
+            owner = "records"
+        elif "buyingSection" in ancestors:
+            owner = "buying"
+        elif any(name in ancestors for name in ("trendPanel", "originsPanel", "metricsGrid")):
+            owner = "summary"
+        if owner is not None and workspace.property("activeSection") != owner:
+            QMetaObject.invokeMethod(
+                workspace, "navigate", Qt.ConnectionType.DirectConnection,
+                Q_ARG("QVariant", owner),
             )
-            APP.processEvents()
+        if "queryPanel" in ancestors:
+            workspace.setProperty("periodExpanded", True)
+        if "filterPanel" in ancestors:
+            workspace.setProperty("filtersExpanded", True)
+        if "documentsPanel" in ancestors:
+            workspace.setProperty("documentsExpanded", True)
+        if "originsPanel" in ancestors:
+            workspace.setProperty("primaryVisual", "origins")
+        elif "trendPanel" in ancestors:
+            workspace.setProperty("primaryVisual", "trend")
+        APP.processEvents()
+    scroll = window.findChild(QObject, "contentScroll")
+    in_scroll = False
+    ancestor = item
+    while ancestor is not None:
+        if ancestor is scroll:
+            in_scroll = True
+            break
+        ancestor = ancestor.parentItem()
+    viewport = scroll if in_scroll else window.contentItem()
+    window.requestActivate()
+    previous = None
+    geometry = None
+
+    def rendered_control_is_ready():
+        nonlocal previous, geometry
+        if in_scroll:
+            point = item.mapToItem(scroll, QPointF())
+            if point.y() < 0 or point.y() + item.height() > scroll.height():
+                maximum = max(0, scroll.property("contentHeight") - scroll.height())
+                scroll.setProperty(
+                    "contentY", max(0, min(maximum, scroll.property("contentY") + point.y() - 24))
+                )
+        # Navigation, focus restoration and expansion are queued separately.
+        # Inspect two equal rendered frames before trusting the click position.
+        frame = window.grabWindow()
+        point = item.mapToItem(viewport, QPointF())
+        geometry = {
+            "name": item.objectName(),
+            "window": (window.width(), window.height()),
+            "control": tuple(round(value, 3) for value in (
+                point.x(), point.y(), item.width(), item.height()
+            )),
+            "viewport": (viewport.width(), viewport.height()),
+            "visible": item.isVisible(), "enabled": item.isEnabled(),
+            "moving": bool(scroll.property("moving")) if in_scroll else False,
+            "activeSection": workspace.property("activeSection") if workspace else "",
+            "documentsExpanded": workspace.property("documentsExpanded") if workspace else False,
+        }
+        stable = geometry == previous
+        previous = geometry
+        x, y, width, height = geometry["control"]
+        return (
+            stable and not frame.isNull()
+            and abs(frame.width() / window.devicePixelRatio() - window.width()) <= 1
+            and geometry["visible"] and geometry["enabled"] and not geometry["moving"]
+            and width > 0 and height > 0 and x >= -1 and y >= -1
+            and x + width <= viewport.width() + 1 and y + height <= viewport.height() + 1
+        )
+
+    if not pump(rendered_control_is_ready):
+        raise AssertionError(geometry)
     native_click(window, item)
+    return geometry
 
 
 FIXTURE = json.loads(
@@ -632,8 +705,17 @@ class RealQtTests(unittest.TestCase):
 
     def test_native_save_dialog_opens_with_the_right_format(self):
         self.load()
-        click(self.window, self.item("exportExcel"))
-        self.assertTrue(pump(lambda: self.item("exportDialog").property("visible")))
+        button = self.item("exportExcel")
+        clicks = QSignalSpy(button.clicked)
+        geometry = click(self.window, button)
+        self.assertEqual(clicks.count(), 1, geometry)
+        self.assertTrue(pump(lambda: self.item("exportDialog").property("visible")), {
+            "clicked": clicks.count(), "beforeClick": geometry,
+            "activeSection": self.item("importsWorkspace").property("activeSection"),
+            "documentsExpanded": self.item("importsWorkspace").property("documentsExpanded"),
+            "draftPeriod": self.item("importsWorkspace").property("draftPeriod"),
+            "canExport": self.controller.state["canExport"],
+        })
         self.assertEqual(self.item("exportDialog").property("defaultSuffix"), "xlsx")
         QMetaObject.invokeMethod(self.item("exportDialog"), "close")
         pump(lambda: not self.item("exportDialog").property("visible"))

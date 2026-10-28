@@ -35,6 +35,7 @@ from liarte_core.inventory import (
     StockSelection,
     analyze_inventory,
     compact_money,
+    folded,
     money,
     month_range,
     month_end,
@@ -222,10 +223,15 @@ class _CheckedRows:
         return _checked(self.rows, self.cancel)
 
 
+def _position_identity(row):
+    balance = row.balance
+    return balance.product, balance.branch, balance.warehouse, balance.unit
+
+
 def _order_rows(rows, column, descending, cancel=None):
-    def key(row):
+    def value(row):
         b = row.balance
-        value = (
+        current = (
             b.product,
             row.name,
             b.branch,
@@ -234,19 +240,32 @@ def _order_rows(rows, column, descending, cancel=None):
             b.quantity,
             b.cost,
             row.abc,
-            row.last_sale or date.min,
+            row.last_sale,
             row.turnover,
             row.source_days,
         )[column]
-        return (
-            value is not None,
-            value if value is not None else -1,
-            b.product,
-            b.branch,
-            b.warehouse,
-        )
+        if column == 7 and current in ("", "—"):
+            return None
+        return folded(current) if column == 1 else current
 
-    ordered = tuple(sorted(_checked(rows, cancel), key=key, reverse=descending))
+    # First fix ties independently of direction, then sort only eligible values.
+    # A missing date is not an old sale; negative source ratios remain visible
+    # after the eligible values rather than ranking as unusually low turnover.
+    tied = sorted(_checked(rows, cancel), key=_position_identity)
+    eligible, invalid, missing = [], [], []
+    for row in _checked(tied, cancel):
+        current = value(row)
+        if current is None:
+            missing.append(row)
+        elif column in (9, 10) and current < 0:
+            invalid.append(row)
+        else:
+            eligible.append(row)
+    eligible.sort(key=value, reverse=descending)
+    if column == 5:
+        # Keep quantities with different units in separate ordered groups.
+        eligible.sort(key=lambda row: row.balance.unit)
+    ordered = tuple(chain(eligible, invalid, missing))
     if cancel is not None:
         checkpoint(cancel)
     return ordered
@@ -291,6 +310,7 @@ class _LoadPresentation:
     closings: object
     backups: tuple = ()
     backup_error: str = ""
+    option_values: object = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -619,6 +639,7 @@ class InventoryWorker(QObject):
 
 class InventoryController(QObject):
     changed = Signal()
+    filterChanged = Signal()
     optionsChanged = Signal()
     analysisChanged = Signal()
     detailChanged = Signal()
@@ -644,6 +665,8 @@ class InventoryController(QObject):
         self._selection = None
         self._applied_selection = None
         self._options = []
+        self._filter_values = {}
+        self._filter_error = ""
         self._thread = None
         self._worker = None
         self._cancel = Event()
@@ -700,17 +723,22 @@ class InventoryController(QObject):
         self._debounce.setInterval(140)
         self._debounce.timeout.connect(self._schedule_analysis)
 
-    @Property("QVariantMap", notify=changed)
-    def state(self):
+    def _is_current(self):
+        return (
+            self._selection == self._applied_selection
+            and self._alert_policy == self._applied_alert_policy
+            and not self._pending
+            and not self._debounce.isActive()
+        )
+
+    def _light_state(self):
+        """UI status without copying series on progress, focus or page changes."""
         data, analysis = self._data, self._analysis
         selection = self._selection
         return {
             "loaded": data is not None,
             "busy": self._thread is not None,
-            "current": self._selection == self._applied_selection
-            and self._alert_policy == self._applied_alert_policy
-            and not self._pending
-            and not self._debounce.isActive(),
+            "current": self._is_current(),
             "task": self._task,
             "progress": self._progress,
             "busyLabel": self._label,
@@ -720,27 +748,64 @@ class InventoryController(QObject):
             "productLabel": self._search.names.get(selection.product, "")
             if self._search and selection
             else "",
-            "metrics": list(analysis.metrics) if analysis else [],
-            "trend": list(analysis.trend) if analysis else [],
-            "ranking": list(analysis.ranking) if analysis else [],
-            "activityChart": list(analysis.activity) if analysis else [],
             "historicalScope": analysis.historical_scope if analysis else "",
             "selection": {k: getattr(selection, k) for k in selection.__dataclass_fields__}
             if selection
             else {},
+            "appliedSelection": {
+                key: getattr(self._applied_selection, key)
+                for key in self._applied_selection.__dataclass_fields__
+            } if self._applied_selection else {},
             "page": self._page,
             "pages": max(1, (len(self._ordered) + 49) // 50),
             "count": len(self._ordered),
             "sortColumn": self._sort,
             "descending": self._descending,
-            "detail": self._detail,
             "selectedRow": self._selected_index,
             "notes": list(data.notes) if data else [],
         }
 
+    @Property("QVariantMap", notify=changed)
+    def presentation(self):
+        return self._light_state()
+
+    @Property("QVariantMap", notify=changed)
+    def state(self):
+        """Keep the complete legacy API; QML status binds to presentation."""
+        analysis = self._analysis
+        return dict(
+            self._light_state(),
+            metrics=list(analysis.metrics) if analysis else [],
+            trend=list(analysis.trend) if analysis else [],
+            ranking=list(analysis.ranking) if analysis else [],
+            activityChart=list(analysis.activity) if analysis else [],
+            detail=self._detail,
+        )
+
+    @Property("QVariantMap", notify=filterChanged)
+    def filterState(self):
+        return {"error": self._filter_error}
+
+    @Slot()
+    def clearFilterError(self):
+        if self._filter_error:
+            self._filter_error = ""
+            self.filterChanged.emit()
+
+    def _reject_filters(self, message):
+        if message != self._filter_error:
+            self._filter_error = message
+            self.filterChanged.emit()
+        return False
+
     @Property("QVariantList", notify=optionsChanged)
     def options(self):
         return list(self._options)
+
+    @Property("QVariantList", notify=optionsChanged)
+    def filterOptions(self):
+        """Small filter groups; product suggestions use the dedicated index."""
+        return [option for option in self._options if option["key"] != "product"]
 
     @Property("QVariantMap", notify=analysisChanged)
     def analysis(self):
@@ -797,7 +862,7 @@ class InventoryController(QObject):
     @Slot(str, str)
     def focusPerformanceProduct(self, code, unit):
         if (
-            self._closed or self._thread or not self.state["current"]
+            self._closed or self._thread or not self._is_current()
             or not self._performance.state["current"]
             or (self._performance.detail.get("code"), self._performance.detail.get("unit"))
             != (code, unit)
@@ -831,14 +896,14 @@ class InventoryController(QObject):
             "current": self._comparison_result is not None
             and (self._compare_base, self._compare_target) == self._comparison_applied
             and not self._comparison_pending and self._task != "comparison"
-            and self.state["current"],
+            and self._is_current(),
             "error": self._comparison_error,
         }
 
     @Slot(str, str)
     def setComparisonMonths(self, base, target):
         if (
-            self._closed or not self._monthly_data or not self.state["current"]
+            self._closed or not self._monthly_data or not self._is_current()
             or self._thread is not None and self._task != "comparison"
         ):
             return
@@ -969,7 +1034,7 @@ class InventoryController(QObject):
 
     @Slot(str, str, str)
     def focusAlertProduct(self, code, branch, unit):
-        if self._closed or self._thread or self._analysis is None or not self.state["current"]:
+        if self._closed or self._thread or self._analysis is None or not self._is_current():
             return
         items = (item for category in self._alert_view["categories"] for item in category["items"])
         if not any((item["code"], item["branch"], item["unit"]) == (code, branch, unit) for item in items):
@@ -1054,7 +1119,7 @@ class InventoryController(QObject):
     @Slot(str)
     def setMonthlyPeriod(self, period):
         if (
-            not self.state["current"]
+            not self._is_current()
             or self._thread
             or period not in {m["period"] for m in self._monthly_data}
         ):
@@ -1066,7 +1131,7 @@ class InventoryController(QObject):
     @Slot(str)
     def setMonthlyUnit(self, unit):
         if (
-            not self.state["current"]
+            not self._is_current()
             or self._thread
             or unit not in {v["value"] for v in self._monthly_view.get("units", [])}
         ):
@@ -1197,6 +1262,7 @@ class InventoryController(QObject):
     def _open_path(self, path, *, fallback=None, backup_id=None):
         if self._thread or self._closed:
             return
+        self.clearFilterError()
         self._generation += 1
         self._pending = False
         self._comparison_pending = False
@@ -1259,6 +1325,12 @@ class InventoryController(QObject):
             search.names = MappingProxyType(search.names)
             search.entries = tuple(search.entries)
             options = tuple(self._build_options(data, cancel))
+            option_values = MappingProxyType({
+                option["key"]: frozenset(
+                    value["value"] for value in _checked(option["values"], cancel)
+                )
+                for option in _checked(options, cancel)
+            })
             sales, closings = defaultdict(list), defaultdict(list)
             sales_begin = None
             for sale in _checked(data.sales, cancel):
@@ -1278,6 +1350,7 @@ class InventoryController(QObject):
                 MappingProxyType(
                     {key: tuple(rows) for key, rows in _checked(closings.items(), cancel)}
                 ),
+                option_values=option_values,
             )
             publication = _prepare_publication(
                 "restore" if backup_id is not None else "load",
@@ -1334,8 +1407,7 @@ class InventoryController(QObject):
         ):
             return
         if key != "search":
-            option = next((o for o in self.options if o["key"] == key), None)
-            if not option or value not in {v["value"] for v in option["values"]}:
+            if value not in self._filter_values.get(key, ()):
                 return
         elif len(value) > 200:
             return
@@ -1360,10 +1432,58 @@ class InventoryController(QObject):
         self.changed.emit()
         self.backupChanged.emit()
 
+    @Slot("QVariantMap", result=bool)
+    def applyFilters(self, values):
+        """Validate a whole draft before one generation and one recalculation."""
+        if self._closed:
+            return False
+        if self._selection is None or self._data is None:
+            return self._reject_filters("Abra uma base de estoque antes de aplicar os filtros.")
+        if self._task in {"load", "export"}:
+            return self._reject_filters("Aguarde a operação atual antes de aplicar os filtros.")
+        if not isinstance(values, dict) or any(
+            key not in self._selection.__dataclass_fields__ or not isinstance(value, str)
+            for key, value in values.items()
+        ):
+            return self._reject_filters("Os filtros contêm um campo ou valor inválido.")
+        updates = dict(values)
+        for key, value in updates.items():
+            if key == "search":
+                if len(value) > 200:
+                    return self._reject_filters("A busca deve ter até 200 caracteres.")
+            elif value not in self._filter_values.get(key, ()):
+                return self._reject_filters("Escolha valores disponíveis na base de estoque atual.")
+        if updates.get("product") and updates.get("search"):
+            return self._reject_filters("Selecione um produto ou utilize a busca por texto.")
+        if updates.get("product"):
+            updates["search"] = ""
+        elif updates.get("search"):
+            updates["product"] = ""
+        updated = replace(self._selection, **updates)
+        if updated.start > updated.end:
+            return self._reject_filters("O mês inicial deve ser anterior ou igual ao mês final.")
+        self.clearFilterError()
+        if updated == self._selection:
+            return True
+        self._selection = updated
+        self._generation += 1
+        if self._thread:
+            self._cancel.set()
+        self._pending = True
+        if self._task == "comparison":
+            self._comparison_pending = True
+        self._error = ""
+        self._page = 1
+        self._debounce.start()
+        self.changed.emit()
+        self.backupChanged.emit()
+        return True
+
     @Slot()
     def resetFilters(self):
         if self._closed or self._data is None or self._task in {"load", "export"}:
             return
+        self.clearFilterError()
         self._selection = self._default
         self._generation += 1
         if self._thread:
@@ -1466,7 +1586,8 @@ class InventoryController(QObject):
             if result[0] == "sort":
                 self._ordered = result[1]
                 self._applied_sort = result[2]
-                self._publish_rows()
+                self._page = 1
+                self._publish_rows(preserve_selection=True)
             elif result[0] == "backups":
                 self._backup_entries, self._backup_error = result[1:]
                 self._prune_preserve_ids.clear()
@@ -1502,6 +1623,7 @@ class InventoryController(QObject):
             self._selection = self._default = result.selected
             self._search = result.load.search
             self._options = result.load.options
+            self._filter_values = result.load.option_values
             self._sales_begin = result.load.sales_begin
             self._sales_by_position = result.load.sales
             self._closings_by_position = result.load.closings
@@ -1581,40 +1703,65 @@ class InventoryController(QObject):
         elif self._prune_requested:
             self._refresh_backups(clear_notice=False)
 
-    def _publish_rows(self):
+    def _publish_rows(self, *, preserve_selection=False):
         """Commit just one page; callers prepare the complete ordering separately."""
         if not self._analysis:
             return
+        selected_identity = (
+            _position_identity(self.table.rows[self._selected_index])
+            if preserve_selection and 0 <= self._selected_index < len(self.table.rows)
+            else None
+        )
         self._page = min(self._page, max(1, (len(self._ordered) + 49) // 50))
         self.table.setRows(self._ordered[(self._page - 1) * 50 : self._page * 50])
-        self._selected_index = -1
-        self._detail = {}
+        self._selected_index = next(
+            (index for index, row in enumerate(self.table.rows)
+             if _position_identity(row) == selected_identity),
+            -1,
+        )
+        if self._selected_index < 0:
+            self._detail = {}
         self.detailChanged.emit()
 
     @Slot(int)
     def sortByColumn(self, column):
+        if not isinstance(column, int) or isinstance(column, bool):
+            return
+        descending = not self._descending if column == self._sort else column in (5, 6, 9, 10)
+        self.sortPositions(column, descending)
+
+    @Slot(int, bool)
+    def sortPositions(self, column, descending):
         if (
-            not 0 <= column < len(HEADERS)
+            not isinstance(column, int)
+            or isinstance(column, bool)
+            or not isinstance(descending, bool)
+            or not 0 <= column < len(HEADERS)
             or self._closed
             or self._thread
             or self._pending
             or self._debounce.isActive()
             or not self._analysis
+            or not self._is_current()
+            or (column, descending) == self._applied_sort
         ):
             return
-        self._descending = not self._descending if column == self._sort else column in (5, 6, 9, 10)
+        self._descending = descending
         self._sort = column
-        self._page = 1
-        rows, descending = self._analysis.rows, self._descending
+        rows = self._analysis.rows
         if len(rows) <= 50:
             # A single visible page is bounded GUI work and preserves immediate sorting.
             self._ordered = _order_rows(rows, column, descending)
             self._applied_sort = (column, descending)
-            self._publish_rows()
+            self._page = 1
+            self._publish_rows(preserve_selection=True)
         else:
 
             def action(cancel, progress):
-                return ("sort", _order_rows(rows, column, descending, cancel), (column, descending))
+                return (
+                    "sort", _order_rows(rows, column, descending, cancel),
+                    (column, descending),
+                )
 
             self._start(action, "sort")
         self.changed.emit()
@@ -1632,7 +1779,7 @@ class InventoryController(QObject):
     def selectRow(self, index):
         if (
             not 0 <= index < len(self.table.rows)
-            or not self.state["current"]
+            or not self._is_current()
             or self._pending
             or self._debounce.isActive()
             or self._task == "load"
@@ -1758,7 +1905,7 @@ class InventoryController(QObject):
             or self._data is None
             or self._analysis is None
             or self._performance.state["busy"]
-            or not self.state["current"]
+            or not self._is_current()
             or self._comparison_result is not None and not self.comparisonState["current"]
             or not url.isLocalFile()
         ):
@@ -1766,7 +1913,8 @@ class InventoryController(QObject):
         path = Path(url.toLocalFile())
         if path.suffix.lower() != ".xlsx":
             path = path.with_suffix(".xlsx")
-        data, analysis, selected = self._data, self._analysis, self._selection
+        data, selected = self._data, self._selection
+        analysis = replace(self._analysis, rows=self._ordered)
         monthly, alerts, comparison = self._monthly_data, self._alerts, self._comparison_result
         performance, performance_detail = self._performance.export_snapshot()
         performance_window = self._performance.state["window"]
