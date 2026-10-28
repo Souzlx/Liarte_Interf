@@ -63,4 +63,4 @@ O arquivo registra períodos, filtros, data da base, unidades e definições. Va
 
 A análise usa o cache mensal já carregado, em tarefas canceláveis fora da interface. Não relê o PBIX nem consulta a internet ao buscar, ordenar, paginar ou investigar. Trocar a base ou os filtros descarta resultados antigos antes de publicar a nova análise.
 
-Esta melhoria pertence aos fontes em desenvolvimento e não atualiza automaticamente os instaladores publicados anteriormente.
+Esta melhoria integra a prévia **5.3.1-rc.2**. Use o Setup ou o ZIP dessa versão; veja as [notas da prévia](RELEASE_5.3.1-rc.2.md) e o [guia de instalação](INSTALACAO_531_RC2.md).

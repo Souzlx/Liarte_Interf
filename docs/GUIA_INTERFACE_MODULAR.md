@@ -65,4 +65,4 @@ Os dois arquivos enviados têm o mesmo conteúdo funcional. A [análise do BI](A
 
 Receita, margem, entradas fiscais e carteira financeira são expansões possíveis porque existem campos correspondentes no BI. Esses módulos exigem contratos próprios antes de integrar o aplicativo. O custo já importado não é faturamento, e o cadastro examinado ainda não fornece o mapeamento produto–NCM necessário para cruzar diretamente empresa e mercado.
 
-Esta reorganização pertence aos fontes em desenvolvimento. Os pacotes e instaladores anteriormente publicados não recebem as mudanças automaticamente; a disponibilidade deve ser conferida no pacote de teste ou release correspondente.
+Esta reorganização integra a prévia **5.3.1-rc.2**, junto das ordenações das listas. Use o Setup ou o ZIP dessa versão; veja as [notas da prévia](RELEASE_5.3.1-rc.2.md) e o [guia de instalação](INSTALACAO_531_RC2.md).

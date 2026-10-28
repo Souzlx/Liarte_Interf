@@ -12,9 +12,11 @@ A versão estável **5.3.0** promove a RC3 validada pelo usuário, com gráficos
 
 [Baixar o pacote portátil Windows 5.3.0](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.0/LIARTE_Desktop_5.3.0_Windows_x64.zip) · [Página da release e checksums](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.0).
 
-A prévia **5.3.1-rc.1** acrescenta Setup Windows e restauração de bases anteriores de Estoque. [Baixar o Setup](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.1/LIARTE_Desktop_5.3.1-rc.1_Setup.exe) · [Pacotes e checksums da prévia](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.1). Veja o [guia de instalação e restauração](docs/INSTALACAO_531_RC1.md) e as [notas da prévia](docs/RELEASE_5.3.1-rc.1.md). A geração e os testes do Setup usam um [workflow separado](.github/workflows/installer.yml).
+A candidata **5.3.1-rc.2** consolida alertas, comparação mensal, desempenho por produto, interface por tarefas e ordenações de estoque, mantendo Setup e restauração de bases. A publicação está em preparação e depende da conclusão do [workflow do instalador](.github/workflows/installer.yml). Após a publicação: [Setup 5.3.1-rc.2](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/LIARTE_Desktop_5.3.1-rc.2_Setup.exe) · [ZIP e checksums](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2). Veja o [guia de instalação e atualização](docs/INSTALACAO_531_RC2.md) e as [notas da candidata](docs/RELEASE_5.3.1-rc.2.md).
 
-Os fontes em desenvolvimento também incluem [alertas configuráveis de estoque](docs/ALERTAS_ESTOQUE.md), com investigação por produto, filial e unidade e exportação completa em Excel. Essa melhoria ainda não faz parte dos pacotes publicados acima.
+A prévia anterior [5.3.1-rc.1](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.1), seu [guia](docs/INSTALACAO_531_RC1.md) e suas [notas](docs/RELEASE_5.3.1-rc.1.md) permanecem disponíveis como histórico. A versão estável continua sendo a 5.3.0.
+
+Os [alertas configuráveis de estoque](docs/ALERTAS_ESTOQUE.md) permitem investigar produto, filial e unidade e exportar a lista completa em Excel.
 
 Na análise mensal, o [comparador de dois meses](docs/COMPARADOR_MENSAL_ESTOQUE.md) permite investigar a diferença de estoque e vendas por produto ou filial, separando posições comparáveis e mudanças de cobertura dos registros.
 
