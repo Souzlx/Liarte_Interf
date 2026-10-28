@@ -9,6 +9,8 @@ Prévia do LIARTE que reúne as melhorias de análise e organização do Estoque
 
 Esta é a candidata **5.3.1-rc.2**. O fluxo de publicação disponibiliza Setup, ZIP portátil e `SHA256SUMS.txt` somente após validar os quatro executáveis Windows e o ciclo de instalação, atualização e desinstalação. A versão estável **5.3.0** permanece disponível.
 
+A publicação passou em **1.061 testes no CI Linux** e nos quatro builds Windows, cada um com 1.060 testes aprovados e um skip exclusivo POSIX. O ciclo do Setup confirmou atalhos e preservação do perfil na atualização e na remoção normal. Os downloads publicados também passaram na conferência independente de SHA-256, CRC e manifesto interno. [Execução validada](https://github.com/Souzlx/Liarte_Interf/actions/runs/40697786809) · [Evidências da entrega](https://github.com/Souzlx/Liarte_Interf/blob/main/docs/EVIDENCIAS_INSTALADOR_531_RC2.json).
+
 Para atualizar, feche a LIARTE e execute `LIARTE_Desktop_5.3.1-rc.2_Setup.exe` na mesma conta Windows da instalação anterior. Confira **5.3.1-rc.2** em Ajuda. Não é necessário instalar Python. Para usar o portátil, extraia o ZIP inteiro em uma pasta nova.
 
 Giro da fonte, cobertura estimada e tempo sem venda têm definições distintas; não representam a idade física dos lotes. Custo não foi convertido em faturamento. A revisão dos PBIX documenta fórmulas e recortes a conferir e não altera os arquivos originais nem inclui seus dados privados no repositório.

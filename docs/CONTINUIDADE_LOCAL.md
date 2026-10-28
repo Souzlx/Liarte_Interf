@@ -13,7 +13,7 @@ Resumo para continuidade do Codex na nuvem ou no computador local. Os arquivos d
 - O perfil separado de desenvolvimento foi integrado pelo PR #2, no commit `4d8c9cb`. Depois disso, o usuário pediu explicitamente para continuar o projeto na nuvem.
 - Os alertas foram conferidos pelo usuário e o PR #3 foi integrado em `e637efd`. Sua validação final aprovou 883 testes Linux e quatro builds Windows, cada um com 882 testes aprovados e um skip POSIX, além dos autotestes dos executáveis.
 - O comparador mensal e o desempenho dos produtos foram acrescentados depois. A organização por tarefas, os filtros e as ordenações do PR #6 também foram aprovados pelo usuário.
-- A candidata **5.3.1-rc.2** está preparada para consolidar essas melhorias com um novo Setup. A execução e a publicação do instalador ainda precisam ser concluídas; não tratar a aprovação dos pacotes de desenvolvimento como evidência do Setup RC2.
+- A prévia **5.3.1-rc.2** foi publicada com o novo Setup, ZIP e checksums após integrar o PR #6 em `c0aa4a49c83e4e5637d51073e19e0faedd62da59`. O CI Linux aprovou 1.061 testes; cada build Windows aprovou 1.060 e ignorou um teste POSIX. O ciclo real do Setup e a conferência dos downloads passaram. A confirmação de uso dessa instalação no computador do usuário continua distinta desses testes automatizados.
 
 ## Fontes e referências
 
@@ -26,7 +26,7 @@ Resumo para continuidade do Codex na nuvem ou no computador local. Os arquivos d
 - `tools/test_installer_windows.py`: ensaio de instalação em runner Windows descartável. Não executar esse ciclo no perfil normal do usuário.
 - `.github/workflows/tests.yml`, `windows.yml` e `installer.yml`: CI e distribuição.
 
-Preparação atual: [instalação da RC2](INSTALACAO_531_RC2.md), [notas da candidata](RELEASE_5.3.1-rc.2.md), [interface](GUIA_INTERFACE_MODULAR.md) e [desempenho/ordenações](DESEMPENHO_PRODUTOS.md).
+Entrega atual: [instalação da RC2](INSTALACAO_531_RC2.md), [notas da prévia](RELEASE_5.3.1-rc.2.md), [evidências da publicação](EVIDENCIAS_INSTALADOR_531_RC2.json), [interface](GUIA_INTERFACE_MODULAR.md) e [desempenho/ordenações](DESEMPENHO_PRODUTOS.md).
 
 Histórico: [instalação e restauração RC1](INSTALACAO_531_RC1.md), [evidências do instalador RC1](EVIDENCIAS_INSTALADOR_531_RC1.json), [matriz Windows RC1](VALIDACAO_WINDOWS_531_RC1.json), [autoteste do Setup RC1](AUTOTESTE_INSTALADOR_531_RC1.json) e [correções da auditoria](CORRECOES_AUDITORIA_530_RC3.md).
 
@@ -46,9 +46,9 @@ Para desenvolver persistência, usar `iniciar.py --profile-dir .liarte-dev-profi
 
 Mantenha os testes de janela compacta e fontes largas. A primeira execução Windows da prévia encontrou a ação Restaurar fora da área visível; o cabeçalho agora distribui os botões em duas linhas. O ensaio do Setup também cobre o retorno de um único atalho pelo PowerShell.
 
-## Próxima entrega
+## Entrega concluída
 
-A tarefa atual é consolidar as melhorias aprovadas em **5.3.1-rc.2**, integrar os fontes à `main` e executar o workflow de instalador. A publicação de prévia depende dos quatro builds e do ciclo do Setup. Registrar o commit, a execução, os artefatos e seus checksums quando existirem resultados desta candidata. A versão estável 5.3.0 continua disponível.
+As melhorias aprovadas foram consolidadas na **5.3.1-rc.2**, integradas à `main` e publicadas pelo [workflow 40697786809](https://github.com/Souzlx/Liarte_Interf/actions/runs/40697786809). O Setup, o portátil e os checksums estão na [release da RC2](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2). Os três relatórios de evidência registram o commit exato, os testes e a integridade dos arquivos. A tag permanece no commit testado; a documentação posterior não modifica os pacotes. A versão estável 5.3.0 continua disponível.
 
 Os [alertas](ALERTAS_ESTOQUE.md) usam limites configuráveis e distinguem tempo sem venda, cobertura estimada e ausência de venda registrada. O painel reutiliza a análise local, agrupa produto/filial/unidade e exporta a lista completa.
 

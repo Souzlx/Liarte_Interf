@@ -1,0 +1,238 @@
+{
+  "recorded_at_utc": "2026-10-28T16:19:08.152612+00:00",
+  "version": "5.3.1-rc.2",
+  "channel": "prerelease",
+  "tested_commit": "c0aa4a49c83e4e5637d51073e19e0faedd62da59",
+  "tag_commit": "c0aa4a49c83e4e5637d51073e19e0faedd62da59",
+  "scope": "Approved stock alerts, month comparison, product performance, modular task views, filters and sorting consolidated with the updated Windows installer.",
+  "publication": {
+    "id": 426727750,
+    "tag_name": "v5.3.1-rc.2",
+    "html_url": "https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2",
+    "draft": false,
+    "prerelease": true,
+    "published_at": "2026-10-28T13:48:27Z"
+  },
+  "latest_stable_verified": "v5.3.0",
+  "assets": [
+    {
+      "id": 685141939,
+      "name": "LIARTE_Desktop_5.3.1-rc.2_Setup.exe",
+      "size": 63007279,
+      "digest": "sha256:a29f2ae77ac013dc4db74cbbbd3f069511281af932fd4a4e28ef9f22eef546ce",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/LIARTE_Desktop_5.3.1-rc.2_Setup.exe"
+    },
+    {
+      "id": 685141941,
+      "name": "LIARTE_Desktop_5.3.1-rc.2_Windows_x64.zip",
+      "size": 92640973,
+      "digest": "sha256:b706bcf5ad9ac6919ca6590ef6315ff620e71aad8ae22dfe80f6ff3321e51d41",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/LIARTE_Desktop_5.3.1-rc.2_Windows_x64.zip"
+    },
+    {
+      "id": 685141940,
+      "name": "SHA256SUMS.txt",
+      "size": 210,
+      "digest": "sha256:2ea8c61aaebda0019f0f59a010ec2e5bf201cacccc98009a1331a6f5c48aa23d",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/SHA256SUMS.txt"
+    }
+  ],
+  "linux_ci": {
+    "run": 40697750756,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40697750756",
+    "tested_commit": "c0aa4a49c83e4e5637d51073e19e0faedd62da59",
+    "tests_run": 1061,
+    "tests_passed": 1061,
+    "tests_skipped": 0,
+    "seconds": 201.005,
+    "volume": {
+      "records": 100000,
+      "first_query_seconds": 1.702,
+      "qt_events": 96
+    }
+  },
+  "linux_local": {
+    "tested_commit": "d9cf49d9c3f97665f1ebb63d93dc5efc6bc65693",
+    "tree": "a9a8809113adfef94e99c21977a1d28f08d9bd65",
+    "same_tree_as_release": true,
+    "tests_run": 1061,
+    "tests_passed": 1061,
+    "tests_skipped": 0,
+    "seconds": 172.785,
+    "volume": {
+      "records": 100000,
+      "first_query_seconds": 1.557,
+      "qt_events": 84
+    },
+    "log_sha256": "ae53511720491ebf0d5839a09dfe3cf458cc029a30e1df42ca88d014ae08ee94"
+  },
+  "windows": {
+    "report": "VALIDACAO_WINDOWS_531_RC2.json",
+    "run": 40697786809,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40697786809",
+    "matrix": [
+      {
+        "python": "3.11",
+        "tests_run": 1061,
+        "tests_passed": 1060,
+        "tests_skipped": 1,
+        "seconds": 330.587,
+        "volume": {
+          "records": 100000,
+          "first_query_seconds": 1.884,
+          "qt_events": 109
+        }
+      },
+      {
+        "python": "3.12",
+        "tests_run": 1061,
+        "tests_passed": 1060,
+        "tests_skipped": 1,
+        "seconds": 331.709,
+        "volume": {
+          "records": 100000,
+          "first_query_seconds": 2.247,
+          "qt_events": 117
+        }
+      },
+      {
+        "python": "3.13",
+        "tests_run": 1061,
+        "tests_passed": 1060,
+        "tests_skipped": 1,
+        "seconds": 308.285,
+        "volume": {
+          "records": 100000,
+          "first_query_seconds": 1.899,
+          "qt_events": 108
+        }
+      },
+      {
+        "python": "3.14",
+        "tests_run": 1061,
+        "tests_passed": 1060,
+        "tests_skipped": 1,
+        "seconds": 316.164,
+        "volume": {
+          "records": 100000,
+          "first_query_seconds": 1.711,
+          "qt_events": 103
+        }
+      }
+    ]
+  },
+  "installer": {
+    "report": "AUTOTESTE_INSTALADOR_531_RC2.json",
+    "status": "ok",
+    "sha256": "a29f2ae77ac013dc4db74cbbbd3f069511281af932fd4a4e28ef9f22eef546ce",
+    "tests": {
+      "explicit_purge_removes_only_profile_and_settings": true,
+      "fresh_install_and_shortcuts": true,
+      "silent_uninstall_preserves_profile_and_exports": true,
+      "upgrade_preserves_directory_settings_stock_backups_exports": true
+    },
+    "baseline_version": "5.3.0",
+    "compiler_version": "6.5.4",
+    "compiler_supplier_sha256": "fa73bf47a4da250d185d07561c2bfda387e5e20db77e4570004cf6a133cc10b1",
+    "compiler_integrity_and_supplier_signature_gate_passed": true
+  },
+  "published_asset_verification": {
+    "recorded_at_utc": "2026-10-28T16:18:31.133959+00:00",
+    "repository": "Souzlx/Liarte_Interf",
+    "version": "5.3.1-rc.2",
+    "release_tag": "v5.3.1-rc.2",
+    "release_url": "https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2",
+    "published_at": "2026-10-28T13:48:27Z",
+    "prerelease": true,
+    "expected_commit": "c0aa4a49c83e4e5637d51073e19e0faedd62da59",
+    "tag_commit": "c0aa4a49c83e4e5637d51073e19e0faedd62da59",
+    "tag_matches_tested_commit": true,
+    "assets_independently_downloaded": true,
+    "assets": [
+      {
+        "id": 685141939,
+        "name": "LIARTE_Desktop_5.3.1-rc.2_Setup.exe",
+        "bytes": 63007279,
+        "sha256": "a29f2ae77ac013dc4db74cbbbd3f069511281af932fd4a4e28ef9f22eef546ce",
+        "github_digest_matches": true,
+        "published_checksum_matches": true
+      },
+      {
+        "id": 685141941,
+        "name": "LIARTE_Desktop_5.3.1-rc.2_Windows_x64.zip",
+        "bytes": 92640973,
+        "sha256": "b706bcf5ad9ac6919ca6590ef6315ff620e71aad8ae22dfe80f6ff3321e51d41",
+        "github_digest_matches": true,
+        "published_checksum_matches": true
+      },
+      {
+        "id": 685141940,
+        "name": "SHA256SUMS.txt",
+        "bytes": 210,
+        "sha256": "2ea8c61aaebda0019f0f59a010ec2e5bf201cacccc98009a1331a6f5c48aa23d",
+        "github_digest_matches": true,
+        "published_checksum_matches": null
+      }
+    ],
+    "zip_crc_test": "passed",
+    "bundle_file_count": 1409,
+    "internal_manifest_files_checked": 1408,
+    "internal_manifest_sha256": "08d8a3b21b69e7522c59fb574ee505fbcd3b72d922715e833a2df03839d5248a",
+    "internal_manifest_all_match": true,
+    "unlisted_or_missing_bundle_files": [],
+    "canonical_inventory_sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+    "canonical_inventory_matches_tested_source": true,
+    "native_smoke": {
+      "version": "5.3.1-rc.2",
+      "status": "ok",
+      "frozen": true,
+      "platform": "win32",
+      "qml_warnings": [],
+      "themes_checked": [
+        "light",
+        "dark"
+      ],
+      "save_dialog_checked": true,
+      "window_icon_checked": true,
+      "document_resources": {
+        "excel": "ok",
+        "pdf": "ok",
+        "pdf_logo": true,
+        "powerbi": "ok",
+        "powerbi_pages": 6,
+        "powerbi_visuals": 85,
+        "synthetic": true,
+        "temporary": true,
+        "inventory_backups": "ok"
+      },
+      "https_transport": {
+        "policy": "windows-cryptoapi-v1"
+      }
+    },
+    "app_pe": {
+      "machine": "0x8664",
+      "optional_magic": "0x20b",
+      "security_directory": {
+        "file_offset": 0,
+        "bytes": 0,
+        "embedded_signature_present": false
+      }
+    },
+    "setup_pe": {
+      "machine": "0x14c",
+      "optional_magic": "0x10b",
+      "security_directory": {
+        "file_offset": 0,
+        "bytes": 0,
+        "embedded_signature_present": false
+      }
+    },
+    "executed_downloaded_binary": false
+  },
+  "limits": [
+    "Synthetic native smoke tests did not query the live Comex Stat API.",
+    "Installer lifecycle used a disposable Windows CI profile and a baseline compiled from the published 5.3.0 portable bundle and original installer script; it is not a test of every existing installation.",
+    "Downloaded release files were verified on Linux without executing the downloaded binaries.",
+    "The Setup has no embedded publisher signature; the compiler supplier signature was checked separately in CI."
+  ]
+}

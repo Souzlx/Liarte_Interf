@@ -4,7 +4,7 @@ A candidata reúne alertas, comparação mensal, análise de desempenho, interfa
 
 ## Disponibilidade
 
-A versão está preparada para o fluxo de validação e publicação. Os links abaixo passam a fornecer os arquivos após a conclusão desse fluxo:
+A prévia foi publicada após os quatro builds Windows e o ciclo real do Setup passarem no [workflow do instalador](https://github.com/Souzlx/Liarte_Interf/actions/runs/40697786809). Os arquivos publicados foram baixados e verificados separadamente:
 
 - [Setup 5.3.1-rc.2](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/LIARTE_Desktop_5.3.1-rc.2_Setup.exe).
 - [ZIP portátil e SHA256SUMS.txt](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2).
@@ -44,4 +44,12 @@ O [workflow do instalador](../.github/workflows/installer.yml) executa a suíte 
 
 O ciclo de instalação roda em um perfil descartável do runner Windows e cobre instalação nova, atualização, atalhos, preservação de dados, desinstalação e exclusão explícita do perfil. A instalação anterior desse ensaio é produzida com o pacote e o script da versão **5.3.0**; isso descreve o cenário automatizado, não um ensaio de todas as instalações existentes da empresa.
 
-O Setup da LIARTE não tem assinatura digital de editor. A suíte offline e o runner não substituem a conferência da rede, das políticas de instalação e das configurações de tela do computador de uso. As evidências desta candidata devem ser registradas após a conclusão da execução, sem reutilizar os resultados históricos da RC1 como validação da RC2.
+O Setup da LIARTE não tem assinatura digital de editor. A suíte offline e o runner não substituem a conferência da rede, das políticas de instalação e das configurações de tela do computador de uso.
+
+## Resultados da entrega
+
+A tag `v5.3.1-rc.2` aponta para `c0aa4a49c83e4e5637d51073e19e0faedd62da59`. O CI Linux aprovou **1.061 testes**, sem skips. Cada build Windows executou a mesma suíte: **1.060 aprovados e um teste exclusivo POSIX ignorado**. Os quatro executáveis passaram nos autotestes de interface, temas, documentos e backups, sem avisos QML.
+
+O ensaio do Setup aprovou instalação e atalhos, atualização com reutilização do diretório e preservação do perfil, remoção preservando dados e exclusão explícita do perfil com relatório externo intacto. A conferência dos downloads validou os digests do GitHub, `SHA256SUMS.txt`, CRC do ZIP e os 1.408 arquivos listados no manifesto interno. A base integrada corresponde ao arquivo do commit publicado.
+
+Veja as [evidências da publicação](EVIDENCIAS_INSTALADOR_531_RC2.json), a [matriz Windows](VALIDACAO_WINDOWS_531_RC2.json) e o [autoteste do instalador](AUTOTESTE_INSTALADOR_531_RC2.json). A versão estável 5.3.0 continua marcada como a mais recente estável.

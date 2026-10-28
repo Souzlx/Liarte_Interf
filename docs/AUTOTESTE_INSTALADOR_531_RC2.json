@@ -1,0 +1,110 @@
+{
+  "baseline_installed_smoke": {
+    "api_network_test": false,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "error": "",
+    "frozen": true,
+    "https_transport": {
+      "policy": "windows-cryptoapi-v1"
+    },
+    "platform": "win32",
+    "qml_warnings": [],
+    "qt": "6.10.3",
+    "rows_in_page": 50,
+    "save_dialog_checked": true,
+    "status": "ok",
+    "synthetic": true,
+    "themes_checked": [
+      "light",
+      "dark"
+    ],
+    "version": "5.3.0",
+    "window_icon_checked": true,
+    "window_title": "Liarte Importações"
+  },
+  "baseline_version": "5.3.0",
+  "fresh_installed_smoke": {
+    "api_network_test": false,
+    "document_resources": {
+      "excel": "ok",
+      "inventory_backups": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "error": "",
+    "frozen": true,
+    "https_transport": {
+      "policy": "windows-cryptoapi-v1"
+    },
+    "platform": "win32",
+    "qml_warnings": [],
+    "qt": "6.10.3",
+    "rows_in_page": 50,
+    "save_dialog_checked": true,
+    "status": "ok",
+    "synthetic": true,
+    "themes_checked": [
+      "light",
+      "dark"
+    ],
+    "version": "5.3.1-rc.2",
+    "window_icon_checked": true,
+    "window_title": "Liarte Importações"
+  },
+  "setup_sha256": "a29f2ae77ac013dc4db74cbbbd3f069511281af932fd4a4e28ef9f22eef546ce",
+  "status": "ok",
+  "tests": {
+    "explicit_purge_removes_only_profile_and_settings": true,
+    "fresh_install_and_shortcuts": true,
+    "silent_uninstall_preserves_profile_and_exports": true,
+    "upgrade_preserves_directory_settings_stock_backups_exports": true
+  },
+  "upgraded_installed_smoke": {
+    "api_network_test": false,
+    "document_resources": {
+      "excel": "ok",
+      "inventory_backups": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "synthetic": true,
+      "temporary": true
+    },
+    "error": "",
+    "frozen": true,
+    "https_transport": {
+      "policy": "windows-cryptoapi-v1"
+    },
+    "platform": "win32",
+    "qml_warnings": [],
+    "qt": "6.10.3",
+    "rows_in_page": 50,
+    "save_dialog_checked": true,
+    "status": "ok",
+    "synthetic": true,
+    "themes_checked": [
+      "light",
+      "dark"
+    ],
+    "version": "5.3.1-rc.2",
+    "window_icon_checked": true,
+    "window_title": "Liarte Importações"
+  },
+  "version": "5.3.1-rc.2"
+}
