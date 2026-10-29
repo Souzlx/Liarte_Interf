@@ -4,7 +4,7 @@ A 5.3.1 reúne a interface por tarefas, alertas, comparação mensal, desempenho
 
 ## Arquivos da entrega
 
-A publicação disponibiliza os arquivos abaixo após concluir as validações do workflow:
+A versão estável está publicada com os seguintes arquivos:
 
 - [LIARTE_Desktop_5.3.1_Setup.exe](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Setup.exe).
 - [LIARTE_Desktop_5.3.1_Windows_x64.zip](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Windows_x64.zip).
@@ -49,6 +49,14 @@ Na desinstalação silenciosa, o perfil também é preservado por padrão. `/PUR
 
 O [workflow do instalador](../.github/workflows/installer.yml) centraliza a publicação de Setup, ZIP e checksums. A publicação estável depende da suíte e do autoteste dos executáveis em Python 3.11–3.14 e do ciclo do Setup com o bundle 3.12 verificado. O [workflow Windows](../.github/workflows/windows.yml) oferece validação dos executáveis sem publicar uma distribuição alternativa.
 
-O ensaio do Setup usa um perfil descartável do runner Windows. Ele cobre instalação, atalhos, atualização com preservação do diretório e do perfil, desinstalação preservando dados e exclusão explícita do perfil com relatório externo preservado. Para a 5.3.1 estável, inclui a versão 5.3.0 e o Setup publicado da 5.3.1-rc.2 como origens de atualização. Os resultados da candidata permanecem identificados como RC2; os novos pacotes precisam passar nas próprias validações antes da publicação.
+O ensaio do Setup usa um perfil descartável do runner Windows. Ele cobre instalação, atalhos, atualização com preservação do diretório e do perfil, desinstalação preservando dados e exclusão explícita do perfil com relatório externo preservado. Para a 5.3.1 estável, inclui a versão 5.3.0 e o Setup publicado da 5.3.1-rc.2 como origens de atualização. Os resultados da candidata permanecem identificados como RC2. Os novos pacotes 5.3.1 passaram nas próprias validações, registradas no [workflow 40907105322](https://github.com/Souzlx/Liarte_Interf/actions/runs/40907105322).
 
 O compilador Inno Setup tem versão fixada, checksum e assinatura de fornecedor verificados. **O Setup da LIARTE não tem assinatura digital de editor.** Os testes offline e no runner não substituem a conferência das políticas de instalação, da rede e das configurações de tela dos computadores da empresa.
+
+## Resultados da entrega
+
+A tag `v5.3.1` aponta para `73339f650959a81473ab98b6b6f6b58f3023c563`. O [CI Linux](https://github.com/Souzlx/Liarte_Interf/actions/runs/40906447193) aprovou **1.070 testes**, sem skips. Os 18 testes de organização também passaram. Cada build Windows executou a mesma suíte: **1.069 aprovados e um teste exclusivo POSIX ignorado**. Os quatro executáveis passaram nos autotestes nativos de interface, temas, documentos e backups, sem avisos QML.
+
+O ensaio do Setup aprovou instalação e atalhos, as atualizações da 5.3.0 e do Setup publicado da RC2 com reutilização do diretório e preservação do perfil, remoção preservando dados e exclusão explícita do perfil com relatórios externos intactos. A conferência independente dos downloads validou SHA-256, CRC do ZIP e todos os arquivos do manifesto interno. A base integrada corresponde ao arquivo do commit publicado.
+
+Veja as [evidências da publicação](EVIDENCIAS_INSTALADOR_531.json), a [matriz Windows](VALIDACAO_WINDOWS_531.json) e o [autoteste do instalador](AUTOTESTE_INSTALADOR_531.json). As tags e os arquivos das entregas anteriores foram preservados.

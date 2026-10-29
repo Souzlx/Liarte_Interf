@@ -5,7 +5,7 @@ Use os guias abaixo para instalar, atualizar e consultar a LIARTE. Para descreve
 | Necessidade | Referência |
 | --- | --- |
 | Baixar o aplicativo | [Releases e arquivos compilados](https://github.com/Souzlx/Liarte_Interf/releases) |
-| Instalar ou atualizar a prévia atual | [Instalação e atualização — 5.3.1-rc.2](docs/INSTALACAO_531_RC2.md) |
+| Instalar ou atualizar a versão estável | [Instalação e atualização — 5.3.1](docs/INSTALACAO_531.md) |
 | Entender a interface e os filtros | [Interface por tarefa](docs/GUIA_INTERFACE_MODULAR.md) |
 | Consultar giro, rankings e ordenações | [Desempenho dos produtos](docs/DESEMPENHO_PRODUTOS.md) |
 | Entender alertas e variações mensais | [Alertas](docs/ALERTAS_ESTOQUE.md) e [comparador mensal](docs/COMPARADOR_MENSAL_ESTOQUE.md) |

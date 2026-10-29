@@ -1,6 +1,6 @@
 # Arquitetura
 
-Referência da implementação consolidada na **5.3.1-rc.2**. O LIARTE é um cliente desktop PySide6/Qt Quick. Importações consulta o Comex Stat; Estoque analisa arquivos locais. O cadastro de módulos descreve disponibilidade do produto, não permissões ou autenticação corporativa.
+Referência da implementação consolidada na **5.3.1**. O LIARTE é um cliente desktop PySide6/Qt Quick. Importações consulta o Comex Stat; Estoque analisa arquivos locais. O cadastro de módulos descreve disponibilidade do produto, não permissões ou autenticação corporativa.
 
 ```mermaid
 flowchart LR
@@ -85,7 +85,9 @@ Antes de substituir uma base local válida, o aplicativo guarda sua versão ante
 
 `tools/build_installer.py` compila o Setup a partir de um bundle validado, conferindo versão, manifesto e checksums. `INSTALADOR_LIARTE.iss` mantém AppId, perfil e atalhos estáveis e usa o mutex compartilhado com `installation_guard.py`. A instalação é por usuário; a remoção preserva os dados por padrão.
 
-O workflow de instalador executa os quatro builds Windows antes de instalar, atualizar e remover o aplicativo em perfil descartável. Na RC2, o ensaio de atualização parte da 5.3.0. Tags e arquivos de releases anteriores não são substituídos. Veja as [evidências da entrega](EVIDENCIAS_INSTALADOR_531_RC2.json) e as [licenças dos componentes](LICENCAS.md).
+A publicação de prévias e estáveis está centralizada em `.github/workflows/installer.yml`. A seleção do canal confere a versão, recusa a solicitação simultânea dos dois canais e limita a publicação à `main`. O workflow executa os quatro builds Windows antes de instalar, atualizar e remover o aplicativo em perfil descartável. O canal estável exige tanto a atualização a partir da 5.3.0 quanto a atualização do Setup publicado da RC2, com conferência do checksum e preservação do diretório, preferências, bases, backups e relatórios.
+
+`prepare_installer_assets()` valida o bundle e vincula o digest do Setup ao relatório completo dos ensaios antes de preparar Setup, ZIP e checksums. O canal estável publica os três arquivos como release estável; o canal RC mantém a identificação de prévia. O workflow `.github/workflows/windows.yml` permanece disponível para validar os executáveis e não publica um pacote alternativo sem Setup. Tags e arquivos de releases anteriores não são substituídos. Veja as [evidências da entrega](EVIDENCIAS_INSTALADOR_531.json), a [matriz Windows](VALIDACAO_WINDOWS_531.json), o [ciclo do Setup](AUTOTESTE_INSTALADOR_531.json) e as [licenças dos componentes](LICENCAS.md).
 
 ## Referências e reprodução
 

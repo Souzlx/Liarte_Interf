@@ -6,14 +6,15 @@ O LIARTE é um aplicativo desktop em Python e Qt Quick para analisar importaçõ
 
 | Canal | Versão | Distribuição |
 | --- | --- | --- |
-| Prévia atual | [5.3.1-rc.2](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2) | Setup Windows, ZIP portátil e checksums |
-| Estável | [5.3.0](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.0) | ZIP portátil e checksums |
+| Estável atual | [5.3.1](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1) | [Setup Windows](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Setup.exe), [ZIP portátil](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Windows_x64.zip) e [checksums](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/SHA256SUMS.txt) |
+| Prévia histórica | [5.3.1-rc.2](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2) | Setup Windows, ZIP portátil e checksums |
+| Estável anterior | [5.3.0](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.0) | ZIP portátil e checksums |
 
-A RC2 foi publicada a partir de `c0aa4a49c83e4e5637d51073e19e0faedd62da59`. Commits posteriores de documentação não alteram os pacotes dessa tag. Os arquivos anteriores continuam disponíveis no histórico de releases.
+A tag `v5.3.1` aponta para `73339f650959a81473ab98b6b6f6b58f3023c563`. A RC2 permanece em `c0aa4a49c83e4e5637d51073e19e0faedd62da59`. Commits posteriores de documentação não alteram os pacotes dessa tag. Os arquivos anteriores continuam disponíveis no histórico de releases.
 
-Para instalar ou atualizar, utilize o [guia da RC2](INSTALACAO_531_RC2.md). Os pacotes compilados incluem Python, Qt e as dependências; a execução dos fontes exige um ambiente de desenvolvimento separado.
+Para instalar ou atualizar, utilize o [guia da 5.3.1](INSTALACAO_531.md). Os pacotes compilados incluem Python, Qt e as dependências; a execução dos fontes exige um ambiente de desenvolvimento separado.
 
-## O que a RC2 inclui
+## O que a 5.3.1 inclui
 
 - Vistas por tarefa: Panorama, Análise mensal e Produtos no Estoque; Resumo, Compras e Registros nas Importações.
 - Filtros aplicados explicitamente, gráficos interativos e preservação da sessão ao navegar.
@@ -21,19 +22,20 @@ Para instalar ou atualizar, utilize o [guia da RC2](INSTALACAO_531_RC2.md). Os p
 - Ordenações crescentes e decrescentes de indicadores, valores ausentes ao final e quantidades separadas por unidade.
 - Setup por usuário, atualização com preservação do perfil e restauração de bases anteriores de Estoque.
 
-O [guia da interface](GUIA_INTERFACE_MODULAR.md) e as [notas da prévia](RELEASE_5.3.1-rc.2.md) detalham essas funcionalidades.
+O [guia da interface](GUIA_INTERFACE_MODULAR.md) e as [notas da versão](RELEASE_5.3.1.md) detalham essas funcionalidades.
 
 ## Validação da entrega
 
 | Verificação | Resultado registrado |
 | --- | --- |
-| CI Linux | 1.061 testes aprovados, sem skips |
-| Windows, Python 3.11–3.14 | Quatro suítes com 1.060 aprovados e um teste exclusivo POSIX ignorado em cada uma |
+| CI Linux | 1.070 testes aprovados, sem skips |
+| Organização do repositório | 18 testes aprovados e conferência de estrutura e links |
+| Windows, Python 3.11–3.14 | Quatro suítes com 1.069 aprovados e um teste exclusivo POSIX ignorado em cada uma |
 | Executáveis empacotados | Autotestes de interface, temas, documentos e backups aprovados, sem avisos QML |
-| Setup | Instalação, atalhos, atualização sobre a 5.3.0, preservação de dados e desinstalação aprovados no runner Windows |
-| Downloads publicados | SHA-256, CRC e 1.408 arquivos do manifesto interno conferidos |
+| Setup | Instalação, atalhos, atualização da 5.3.0 e do Setup publicado da RC2, preservação de dados e desinstalação aprovados no runner Windows |
+| Downloads publicados | SHA-256, CRC e todos os arquivos do manifesto interno conferidos |
 
-As [evidências da publicação](EVIDENCIAS_INSTALADOR_531_RC2.json), a [matriz Windows](VALIDACAO_WINDOWS_531_RC2.json) e o [autoteste do instalador](AUTOTESTE_INSTALADOR_531_RC2.json) identificam o código, os cenários e os artefatos verificados. Os ensaios usam dados sintéticos e perfil descartável; não equivalem à homologação da rede ou de todas as configurações dos computadores da empresa.
+Os workflows [Linux 40906447193](https://github.com/Souzlx/Liarte_Interf/actions/runs/40906447193) e [Windows 40907105322](https://github.com/Souzlx/Liarte_Interf/actions/runs/40907105322) registram as execuções. As [evidências da publicação](EVIDENCIAS_INSTALADOR_531.json), a [matriz Windows](VALIDACAO_WINDOWS_531.json) e o [autoteste do instalador](AUTOTESTE_INSTALADOR_531.json) identificam o código, os cenários e os artefatos verificados. Os ensaios usam dados sintéticos e perfil descartável; não equivalem à homologação da rede ou de todas as configurações dos computadores da empresa.
 
 ## Fontes e limites dos indicadores
 

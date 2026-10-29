@@ -5,7 +5,8 @@ Resumo para continuidade do Codex na nuvem ou no computador local. Os arquivos d
 ## Estado confirmado
 
 - Repositório: `Souzlx/Liarte_Interf`.
-- A versão estável publicada é `v5.3.0`.
+- A versão estável publicada é `v5.3.1`, no commit `73339f650959a81473ab98b6b6f6b58f3023c563`, com Setup, ZIP portátil e checksums. O CI Linux aprovou 1.070 testes; os quatro builds Windows aprovaram 1.069 e ignoraram um teste POSIX por execução. Os 18 testes de organização também passaram.
+- A instalação nova, as atualizações da 5.3.0 e do Setup publicado da RC2, a preservação de diretório e perfil e a desinstalação passaram no runner descartável. Os downloads foram conferidos separadamente. Isso não registra uma nova homologação no computador do usuário; o Setup continua sem assinatura digital de editor.
 - A prévia `v5.3.1-rc.1` inclui Setup, backups versionados de Estoque e restauração pela interface. O usuário confirmou que a última instalação está validada e pediu orientação para continuar o desenvolvimento no computador local.
 - A tag da prévia aponta para `db77b9517b2af234d02db6927bc3d219a8845ddb`. Commits posteriores de documentação não alteraram o pacote publicado.
 - Na validação final da prévia, o CI Linux aprovou 815 testes. Os quatro builds Windows aprovaram 814 testes e ignoraram um teste exclusivo de POSIX em cada execução. Os executáveis e o ciclo real do Setup também passaram.
@@ -26,9 +27,11 @@ Resumo para continuidade do Codex na nuvem ou no computador local. Os arquivos d
 - `tools/test_installer_windows.py`: ensaio de instalação em runner Windows descartável. Não executar esse ciclo no perfil normal do usuário.
 - `.github/workflows/tests.yml`, `windows.yml` e `installer.yml`: CI e distribuição.
 
-Entrega atual: [instalação da RC2](INSTALACAO_531_RC2.md), [notas da prévia](RELEASE_5.3.1-rc.2.md), [evidências da publicação](EVIDENCIAS_INSTALADOR_531_RC2.json), [interface](GUIA_INTERFACE_MODULAR.md) e [desempenho/ordenações](DESEMPENHO_PRODUTOS.md).
+Entrega atual: [instalação da 5.3.1](INSTALACAO_531.md), [notas da estável](RELEASE_5.3.1.md), [evidências da publicação](EVIDENCIAS_INSTALADOR_531.json), [matriz Windows](VALIDACAO_WINDOWS_531.json), [autoteste do Setup](AUTOTESTE_INSTALADOR_531.json), [interface](GUIA_INTERFACE_MODULAR.md) e [desempenho/ordenações](DESEMPENHO_PRODUTOS.md).
 
-Histórico: [instalação e restauração RC1](INSTALACAO_531_RC1.md), [evidências do instalador RC1](EVIDENCIAS_INSTALADOR_531_RC1.json), [matriz Windows RC1](VALIDACAO_WINDOWS_531_RC1.json), [autoteste do Setup RC1](AUTOTESTE_INSTALADOR_531_RC1.json) e [correções da auditoria](CORRECOES_AUDITORIA_530_RC3.md).
+A publicação é centralizada em `.github/workflows/installer.yml`, com `publish_release=true` para a versão estável e `publish_preview=true` para versões RC. Os dois canais são mutuamente exclusivos. `windows.yml` oferece validação e não publica releases.
+
+Histórico: [instalação RC2](INSTALACAO_531_RC2.md), [notas RC2](RELEASE_5.3.1-rc.2.md), [evidências RC2](EVIDENCIAS_INSTALADOR_531_RC2.json), [instalação e restauração RC1](INSTALACAO_531_RC1.md), [evidências do instalador RC1](EVIDENCIAS_INSTALADOR_531_RC1.json), [matriz Windows RC1](VALIDACAO_WINDOWS_531_RC1.json), [autoteste do Setup RC1](AUTOTESTE_INSTALADOR_531_RC1.json) e [correções da auditoria](CORRECOES_AUDITORIA_530_RC3.md).
 
 ## Regras e limites a preservar
 
@@ -46,9 +49,11 @@ Para desenvolver persistência, usar `iniciar.py --profile-dir .liarte-dev-profi
 
 Mantenha os testes de janela compacta e fontes largas. A primeira execução Windows da prévia encontrou a ação Restaurar fora da área visível; o cabeçalho agora distribui os botões em duas linhas. O ensaio do Setup também cobre o retorno de um único atalho pelo PowerShell.
 
-## Entrega concluída
+## Entrega concluída e histórico
 
-As melhorias aprovadas foram consolidadas na **5.3.1-rc.2**, integradas à `main` e publicadas pelo [workflow 40697786809](https://github.com/Souzlx/Liarte_Interf/actions/runs/40697786809). O Setup, o portátil e os checksums estão na [release da RC2](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2). Os três relatórios de evidência registram o commit exato, os testes e a integridade dos arquivos. A tag permanece no commit testado; a documentação posterior não modifica os pacotes. A versão estável 5.3.0 continua disponível.
+A **5.3.1** foi publicada como estável a partir de `73339f650959a81473ab98b6b6f6b58f3023c563`, após os workflows [Linux 40906447193](https://github.com/Souzlx/Liarte_Interf/actions/runs/40906447193) e [instalador 40907105322](https://github.com/Souzlx/Liarte_Interf/actions/runs/40907105322) aprovarem as validações. Setup, portátil e checksums estão na [release 5.3.1](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1). A tag permanece no commit dos pacotes testados; os commits posteriores de documentação não modificam os binários. A RC2 e a 5.3.0 foram preservadas.
+
+As melhorias aprovadas haviam sido consolidadas na **5.3.1-rc.2**, integradas à `main` e publicadas pelo [workflow 40697786809](https://github.com/Souzlx/Liarte_Interf/actions/runs/40697786809). O Setup, o portátil e os checksums estão na [release da RC2](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1-rc.2). Os três relatórios de evidência registram o commit exato, os testes e a integridade dos arquivos. A tag permanece no commit testado; a documentação posterior não modifica os pacotes. A versão 5.3.0 permanece disponível no histórico de estáveis.
 
 Os [alertas](ALERTAS_ESTOQUE.md) usam limites configuráveis e distinguem tempo sem venda, cobertura estimada e ausência de venda registrada. O painel reutiliza a análise local, agrupa produto/filial/unidade e exporta a lista completa.
 

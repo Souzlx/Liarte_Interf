@@ -10,7 +10,7 @@ A 5.3.1 consolida as funcionalidades da candidata 5.3.1-rc.2 no canal estável, 
 
 ## Instalar ou atualizar
 
-Os arquivos desta entrega são o [Setup 5.3.1](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Setup.exe), o [ZIP portátil](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Windows_x64.zip) e [SHA256SUMS.txt](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/SHA256SUMS.txt). Sua disponibilidade depende da conclusão da publicação validada.
+Os arquivos desta entrega são o [Setup 5.3.1](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Setup.exe), o [ZIP portátil](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Windows_x64.zip) e [SHA256SUMS.txt](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/SHA256SUMS.txt). Os três arquivos estão publicados na [release estável 5.3.1](https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1).
 
 Feche a LIARTE e execute o Setup na mesma conta Windows usada pela 5.3.0 ou pela 5.3.1-rc.2. Abra o atalho criado pelo Setup e confira **5.3.1** em **Ajuda**. Os pacotes incluem Python, Qt e as dependências; o usuário não precisa instalar Python. Para o portátil, extraia o ZIP inteiro em uma pasta nova.
 
@@ -18,7 +18,9 @@ A atualização normal mantém o perfil existente. Não é necessário desinstal
 
 ## Validação e limites
 
-A publicação estável pelo workflow do instalador depende dos quatro builds Windows e dos ensaios reais de instalação, atualização e desinstalação em perfil descartável. O caminho estável inclui atualização a partir da 5.3.0 e do Setup publicado da RC2, com verificação da preservação dos dados. Os resultados da RC2 são evidências da candidata; não substituem os testes dos novos binários 5.3.1.
+A tag `v5.3.1` aponta para `73339f650959a81473ab98b6b6f6b58f3023c563`. O [CI Linux](https://github.com/Souzlx/Liarte_Interf/actions/runs/40906447193) aprovou **1.070 testes**, sem skips, e os **18 testes de organização** também passaram. Os [quatro builds Windows](https://github.com/Souzlx/Liarte_Interf/actions/runs/40907105322) aprovaram 1.069 testes e ignoraram um teste exclusivo POSIX em cada execução. Os executáveis passaram nos autotestes nativos, sem avisos QML.
+
+O ciclo real do Setup aprovou instalação nova, atalhos, atualização a partir da 5.3.0 e do Setup publicado da RC2, preservação de diretório, bases, backups, preferências e relatórios, desinstalação preservando o perfil e exclusão explícita dos dados com relatório externo intacto. Os downloads publicados passaram na conferência independente de SHA-256, CRC e manifesto interno. Consulte as [evidências da publicação](https://github.com/Souzlx/Liarte_Interf/blob/main/docs/EVIDENCIAS_INSTALADOR_531.json), a [matriz Windows](https://github.com/Souzlx/Liarte_Interf/blob/main/docs/VALIDACAO_WINDOWS_531.json) e o [autoteste do Setup](https://github.com/Souzlx/Liarte_Interf/blob/main/docs/AUTOTESTE_INSTALADOR_531.json).
 
 O Setup da LIARTE não tem assinatura digital de editor. Os ensaios automatizados não substituem a conferência da rede, das políticas de instalação e das configurações de tela nos computadores de uso.
 

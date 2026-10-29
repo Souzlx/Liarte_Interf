@@ -5,18 +5,19 @@
 
 Aplicativo desktop para analisar estoque, vendas e giro de produtos a partir de uma base local e consultar o mercado de importações pelo Comex Stat. Interface nativa em Qt Quick, com filtros, gráficos interativos e exportações para Excel, PDF e projeto Power BI.
 
-[Documentação](docs/README.md) · [Instalação e atualização](docs/INSTALACAO_531_RC2.md) · [Suporte](SUPPORT.md) · [Contribuir](CONTRIBUTING.md)
+[Documentação](docs/README.md) · [Instalação e atualização](docs/INSTALACAO_531.md) · [Suporte](SUPPORT.md) · [Contribuir](CONTRIBUTING.md)
 
 ## Downloads para Windows
 
 | Canal | Versão | Pacotes | Notas |
 | --- | --- | --- | --- |
-| Prévia atual | **5.3.1-rc.2** | [Instalador Setup](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/LIARTE_Desktop_5.3.1-rc.2_Setup.exe) · [ZIP portátil](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/LIARTE_Desktop_5.3.1-rc.2_Windows_x64.zip) | [Mudanças e validação](docs/RELEASE_5.3.1-rc.2.md) |
-| Estável | **5.3.0** | [ZIP portátil](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.0/LIARTE_Desktop_5.3.0_Windows_x64.zip) | [Notas da versão](docs/RELEASE_5.3.0.md) |
+| Estável atual | **5.3.1** | [Instalador Setup](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Setup.exe) · [ZIP portátil](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Windows_x64.zip) · [SHA256SUMS.txt](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/SHA256SUMS.txt) | [Mudanças e validação](docs/RELEASE_5.3.1.md) |
+| Prévia histórica | **5.3.1-rc.2** | [Instalador Setup](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/LIARTE_Desktop_5.3.1-rc.2_Setup.exe) · [ZIP portátil](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1-rc.2/LIARTE_Desktop_5.3.1-rc.2_Windows_x64.zip) | [Mudanças e validação](docs/RELEASE_5.3.1-rc.2.md) |
+| Estável anterior | **5.3.0** | [ZIP portátil](https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.0/LIARTE_Desktop_5.3.0_Windows_x64.zip) | [Notas da versão](docs/RELEASE_5.3.0.md) |
 
 **Os pacotes compilados incluem Python, Qt e as dependências.** Não é necessário instalar Python para usar o aplicativo. Os arquivos e `SHA256SUMS.txt` estão nas [releases](https://github.com/Souzlx/Liarte_Interf/releases); o ZIP de código-fonte do GitHub não é o portátil compilado.
 
-Para instalar ou atualizar pelo Setup, feche a LIARTE, execute o instalador na mesma conta Windows da instalação anterior e confira a versão em **Ajuda**. Bases, backups e preferências ficam no perfil do usuário. Para usar o portátil, extraia **todo o ZIP em uma pasta nova**, abra `LIARTE_Desktop.exe` e mantenha `_internal` junto dele. Veja o [guia de instalação](docs/INSTALACAO_531_RC2.md).
+Para instalar ou atualizar pelo Setup, feche a LIARTE, execute o instalador na mesma conta Windows da instalação anterior e confira a versão em **Ajuda**. Bases, backups e preferências ficam no perfil do usuário. Para usar o portátil, extraia **todo o ZIP em uma pasta nova**, abra `LIARTE_Desktop.exe` e mantenha `_internal` junto dele. Veja o [guia de instalação](docs/INSTALACAO_531.md).
 
 ![Panorama do estoque na interface nativa da LIARTE](docs/images/interface-estoque-panorama.png)
 
@@ -52,9 +53,9 @@ O perfil de desenvolvimento começa vazio e guarda seus próprios dados e prefer
 .\.venv\Scripts\python.exe verificar.py --headless --volume
 ```
 
-A suíte exercita domínio, documentos e interface Qt sem consultar a API real. Os workflows de [testes](.github/workflows/tests.yml), [compilação Windows](.github/workflows/windows.yml) e [instalador](.github/workflows/installer.yml) registram as validações de cada entrega. A [RC2 publicada](docs/EVIDENCIAS_INSTALADOR_531_RC2.json) inclui os testes dos quatro executáveis e o ciclo do Setup.
+A suíte exercita domínio, documentos e interface Qt sem consultar a API real. Os workflows de [testes](.github/workflows/tests.yml), [compilação Windows](.github/workflows/windows.yml) e [instalador](.github/workflows/installer.yml) registram as validações de cada entrega. A [5.3.1 publicada](docs/EVIDENCIAS_INSTALADOR_531.json) registra 1.070 testes Linux, os quatro executáveis Windows e o ciclo do Setup, incluindo a atualização do Setup publicado da RC2. A [matriz Windows](docs/VALIDACAO_WINDOWS_531.json) e o [autoteste do instalador](docs/AUTOTESTE_INSTALADOR_531.json) detalham os resultados; as [evidências da RC2](docs/EVIDENCIAS_INSTALADOR_531_RC2.json) permanecem históricas.
 
-A compilação de distribuição ocorre **no Windows**: `CRIAR_EXECUTAVEL.cmd` produz o portátil e `CRIAR_INSTALADOR.cmd` acrescenta o Setup com Inno Setup. As etapas de publicação estão separadas das verificações comuns; consulte o [guia da entrega](docs/INSTALACAO_531_RC2.md#como-a-entrega-é-validada).
+A compilação de distribuição ocorre **no Windows**: `CRIAR_EXECUTAVEL.cmd` produz o portátil e `CRIAR_INSTALADOR.cmd` acrescenta o Setup com Inno Setup. As etapas de publicação estão separadas das verificações comuns; consulte o [guia da entrega](docs/INSTALACAO_531.md#validação-da-distribuição).
 
 ## Estrutura do repositório
 
