@@ -37,6 +37,8 @@ APP_ID = "{67BEFD46-16AD-4EB1-B183-FB8D2A8CA4A2}"
 SETTINGS_KEY = r"Software\LIARTE\LIARTE Desktop"
 UNINSTALL_KEY = "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\" + APP_ID + "_is1"
 BASELINE_VERSION = "5.3.0"
+PREVIOUS_VERSION = "5.3.1-rc.2"
+PREVIOUS_UPGRADE_CHECK = "previous_setup_upgrade_preserves_directory_settings_stock_backups_exports"
 LIFECYCLE_CHECKS = (
     "fresh_install_and_shortcuts",
     "silent_uninstall_preserves_profile_and_exports",
@@ -100,6 +102,26 @@ def extract_baseline(archive, checksum, destination):
             seen.add(info.filename.casefold())
         packed.extractall(destination)
     return validate_portable_bundle(Path(destination) / "LIARTE_Desktop", BASELINE_VERSION)
+
+
+def validate_previous_setup(setup, checksum):
+    """Verify the published RC2 Setup before executing it in the disposable account."""
+    setup = Path(setup).resolve()
+    if setup.name != installer_name(PREVIOUS_VERSION):
+        raise ValueError("O ensaio anterior exige o Setup publicado da RC2.")
+    matches = []
+    for line in Path(checksum).read_text(encoding="utf-8").splitlines():
+        expected, separator, name = line.partition("  ")
+        if not separator or re.fullmatch(r"[0-9a-f]{64}", expected) is None or not name:
+            raise ValueError("O checksum publicado do Setup anterior é inválido.")
+        if name == setup.name:
+            matches.append(expected)
+    if len(matches) != 1:
+        raise ValueError("O checksum publicado deve identificar um único Setup anterior.")
+    actual = validate_installer(setup)
+    if actual != matches[0]:
+        raise ValueError("O Setup anterior diverge do checksum publicado.")
+    return actual
 
 
 def known_folder(identifier):
@@ -222,7 +244,9 @@ def check_shortcuts(shortcuts, executable, *, working_directory=True):
 
 def verify_smoke_payload(payload, version):
     if not (
-        payload.get("status") == "ok"
+        isinstance(payload, dict)
+        and isinstance(payload.get("document_resources"), dict)
+        and payload.get("status") == "ok"
         and payload.get("version") == version
         and payload.get("platform") == "win32"
         and payload.get("frozen") is True
@@ -307,21 +331,26 @@ def compile_baseline(archive, checksum, workspace, compiler):
     return setup
 
 
-def prepare_preview_assets(bundle, setup, smoke_report, output):
-    """Package only a verified prerelease after the real Setup lifecycle gate."""
+def prepare_installer_assets(bundle, setup, smoke_report, output, *, channel):
+    """Package verified Setup and portable files after their native lifecycle gates."""
     from tools.prepare_release import _publish_release_files
 
     version = release_version()
-    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+", version) is None:
-        raise ValueError("Este fluxo publica somente prévias com sufixo RC.")
+    patterns = {
+        "preview": r"[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+",
+        "stable": r"[0-9]+\.[0-9]+\.[0-9]+",
+    }
+    if channel not in patterns or re.fullmatch(patterns[channel], version) is None:
+        raise ValueError("O canal de publicação não corresponde à versão do aplicativo.")
     bundle = validate_portable_bundle(Path(bundle), version)
     setup, output = Path(setup).resolve(), Path(output).resolve()
     if output == bundle or bundle in output.parents:
-        raise ValueError("A saída da prévia deve ficar fora da pasta portátil.")
+        raise ValueError("A saída da publicação deve ficar fora da pasta portátil.")
     setup_sha = validate_installer(setup)
     smoke = json.loads(Path(smoke_report).read_text(encoding="utf-8"))
     if not (
-        setup.name == installer_name(version)
+        isinstance(smoke, dict)
+        and setup.name == installer_name(version)
         and smoke.get("version") == version
         and smoke.get("status") == "ok"
         and smoke.get("setup_sha256") == setup_sha
@@ -331,9 +360,21 @@ def prepare_preview_assets(bundle, setup, smoke_report, output):
         raise ValueError("O Setup não possui um ensaio completo e válido desta versão.")
     for key in ("fresh_installed_smoke", "upgraded_installed_smoke"):
         verify_smoke_payload(smoke.get(key, {}), version)
+    if channel == "stable":
+        if not (
+            smoke.get("baseline_version") == BASELINE_VERSION
+            and smoke.get("previous_version") == PREVIOUS_VERSION
+            and isinstance(smoke.get("previous_setup_sha256"), str)
+            and re.fullmatch(r"[0-9a-f]{64}", smoke["previous_setup_sha256"])
+            and smoke["tests"].get(PREVIOUS_UPGRADE_CHECK) is True
+        ):
+            raise ValueError("A versão estável exige atualização validada da 5.3.0 e da RC2.")
+        verify_smoke_payload(smoke.get("baseline_installed_smoke", {}), BASELINE_VERSION)
+        verify_smoke_payload(smoke.get("previous_installed_smoke", {}), PREVIOUS_VERSION)
+        verify_smoke_payload(smoke.get("previous_upgraded_installed_smoke", {}), version)
     names = (f"LIARTE_Desktop_{version}_Windows_x64.zip", setup.name, "SHA256SUMS.txt")
     output.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix=".preview-", dir=output) as temporary:
+    with tempfile.TemporaryDirectory(prefix=".installer-release-", dir=output) as temporary:
         staged = tuple(Path(temporary) / name for name in names)
         with zipfile.ZipFile(staged[0], "w", zipfile.ZIP_DEFLATED, compresslevel=6) as packed:
             for path in sorted(bundle.rglob("*")):
@@ -341,7 +382,7 @@ def prepare_preview_assets(bundle, setup, smoke_report, output):
                     packed.write(path, "LIARTE_Desktop/" + path.relative_to(bundle).as_posix())
         shutil.copy2(setup, staged[1])
         if digest(staged[1]) != setup_sha:
-            raise ValueError("O Setup mudou durante a preparação da prévia.")
+            raise ValueError("O Setup mudou durante a preparação da publicação.")
         staged[2].write_text(
             "".join(digest(path) + "  " + path.name + "\n" for path in staged[:2]), encoding="utf-8"
         )
@@ -354,11 +395,18 @@ def prepare_preview_assets(bundle, setup, smoke_report, output):
     }
 
 
+def prepare_preview_assets(bundle, setup, smoke_report, output):
+    """Keep the existing prerelease entry point restricted to RC versions."""
+    return prepare_installer_assets(bundle, setup, smoke_report, output, channel="preview")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--setup", required=True, type=Path)
     parser.add_argument("--baseline-archive", required=True, type=Path)
     parser.add_argument("--baseline-checksum", required=True, type=Path)
+    parser.add_argument("--previous-setup", type=Path)
+    parser.add_argument("--previous-checksum", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--workspace", required=True, type=Path)
     parser.add_argument("--ci-profile", action="store_true")
@@ -367,6 +415,16 @@ def main():
     version = release_version()
     setup = args.setup.resolve()
     setup_sha = validate_installer(setup)
+    if bool(args.previous_setup) != bool(args.previous_checksum):
+        raise ValueError("O Setup anterior e seu checksum devem ser informados juntos.")
+    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) and not args.previous_setup:
+        raise ValueError("O ensaio estável exige o Setup anterior publicado da RC2.")
+    previous_setup = args.previous_setup.resolve() if args.previous_setup else None
+    previous_sha = (
+        validate_previous_setup(previous_setup, args.previous_checksum)
+        if previous_setup is not None
+        else None
+    )
     workspace = args.workspace.resolve()
     workspace.mkdir(parents=True, exist_ok=False)
     install_directory = workspace / "installed"
@@ -434,6 +492,40 @@ def main():
         assert external.is_file() and digest(external) == files[external]
         assert registry_values(UNINSTALL_KEY) is None
         report["tests"]["explicit_purge_removes_only_profile_and_settings"] = True
+        if previous_setup is not None:
+            report["previous_version"] = PREVIOUS_VERSION
+            report["previous_setup_sha256"] = previous_sha
+            install(previous_setup, workspace / "install-previous.log", install_directory)
+            assert installed_location() == install_directory.resolve()
+            report["previous_installed_smoke"] = smoke_installed(
+                install_directory, workspace / "previous-smoke.json", PREVIOUS_VERSION
+            )
+            previous_external = workspace / "relatorio_rc2_exportado.txt"
+            previous_files, previous_settings = seed_profile(
+                profile, install_directory, previous_external
+            )
+            # Omit /DIR again: the stable Setup must reuse the published RC2 location.
+            install(setup, workspace / "upgrade-previous.log")
+            assert installed_location() == install_directory.resolve()
+            assert_preserved(previous_files, previous_settings)
+            check_shortcuts(shortcuts[:2], install_directory / "LIARTE_Desktop.exe")
+            check_shortcuts(
+                shortcuts[2:], install_directory / "unins000.exe", working_directory=False
+            )
+            report["previous_upgraded_installed_smoke"] = smoke_installed(
+                install_directory, workspace / "previous-upgraded-smoke.json", version
+            )
+            assert_preserved(previous_files, previous_settings)
+            report["tests"][PREVIOUS_UPGRADE_CHECK] = True
+            uninstall(install_directory, workspace / "uninstall-previous-purge.log", purge=True)
+            assert not profile.exists() and registry_values(SETTINGS_KEY) is None
+            assert not any(path.exists() for path in shortcuts)
+            assert registry_values(UNINSTALL_KEY) is None
+            assert all(
+                path.is_file() and digest(path) == expected
+                for path, expected in ((external, files[external]),
+                                       (previous_external, previous_files[previous_external]))
+            )
         completed = True
         report["status"] = "ok"
     finally:

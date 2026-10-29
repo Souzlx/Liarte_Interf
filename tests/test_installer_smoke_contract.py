@@ -69,12 +69,41 @@ class InstallerSmokeContractTests(unittest.TestCase):
         )
         (self.bundle / "CHECKSUMS_SHA256.txt").write_text(manifest)
 
-    def publish(self, output):
+    def publish(self, output, *, channel=None):
         self.smoke_path.write_text(json.dumps(self.report))
         with patch.object(installer, "release_version", return_value=self.version):
+            if channel is not None:
+                return installer.prepare_installer_assets(
+                    self.bundle, self.setup, self.smoke_path, output, channel=channel
+                )
             return installer.prepare_preview_assets(
                 self.bundle, self.setup, self.smoke_path, output
             )
+
+    def stable(self):
+        self.version = "5.3.1"
+        self.setup = self.setup.rename(self.root / installer.installer_name(self.version))
+        self.payload = self.smoke(self.version)
+        self.write_manifest(self.version)
+        self.report.update({
+            "version": self.version,
+            "baseline_version": installer.BASELINE_VERSION,
+            "baseline_installed_smoke": self.smoke(installer.BASELINE_VERSION),
+            "fresh_installed_smoke": self.payload,
+            "upgraded_installed_smoke": self.payload,
+            "previous_version": installer.PREVIOUS_VERSION,
+            "previous_setup_sha256": "a" * 64,
+            "previous_installed_smoke": self.smoke(installer.PREVIOUS_VERSION),
+            "previous_upgraded_installed_smoke": self.payload,
+        })
+        self.report["tests"][installer.PREVIOUS_UPGRADE_CHECK] = True
+
+    def previous_setup(self):
+        previous = self.root / installer.installer_name(installer.PREVIOUS_VERSION)
+        previous.write_bytes(self.setup.read_bytes())
+        checksum = self.root / "previous-SHA256SUMS.txt"
+        checksum.write_text(installer.digest(previous) + "  " + previous.name + "\n")
+        return previous, checksum
 
     def archive(self, entries):
         path = self.root / "LIARTE_Desktop_5.3.0_Windows_x64.zip"
@@ -219,6 +248,170 @@ class InstallerSmokeContractTests(unittest.TestCase):
             self.assertIsNone(packed.testzip())
             self.assertEqual(packed.read("LIARTE_Desktop/resource.txt"), b"known resource")
         self.assertEqual(result["tag"], "v" + self.version)
+
+    def test_successful_stable_requires_both_upgrade_paths_and_checksums_setup_and_zip(self):
+        self.stable()
+        output = self.root / "published"
+        result = self.publish(output, channel="stable")
+        self.assertEqual(result["tag"], "v5.3.1")
+        checksums = dict(
+            line.split("  ", 1)[::-1] for line in Path(result["checksum"]).read_text().splitlines()
+        )
+        self.assertEqual(set(checksums), {Path(result["archive"]).name, self.setup.name})
+        for name, expected in checksums.items():
+            self.assertEqual(installer.digest(output / name), expected)
+        with zipfile.ZipFile(result["archive"]) as packed:
+            self.assertIsNone(packed.testzip())
+            smoke = json.loads(packed.read("LIARTE_Desktop/AUTOTESTE.json"))
+            self.assertEqual(smoke["version"], "5.3.1")
+
+    def test_stable_rejects_missing_previous_setup_proof_before_creating_output(self):
+        self.stable()
+        original = json.loads(json.dumps(self.report))
+        output = self.root / "published"
+        for field in ("baseline_version", "previous_version", "previous_setup_sha256"):
+            with self.subTest(field=field):
+                self.report = json.loads(json.dumps(original))
+                del self.report[field]
+                with self.assertRaisesRegex(ValueError, "atualização validada"):
+                    self.publish(output, channel="stable")
+                self.assertFalse(output.exists())
+        for update in (
+            {"baseline_version": "5.2.0"},
+            {"previous_version": "5.3.1-rc.1"},
+            {"previous_setup_sha256": 1},
+            {"previous_setup_sha256": "not-a-digest"},
+        ):
+            with self.subTest(update=update):
+                self.report = json.loads(json.dumps(original))
+                self.report.update(update)
+                with self.assertRaisesRegex(ValueError, "atualização validada"):
+                    self.publish(output, channel="stable")
+                self.assertFalse(output.exists())
+        self.report = original
+        self.report["tests"][installer.PREVIOUS_UPGRADE_CHECK] = False
+        with self.assertRaisesRegex(ValueError, "atualização validada"):
+            self.publish(output, channel="stable")
+        self.assertFalse(output.exists())
+
+    def test_stable_rejects_missing_or_non_native_smoke_for_either_upgrade(self):
+        self.stable()
+        original = json.loads(json.dumps(self.report))
+        output = self.root / "published"
+        for field in (
+            "baseline_installed_smoke", "previous_installed_smoke",
+            "previous_upgraded_installed_smoke",
+        ):
+            for replacement in (None, {}, {"platform": "linux"}):
+                with self.subTest(field=field, replacement=replacement):
+                    self.report = json.loads(json.dumps(original))
+                    self.report[field] = replacement
+                    with self.assertRaisesRegex(RuntimeError, "autoteste nativo"):
+                        self.publish(output, channel="stable")
+                    self.assertFalse(output.exists())
+
+    def test_stable_and_preview_channels_cannot_publish_each_others_versions(self):
+        output = self.root / "published"
+        for channel in ("stable", "invalid"):
+            with self.subTest(channel=channel):
+                with self.assertRaisesRegex(ValueError, "canal de publicação"):
+                    self.publish(output, channel=channel)
+                self.assertFalse(output.exists())
+        self.stable()
+        with self.assertRaisesRegex(ValueError, "canal de publicação"):
+            self.publish(output)
+        self.assertFalse(output.exists())
+
+    def test_previous_setup_requires_matching_published_digest_and_valid_windows_header(self):
+        previous, checksum = self.previous_setup()
+        self.assertEqual(
+            installer.validate_previous_setup(previous, checksum), installer.digest(previous)
+        )
+        previous.write_bytes(previous.read_bytes() + b"changed")
+        with self.assertRaisesRegex(ValueError, "diverge"):
+            installer.validate_previous_setup(previous, checksum)
+        previous.write_bytes(b"not a Windows Setup" * 100_000)
+        checksum.write_text(installer.digest(previous) + "  " + previous.name + "\n")
+        with self.assertRaisesRegex(RuntimeError, "cabeçalho Windows"):
+            installer.validate_previous_setup(previous, checksum)
+
+    def test_previous_setup_checksum_refuses_missing_duplicate_or_malformed_entries(self):
+        previous, checksum = self.previous_setup()
+        valid = checksum.read_text()
+        for contents in (
+            "a" * 64 + "  other.exe\n", valid + valid, "invalid checksum\n",
+        ):
+            with self.subTest(contents=contents):
+                checksum.write_text(contents)
+                with self.assertRaises(ValueError):
+                    installer.validate_previous_setup(previous, checksum)
+        renamed = previous.rename(self.root / "unexpected.exe")
+        with self.assertRaisesRegex(ValueError, "Setup publicado"):
+            installer.validate_previous_setup(renamed, checksum)
+
+    def test_stable_lifecycle_refuses_missing_previous_setup_before_touching_workspace(self):
+        workspace = self.root / "ci-workspace"
+        command = [
+            "test_installer_windows.py", "--setup", str(self.setup),
+            "--baseline-archive", "baseline.zip", "--baseline-checksum", "baseline.txt",
+            "--output", str(self.root / "report.json"), "--workspace", str(workspace),
+            "--ci-profile",
+        ]
+        with (
+            patch("sys.argv", command),
+            patch.object(installer, "release_version", return_value="5.3.1"),
+            patch.object(installer, "require_disposable_ci"),
+            patch.object(installer, "install") as install,
+        ):
+            with self.assertRaisesRegex(ValueError, "Setup anterior publicado"):
+                installer.main()
+        self.assertFalse(workspace.exists())
+        install.assert_not_called()
+
+    def test_lifecycle_refuses_unpaired_or_changed_previous_setup_before_any_install(self):
+        previous, checksum = self.previous_setup()
+        previous.write_bytes(previous.read_bytes() + b"changed after publication")
+        workspace = self.root / "ci-workspace"
+        command = [
+            "test_installer_windows.py", "--setup", str(self.setup),
+            "--baseline-archive", "baseline.zip", "--baseline-checksum", "baseline.txt",
+            "--output", str(self.root / "report.json"), "--workspace", str(workspace),
+            "--ci-profile",
+        ]
+        for arguments, message in (
+            (["--previous-setup", str(previous)], "informados juntos"),
+            (["--previous-checksum", str(checksum)], "informados juntos"),
+            (["--previous-setup", str(previous), "--previous-checksum", str(checksum)], "diverge"),
+        ):
+            with self.subTest(arguments=arguments):
+                with (
+                    patch("sys.argv", command + arguments),
+                    patch.object(installer, "release_version", return_value="5.3.1"),
+                    patch.object(installer, "require_disposable_ci"),
+                    patch.object(installer, "install") as install,
+                ):
+                    with self.assertRaisesRegex(ValueError, message):
+                        installer.main()
+                self.assertFalse(workspace.exists())
+                install.assert_not_called()
+
+    def test_stable_packaging_io_failure_restores_previous_delivered_files(self):
+        self.stable()
+        output = self.root / "published"
+        result = self.publish(output, channel="stable")
+        previous = {Path(result[key]): Path(result[key]).read_bytes()
+                    for key in ("archive", "setup", "checksum")}
+        replace = installer.os.replace
+
+        def fail_setup_commit(source, destination):
+            if Path(destination) == Path(result["setup"]):
+                raise OSError("simulated Setup publication failure")
+            return replace(source, destination)
+
+        with patch.object(installer.os, "replace", side_effect=fail_setup_commit):
+            with self.assertRaisesRegex(OSError, "publication failure"):
+                self.publish(output, channel="stable")
+        self.assertEqual({path: path.read_bytes() for path in previous}, previous)
 
     def test_workflow_outputs_use_real_newlines(self):
         workflow = Path(installer.ROOT / ".github/workflows/installer.yml").read_text()

@@ -1,5 +1,5 @@
 ﻿#ifndef AppVersion
-  #define AppVersion "5.3.1-rc.2"
+  #define AppVersion "5.3.1"
 #endif
 #ifndef BundleDir
   #define BundleDir "dist\LIARTE_Desktop"
@@ -39,7 +39,7 @@ RestartApplications=no
 AppMutex=Local\LIARTE.Desktop.Running
 SetupMutex=Local\LIARTE.Desktop.Setup
 SetupLogging=yes
-VersionInfoVersion=5.3.1.2
+VersionInfoVersion=5.3.1.3
 Uninstallable=yes
 
 [Languages]
