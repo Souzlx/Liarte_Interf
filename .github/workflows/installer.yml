@@ -7,13 +7,56 @@ on:
         type: boolean
         default: false
         required: false
+      publish_release:
+        description: Publicar a versão estável somente após validar os quatro builds e o Setup
+        type: boolean
+        default: false
+        required: false
 permissions:
   contents: read
 concurrency:
   group: installer-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      channel: ${{ steps.version.outputs.channel }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5, Node 24
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6, Node 24
+        with:
+          python-version: '3.12'
+      - name: Conferir versão, canal e solicitação de publicação
+        id: version
+        env:
+          PUBLISH_PREVIEW: ${{ inputs.publish_preview }}
+          PUBLISH_RELEASE: ${{ inputs.publish_release }}
+        shell: python
+        run: |
+          import os, sys
+          from pathlib import Path
+          sys.path.insert(0, os.getcwd())
+          from tools.build_installer import release_version
+          preview = os.environ['PUBLISH_PREVIEW'] == 'true'
+          stable = os.environ['PUBLISH_RELEASE'] == 'true'
+          if preview and stable:
+              raise SystemExit('Escolha apenas um canal de publicação.')
+          if (preview or stable) and os.environ['GITHUB_REF'] != 'refs/heads/main':
+              raise SystemExit('A publicação exige a branch main.')
+          version = release_version()
+          channel = 'preview' if '-rc.' in version else 'stable'
+          if (preview and channel != 'preview') or (stable and channel != 'stable'):
+              raise SystemExit('A versão do aplicativo não corresponde ao canal solicitado.')
+          if (preview or stable) and not Path(f'docs/RELEASE_{version}.md').is_file():
+              raise SystemExit('As notas desta versão ainda não estão disponíveis.')
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              for key, value in {'version': version, 'channel': channel}.items():
+                  output.write(f'{key}={value}\n')
   build:
+    needs: validate
     runs-on: windows-2025
     timeout-minutes: 35
     env:
@@ -29,9 +72,23 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
+      - name: Conferir Python resolvido pelos comandos dos fontes
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess
+          import sys
+          for executable in ('python', 'pythonw'):
+              matches = subprocess.check_output(
+                  ['cmd', '/d', '/c', 'where', executable], text=True
+              ).splitlines()
+              resolved = Path(matches[0]).resolve()
+              assert resolved.parent == Path(sys.executable).resolve().parent, matches
+              assert resolved.parent != Path.cwd().resolve(), matches
+              print(f'{executable}: {resolved}')
       - name: Preparar dependências
         run: python -m pip install -r requirements-build.txt
-      - name: Verificar diálogo de restauração antes da compilação completa
+      - name: Conferir interface, perfil e restauração antes da compilação completa
         shell: python
         run: |
           import os, sys, unittest
@@ -42,7 +99,20 @@ jobs:
           sys.dont_write_bytecode = True
           from liarte_desktop.qt_runtime import configure_windows_qt
           configure_windows_qt()
-          suite = unittest.defaultTestLoader.loadTestsFromName('tests.test_inventory_backup_qml')
+          suite = unittest.defaultTestLoader.loadTestsFromNames([
+              'tests.test_runtime_profile',
+              'tests.test_inventory_alerts_qml',
+              'tests.test_inventory_compare_qml',
+              'tests.test_inventory_performance_qml',
+              'tests.test_inventory_backup_qml',
+              'tests.test_ux_stock_filters',
+              'tests.test_ux_navigation',
+              'tests.test_ux_chart_interactions',
+              'tests.test_stock_sorting',
+              'tests.test_stock_sorting_qml',
+              'tests.test_performance_sorting',
+              'tests.test_comex.RealQtTests.test_native_save_dialog_opens_with_the_right_format',
+          ])
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           sys.exit(0 if result.wasSuccessful() else 1)
       - name: Compilar e testar a pasta portátil
@@ -53,7 +123,7 @@ jobs:
           path: dist/LIARTE_Desktop
           include-hidden-files: true
   installer:
-    needs: build
+    needs: [validate, build]
     runs-on: windows-2025
     timeout-minutes: 30
     env:
@@ -94,10 +164,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download v5.3.0 --repo "$env:GITHUB_REPOSITORY" --pattern LIARTE_Desktop_5.3.0_Windows_x64.zip --pattern SHA256SUMS.txt --dir baseline_download
+      - name: Baixar Setup RC2 publicado para ensaio de atualização à versão estável
+        if: ${{ needs.validate.outputs.channel == 'stable' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v5.3.1-rc.2 --repo "$env:GITHUB_REPOSITORY" --pattern LIARTE_Desktop_5.3.1-rc.2_Setup.exe --pattern SHA256SUMS.txt --dir previous_download
       - name: Instalar, atualizar e desinstalar em perfil descartável
+        env:
+          RELEASE_CHANNEL: ${{ needs.validate.outputs.channel }}
         run: |
           $version = python -c "from tools.build_installer import release_version; print(release_version())"
-          python tools/test_installer_windows.py --setup "instalador/LIARTE_Desktop_${version}_Setup.exe" --baseline-archive baseline_download/LIARTE_Desktop_5.3.0_Windows_x64.zip --baseline-checksum baseline_download/SHA256SUMS.txt --workspace "$env:RUNNER_TEMP/liarte-setup-lifecycle" --output instalador/AUTOTESTE_SETUP.json --ci-profile
+          $previousArguments = @()
+          if ($env:RELEASE_CHANNEL -eq 'stable') {
+            $previousArguments = @('--previous-setup', 'previous_download/LIARTE_Desktop_5.3.1-rc.2_Setup.exe', '--previous-checksum', 'previous_download/SHA256SUMS.txt')
+          }
+          python tools/test_installer_windows.py --setup "instalador/LIARTE_Desktop_${version}_Setup.exe" --baseline-archive baseline_download/LIARTE_Desktop_5.3.0_Windows_x64.zip --baseline-checksum baseline_download/SHA256SUMS.txt --workspace "$env:RUNNER_TEMP/liarte-setup-lifecycle" --output instalador/AUTOTESTE_SETUP.json --ci-profile @previousArguments
       - name: Disponibilizar Setup validado
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, Node 24
         with:
@@ -113,9 +195,9 @@ jobs:
             ${{ runner.temp }}/liarte-setup-lifecycle/*.log
             ${{ runner.temp }}/liarte-setup-lifecycle/*-smoke.json
           if-no-files-found: ignore
-  preview:
-    if: ${{ inputs.publish_preview && github.ref == 'refs/heads/main' }}
-    needs: [build, installer]
+  publish:
+    if: ${{ (inputs.publish_preview || inputs.publish_release) && github.ref == 'refs/heads/main' }}
+    needs: [validate, build, installer]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -132,25 +214,28 @@ jobs:
           name: LIARTE_Setup_Validado
           path: verified_setup
       - name: Conferir Setup e preparar pacote portátil e checksums
+        env:
+          RELEASE_CHANNEL: ${{ needs.validate.outputs.channel }}
         shell: python
         run: |
           import os, sys
           sys.path.insert(0, os.getcwd())
           from pathlib import Path
           from tools.build_installer import installer_name, release_version
-          from tools.test_installer_windows import prepare_preview_assets
-          result = prepare_preview_assets(Path('verified_bundle'), Path('verified_setup') / installer_name(release_version()), Path('verified_setup/AUTOTESTE_SETUP.json'), Path('preview_assets'))
+          from tools.test_installer_windows import prepare_installer_assets
+          result = prepare_installer_assets(Path('verified_bundle'), Path('verified_setup') / installer_name(release_version()), Path('verified_setup/AUTOTESTE_SETUP.json'), Path('release_assets'), channel=os.environ['RELEASE_CHANNEL'])
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
               for key, value in result.items():
                   output.write(f'{key}={value}\n')
         id: package
-      - name: Publicar prévia validada
+      - name: Publicar versão validada com Setup, portátil e checksums
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.package.outputs.tag }}
           ARCHIVE: ${{ steps.package.outputs.archive }}
           SETUP: ${{ steps.package.outputs.setup }}
           CHECKSUM: ${{ steps.package.outputs.checksum }}
+          RELEASE_CHANNEL: ${{ needs.validate.outputs.channel }}
         run: |
           set -euo pipefail
           existing_tag="$(git ls-remote origin "refs/tags/$TAG")"
@@ -158,7 +243,19 @@ jobs:
             echo "::error::A tag $TAG já existe; a publicação não será substituída."
             exit 1
           fi
-          gh release create "$TAG" "$ARCHIVE" "$SETUP" "$CHECKSUM" \
-            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "LIARTE ${TAG#v} — instalador em validação" \
-            --notes-file "docs/RELEASE_${TAG#v}.md" --prerelease --latest=false
+          if [ "$RELEASE_CHANNEL" = 'preview' ]; then
+            gh release create "$TAG" "$ARCHIVE" "$SETUP" "$CHECKSUM" \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "LIARTE ${TAG#v} — instalador em validação" \
+              --notes-file "docs/RELEASE_${TAG#v}.md" --draft --prerelease --latest=false
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease --latest=false
+          elif [ "$RELEASE_CHANNEL" = 'stable' ]; then
+            gh release create "$TAG" "$ARCHIVE" "$SETUP" "$CHECKSUM" \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "LIARTE ${TAG#v}" \
+              --notes-file "docs/RELEASE_${TAG#v}.md" --draft --latest=false
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease=false --latest
+          else
+            echo '::error::Canal de publicação inválido.'
+            exit 1
+          fi

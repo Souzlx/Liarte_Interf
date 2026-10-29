@@ -1,19 +1,21 @@
-LIARTE — 5.3.1-rc.2
+LIARTE — 5.3.1
 Importações e Estoque na mesma plataforma nativa
 
 NESTA VERSÃO
-Prévia com Setup atualizado, alertas e comparação mensal de Estoque,
+Versão com Setup atualizado, alertas e comparação mensal de Estoque,
 desempenho por produto e interface organizada por tarefa. As listas permitem
 ordenar giro, saldo, capital e cobertura em direções explícitas.
-Consulte docs/INSTALACAO_531_RC2.md para instalação, atualização e restauração.
+Consulte docs/INSTALACAO_531.md para instalação, atualização e restauração.
 Correções da auditoria: exportação mensal mais rápida, validação e recuperação
 de arquivos, cancelamento, ordenação/paginação e foco/rolagem aprimorados.
 Consulte docs/CORRECOES_AUDITORIA_530_RC3.md para alterações e limites.
 
 COMECE AQUI
-1. Feche a versão anterior e extraia TODO o ZIP em uma pasta nova.
-2. Se a pasta contém LIARTE_Desktop.exe, abra esse executável. O pacote portátil
-   já inclui Python e dependências; não é necessário instalar Python.
+1. Feche a versão anterior. Para instalar ou atualizar, execute
+   LIARTE_Desktop_5.3.1_Setup.exe na mesma conta Windows da instalação anterior.
+2. Para usar o portátil, extraia TODO o ZIP em uma pasta nova e abra
+   LIARTE_Desktop.exe. Setup e portátil já incluem Python e dependências;
+   não é necessário instalar Python para usar esses pacotes.
 3. Se você recebeu somente os fontes, a TI usa CPython 3.11–3.14 padrão de
    64 bits, com Tkinter, e abre INICIAR_DESKTOP.cmd. A preparação usa internet.
 4. Em Início, abra Estoque. A base da empresa já abre automaticamente.
@@ -57,7 +59,7 @@ evitar respostas vazias ou incompletas da fonte no intervalo entre anos.
 A conexão não depende do cliente legado, de central ou de cache de respostas.
 Não há metadados prévios, consultas extras de totais ou espera preventiva fixa.
 
-Se a fonte limitar as consultas (HTTP 429), a RC10 permite até quatro tentativas
+Se a fonte limitar as consultas (HTTP 429), o aplicativo permite até quatro tentativas
 no pedido afetado, com contagem regressiva visível e cancelamento. Retry-After
 tem prioridade; sem esse cabeçalho, usa-se o prazo da mensagem do MDIC. Sem
 prazo informado, o recuo é de 30 segundos. Recusas repetidas aumentam a espera
@@ -83,23 +85,23 @@ Uma instalação não depende de arquivos de conexão ou servidores de outra.
 
 HTTP 429 é uma recusa da API. O código melhora a recuperação e evita esperas
 indevidas, mas não pode garantir a disponibilidade de um serviço externo.
-No ensaio real RC10, duas consultas consecutivas com os 35 NCMs concluíram:
-setembro de 2026 e, logo depois, outubro de 2025 a setembro de 2026. A segunda
-levou 16,699 segundos e retornou 10.387 linhas gerais e 60.914 municipais,
-com os 12 meses e quatro respostas 200. Os dados de setembro coincidiram
-entre ambas. Esse ensaio Linux não é homologação da rede Windows da empresa.
+O ensaio histórico da correção RC10 verificou duas consultas consecutivas.
+Consulte docs/VALIDACAO_API_RC10_2026-10-23.json para seu escopo e resultados.
+Esse ensaio Linux não é homologação da rede Windows da empresa.
 
 O modo direto não utiliza downloads CSV ou uma central como alternativa.
 A conferência HTTPS do Windows continua ativa. Não se desativa a segurança TLS.
 
 ATUALIZAR ESTA ENTREGA
-Feche a versão anterior, extraia todo o ZIP em uma pasta nova e abra o
-LIARTE_Desktop.exe dessa pasta. Nos fontes, use INICIAR_DESKTOP.cmd e aguarde
-o assistente. Depois, selecione o período e consulte normalmente.
-Um atalho de um executável antigo não é atualizado apenas por extrair este ZIP.
-Confira a versão 5.3.1-rc.2 em Ajuda. O ZIP portátil e o Setup são distribuições distintas.
+Feche a versão anterior e execute o Setup 5.3.1 na mesma conta Windows.
+A atualização reutiliza o diretório registrado e preserva bases, backups e
+preferências. Não é necessário desinstalar nem apagar o perfil para atualizar.
+Quem usa o portátil deve extrair todo o ZIP em uma pasta nova e abrir o
+LIARTE_Desktop.exe dessa pasta. Um atalho antigo continua apontando para a
+pasta anterior. Confira a versão 5.3.1 em Ajuda.
+Nos fontes, use INICIAR_DESKTOP.cmd e aguarde o assistente.
 
-INTERFACE, GRÁFICOS E ANÁLISE MENSAL — PRÉVIA 5.3
+INTERFACE, GRÁFICOS E ANÁLISE MENSAL
 - Início reúne indicadores dos módulos já carregados, com período, base e moeda.
 - Painéis, rótulos e legendas se reorganizam conforme a largura da janela.
 - Ampliar abre o gráfico em uma janela maior com os mesmos pontos e unidades.
@@ -145,9 +147,10 @@ INSTALAÇÃO E DISTRIBUIÇÃO
 O pacote portátil do GitHub Actions contém o executável e seus recursos;
 extraia a pasta inteira. O arquivo de fontes contém src/, testes e assistentes;
 use INICIAR_DESKTOP.cmd para executar os fontes com Python instalado.
-Um atalho para um executável antigo continua abrindo a versão anterior. A TI
-pode compilar o instalador Setup no Windows pelo fluxo existente.
-Veja docs/INSTALACAO_510.md.
+O Setup instala por usuário e cria os atalhos da versão instalada. A publicação
+estável usa o workflow do instalador, com Setup, ZIP e SHA256SUMS.txt após as
+validações. Consulte docs/INSTALACAO_531.md para os arquivos e instruções.
+O Setup da LIARTE não tem assinatura digital de editor.
 A identidade da instalação, atalhos, pastas e preferências foi preservada.
 A base de estoque faz parte dos recursos do programa e do pacote compilado.
 A última base válida importada pelo usuário tem preferência nas atualizações.

@@ -440,7 +440,7 @@ class ApiClient:
             "Accept": "application/json",
             "Content-Type": "application/json",
             "Accept-Encoding": "gzip",
-            "User-Agent": "LIARTE-Desktop/5.3.1-rc.2",
+            "User-Agent": "LIARTE-Desktop/5.3.1",
         }
         attempt, wait_budget, previous_error = 0, 90.0, None
         transient_failures, previous_rate_delay = 0, 0.0

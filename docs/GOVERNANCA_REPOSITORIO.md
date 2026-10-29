@@ -11,6 +11,8 @@ Este guia descreve o fluxo do repositório e a configuração administrativa pro
 
 A proteção desejada para `main` exige PR, os checks **tests** e **repository** aprovados e atualizados, e conversas resolvidas. Não exige uma segunda pessoa para aprovar o próprio trabalho: o projeto permite manutenção por um único responsável. Force push, exclusão da `main` e bypass administrativo ficam bloqueados nessa política.
 
+Em **29/10/2026**, o proprietário criou a regra pela interface do GitHub. A API confirmou `main` protegida e os checks `tests` e `repository` exigidos para todos, inclusive administradores. As demais opções administrativas ainda precisam de conferência separada.
+
 ## Documentação e arquivos
 
 O [README](../README.md) apresenta o produto e os downloads. O [portal](README.md) organiza os guias; [Estado atual](STATUS.md) e [Arquitetura](ARQUITETURA.md) descrevem o código vigente. O [índice histórico](archive/README.md) mantém acesso às versões anteriores sem mudar suas URLs.
@@ -27,7 +29,7 @@ Use um rótulo de natureza, como `bug`, `enhancement`, `documentation` ou `quest
 
 Downloads ficam em [Releases](https://github.com/Souzlx/Liarte_Interf/releases), com notas, versão e checksums. O canal estável e a prévia são identificados separadamente. Uma reorganização de documentação não substitui binários nem muda tags publicadas.
 
-Uma entrega de aplicação usa os workflows de [Windows](../.github/workflows/windows.yml) e [instalador](../.github/workflows/installer.yml). A publicação verifica executáveis, integridade e, para o Setup, instalação e atualização em perfil descartável. As [evidências da RC2](EVIDENCIAS_INSTALADOR_531_RC2.json) exemplificam o registro do commit e dos arquivos realmente distribuídos.
+O workflow de [Windows](../.github/workflows/windows.yml) permite validar os executáveis separadamente. A publicação de prévias e versões estáveis fica centralizada no workflow de [instalador](../.github/workflows/installer.yml), que exige os quatro builds e o ensaio do Setup antes de disponibilizar ZIP, Setup e checksums. A entrega estável também exige a atualização do Setup publicado da RC2, além da versão 5.3.0, em perfil descartável. As [evidências da RC2](EVIDENCIAS_INSTALADOR_531_RC2.json) exemplificam o registro do commit e dos arquivos realmente distribuídos.
 
 ## Aplicar a configuração administrativa
 

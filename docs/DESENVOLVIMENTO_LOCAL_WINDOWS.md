@@ -121,4 +121,4 @@ Quando precisar conferir o aplicativo congelado, execute no ambiente Windows pre
 .\.venv\Scripts\python.exe tools/build_windows.py
 ```
 
-Para criar o Setup, instale também Inno Setup 6.3 ou superior e siga o [guia de instalação](INSTALACAO_531_RC2.md). Ele não é necessário para editar os fontes ou executar os testes comuns. O teste destrutivo de instalação/desinstalação do CI recusa perfis normais de usuário e não deve ser adaptado para rodar na sua instalação de uso diário.
+Para criar o Setup, instale também Inno Setup 6.3 ou superior e siga o [guia de instalação](INSTALACAO_531.md). Ele não é necessário para editar os fontes ou executar os testes comuns. O teste destrutivo de instalação/desinstalação do CI recusa perfis normais de usuário e não deve ser adaptado para rodar na sua instalação de uso diário.
