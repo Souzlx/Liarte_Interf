@@ -1,0 +1,255 @@
+{
+  "recorded_at_utc": "2026-10-29T16:14:52.220487+00:00",
+  "version": "5.3.1",
+  "channel": "stable",
+  "tested_commit": "73339f650959a81473ab98b6b6f6b58f3023c563",
+  "tag_commit": "73339f650959a81473ab98b6b6f6b58f3023c563",
+  "scope": "Stable 5.3.1 consolidates the approved RC2 functionality with consistent stable version metadata and validated Setup upgrades from 5.3.0 and the published RC2.",
+  "publication": {
+    "id": 428101332,
+    "tag_name": "v5.3.1",
+    "html_url": "https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-10-29T16:13:58Z"
+  },
+  "latest_stable_verified": "v5.3.1",
+  "assets": [
+    {
+      "id": 689125826,
+      "name": "LIARTE_Desktop_5.3.1_Setup.exe",
+      "size": 63013956,
+      "digest": "sha256:262c5fee03d40d3ea29bc291ee28bda9fcddda84f2ee63bcbc9ba01e916d2f11",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Setup.exe"
+    },
+    {
+      "id": 689125830,
+      "name": "LIARTE_Desktop_5.3.1_Windows_x64.zip",
+      "size": 92639892,
+      "digest": "sha256:5e38da1597eafbcf267686b08249092962435a61a886c58365a4c188c53da08d",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/LIARTE_Desktop_5.3.1_Windows_x64.zip"
+    },
+    {
+      "id": 689125824,
+      "name": "SHA256SUMS.txt",
+      "size": 200,
+      "digest": "sha256:baaee08e57eb41643e5e96a5b674027990b8b508aa4d1e683950735f6343196b",
+      "browser_download_url": "https://github.com/Souzlx/Liarte_Interf/releases/download/v5.3.1/SHA256SUMS.txt"
+    }
+  ],
+  "linux_ci": {
+    "run": 40906447193,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40906447193",
+    "tested_commit": "73339f650959a81473ab98b6b6f6b58f3023c563",
+    "tests_run": 1070,
+    "tests_passed": 1070,
+    "tests_skipped": 0,
+    "seconds": 172.78,
+    "volume": {
+      "records": 100000,
+      "first_query_seconds": 1.467,
+      "qt_events": 80
+    }
+  },
+  "linux_local": {
+    "tested_commit": "9aa547d642820580bcd2bdab22002f7ffecfdcff",
+    "tree": "8aee503457d4561a65278cf17f46b97361253520",
+    "same_tree_as_release": true,
+    "tests_run": 1070,
+    "tests_passed": 1070,
+    "tests_skipped": 0,
+    "seconds": 182.728,
+    "volume": {
+      "records": 100000,
+      "first_query_seconds": 1.473,
+      "qt_events": 84
+    },
+    "log_sha256": "9cf9f7160cbe64f66f38c746d60eb7b8354eaec7b8056eedac773e708f9287fd"
+  },
+  "repository_ci": {
+    "run": 40906447167,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40906447167",
+    "tested_commit": "73339f650959a81473ab98b6b6f6b58f3023c563",
+    "tests_run": 18,
+    "tests_passed": 18,
+    "tests_skipped": 0,
+    "seconds": 0.138,
+    "repository_gate_passed": true,
+    "logs_sha256": "590abced2a075fe2b2874d40cef437874738affc2dfb6d134a86ff5969f714a9"
+  },
+  "windows": {
+    "report": "VALIDACAO_WINDOWS_531.json",
+    "run": 40907105322,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/40907105322",
+    "matrix": [
+      {
+        "python": "3.11",
+        "tests_run": 1070,
+        "tests_passed": 1069,
+        "tests_skipped": 1,
+        "seconds": 327.729,
+        "volume": {
+          "records": 100000,
+          "first_query_seconds": 1.925,
+          "qt_events": 109
+        }
+      },
+      {
+        "python": "3.12",
+        "tests_run": 1070,
+        "tests_passed": 1069,
+        "tests_skipped": 1,
+        "seconds": 337.717,
+        "volume": {
+          "records": 100000,
+          "first_query_seconds": 2.222,
+          "qt_events": 115
+        }
+      },
+      {
+        "python": "3.13",
+        "tests_run": 1070,
+        "tests_passed": 1069,
+        "tests_skipped": 1,
+        "seconds": 336.113,
+        "volume": {
+          "records": 100000,
+          "first_query_seconds": 1.991,
+          "qt_events": 97
+        }
+      },
+      {
+        "python": "3.14",
+        "tests_run": 1070,
+        "tests_passed": 1069,
+        "tests_skipped": 1,
+        "seconds": 253.89,
+        "volume": {
+          "records": 100000,
+          "first_query_seconds": 1.108,
+          "qt_events": 69
+        }
+      }
+    ]
+  },
+  "installer": {
+    "report": "AUTOTESTE_INSTALADOR_531.json",
+    "status": "ok",
+    "sha256": "262c5fee03d40d3ea29bc291ee28bda9fcddda84f2ee63bcbc9ba01e916d2f11",
+    "tests": {
+      "explicit_purge_removes_only_profile_and_settings": true,
+      "fresh_install_and_shortcuts": true,
+      "previous_setup_upgrade_preserves_directory_settings_stock_backups_exports": true,
+      "silent_uninstall_preserves_profile_and_exports": true,
+      "upgrade_preserves_directory_settings_stock_backups_exports": true
+    },
+    "baseline_version": "5.3.0",
+    "previous_version": "5.3.1-rc.2",
+    "previous_setup_sha256": "a29f2ae77ac013dc4db74cbbbd3f069511281af932fd4a4e28ef9f22eef546ce",
+    "compiler_version": "6.5.4",
+    "compiler_supplier_sha256": "fa73bf47a4da250d185d07561c2bfda387e5e20db77e4570004cf6a133cc10b1",
+    "compiler_integrity_and_supplier_signature_gate_passed": true
+  },
+  "published_asset_verification": {
+    "recorded_at_utc": "2026-10-29T16:14:47.440408+00:00",
+    "repository": "Souzlx/Liarte_Interf",
+    "version": "5.3.1",
+    "release_tag": "v5.3.1",
+    "release_url": "https://github.com/Souzlx/Liarte_Interf/releases/tag/v5.3.1",
+    "published_at": "2026-10-29T16:13:58Z",
+    "prerelease": false,
+    "expected_commit": "73339f650959a81473ab98b6b6f6b58f3023c563",
+    "latest_stable_verified": "v5.3.1",
+    "tag_commit": "73339f650959a81473ab98b6b6f6b58f3023c563",
+    "tag_matches_tested_commit": true,
+    "assets_independently_downloaded": true,
+    "assets": [
+      {
+        "id": 689125826,
+        "name": "LIARTE_Desktop_5.3.1_Setup.exe",
+        "bytes": 63013956,
+        "sha256": "262c5fee03d40d3ea29bc291ee28bda9fcddda84f2ee63bcbc9ba01e916d2f11",
+        "github_digest_matches": true,
+        "published_checksum_matches": true
+      },
+      {
+        "id": 689125830,
+        "name": "LIARTE_Desktop_5.3.1_Windows_x64.zip",
+        "bytes": 92639892,
+        "sha256": "5e38da1597eafbcf267686b08249092962435a61a886c58365a4c188c53da08d",
+        "github_digest_matches": true,
+        "published_checksum_matches": true
+      },
+      {
+        "id": 689125824,
+        "name": "SHA256SUMS.txt",
+        "bytes": 200,
+        "sha256": "baaee08e57eb41643e5e96a5b674027990b8b508aa4d1e683950735f6343196b",
+        "github_digest_matches": true,
+        "published_checksum_matches": null
+      }
+    ],
+    "zip_crc_test": "passed",
+    "bundle_file_count": 1409,
+    "internal_manifest_files_checked": 1408,
+    "internal_manifest_sha256": "9490997ff4a3d458f693fb1aa88b4d06f0aea59e50305cdd0546cff9acfe84ca",
+    "internal_manifest_all_match": true,
+    "unlisted_or_missing_bundle_files": [],
+    "canonical_inventory_sha256": "29ca194efa7e713ae54a724ec0924d95b371cb5af5785bfcaeaaeaec515590c8",
+    "canonical_inventory_matches_tested_source": true,
+    "native_smoke": {
+      "version": "5.3.1",
+      "status": "ok",
+      "frozen": true,
+      "platform": "win32",
+      "qml_warnings": [],
+      "themes_checked": [
+        "light",
+        "dark"
+      ],
+      "save_dialog_checked": true,
+      "window_icon_checked": true,
+      "document_resources": {
+        "excel": "ok",
+        "pdf": "ok",
+        "pdf_logo": true,
+        "powerbi": "ok",
+        "powerbi_pages": 6,
+        "powerbi_visuals": 85,
+        "synthetic": true,
+        "temporary": true,
+        "inventory_backups": "ok"
+      },
+      "https_transport": {
+        "policy": "windows-cryptoapi-v1"
+      },
+      "synthetic": true,
+      "api_network_test": false
+    },
+    "app_pe": {
+      "machine": "0x8664",
+      "optional_magic": "0x20b",
+      "security_directory": {
+        "file_offset": 0,
+        "bytes": 0,
+        "embedded_signature_present": false
+      }
+    },
+    "setup_pe": {
+      "machine": "0x14c",
+      "optional_magic": "0x10b",
+      "security_directory": {
+        "file_offset": 0,
+        "bytes": 0,
+        "embedded_signature_present": false
+      }
+    },
+    "executed_downloaded_binary": false
+  },
+  "limits": [
+    "Synthetic native smoke tests did not query the live Comex Stat API.",
+    "Installer lifecycle used a disposable Windows CI profile, a baseline compiled from the published 5.3.0 portable bundle and original installer script, and the actual published 5.3.1-rc.2 Setup; it is not a test of every existing installation.",
+    "Downloaded release files were verified on Linux without executing the downloaded binaries.",
+    "The Setup has no embedded publisher signature; the compiler supplier signature was checked separately in CI."
+  ]
+}
