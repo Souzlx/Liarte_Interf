@@ -557,10 +557,21 @@ class InventoryPerformanceIntegrationTests(unittest.TestCase):
         def exported(*args, **kwargs):
             captured.append((args, kwargs, QThread.currentThread() == APP.thread()))
 
+        from liarte_core.inventory_performance import analyze_product_performance
+
+        calculated_windows = []
+
+        def prepare_only_unopened_priorities(*args, **kwargs):
+            # The accepted one-month performance report must be reused. The
+            # unopened priorities view keeps its own three-month default.
+            self.assertEqual(kwargs.get("window"), 3)
+            calculated_windows.append(kwargs["window"])
+            return analyze_product_performance(*args, **kwargs)
+
         with (
             patch.object(stock_desktop, "export_inventory", side_effect=exported),
             patch("liarte_core.inventory_performance.analyze_product_performance",
-                  side_effect=AssertionError("Accepted performance was recomputed")),
+                  side_effect=prepare_only_unopened_priorities),
         ):
             self.c.exportExcel(QUrl.fromLocalFile(str(self.directory / "desempenho.xlsx")))
             self.idle()
@@ -572,6 +583,8 @@ class InventoryPerformanceIntegrationTests(unittest.TestCase):
         self.assertEqual(len(kwargs["performance"]["rows"]), 72)
         self.assertEqual(kwargs["performance_detail"]["row"]["code"], "OLD")
         self.assertEqual(kwargs["performance_detail"]["row"]["unit"], "KG")
+        self.assertEqual(kwargs["priorities"]["window"], 3)
+        self.assertEqual(calculated_windows, [3])
 
     def test_owner_shutdown_waits_for_pending_child_native_thread_and_emits_once(self):
         self.load()

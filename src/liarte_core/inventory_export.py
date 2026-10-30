@@ -494,6 +494,7 @@ def export_inventory(
     comparison=None,
     performance=None,
     performance_detail=None,
+    priorities=None,
 ):
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -605,6 +606,18 @@ def export_inventory(
                 workbook, performance, performance_detail, data, selection, cancel
             )
         )
+    if priorities is not None:
+        from .inventory_priorities_export import export_product_priorities
+
+        priority_export = dict(
+            priorities,
+            sourceName=data.source_name,
+            asOf=data.as_of.isoformat(),
+            filters="; ".join(
+                f"{key}={value}" for key, value in asdict(selection).items() if value
+            ),
+        )
+        table_layouts.update(export_product_priorities(workbook, priority_export, cancel=cancel))
     rules = workbook.create_sheet("Leitura dos indicadores")
     rules.append(["Indicador", "Definição"])
     for entry in (
@@ -799,6 +812,27 @@ def export_inventory(
             "das posições elegíveis no fechamento-alvo, não giro consolidado. Cobertura "
             "estima dias ao ritmo registrado e não mede idade de lote. As hipóteses "
             "orientam uma investigação, sem comprovar causas, rupturas ou compras.",
+        ))
+    if priorities is not None:
+        rules.append((
+            "Prioridades dos produtos · referência",
+            "Fechamento: " + str(priorities.get("targetPeriod", ""))
+            + "; janela recente: " + str(priorities.get("targetLabel", ""))
+            + "; anterior: " + str(priorities.get("baseLabel", "")) + ". "
+            + str(priorities.get("notice", "")) + " "
+            + str(priorities.get("reason", "")),
+        ))
+        rules.append((
+            "Prioridades dos produtos · critérios e abrangência",
+            "Uma linha por produto e unidade, com todas as categorias pertinentes. "
+            "Cobertura conhecida inferior a " + str(priorities.get("coverageDays", 30))
+            + " dias; queda de vendas líquidas em janelas completas com saldo positivo; "
+            "saldo positivo sem venda líquida recente; ou saldo e custo positivos na visão "
+            "Maior capital. Zero líquido pode incluir vendas compensadas por devoluções. "
+            "Saldo e capital são do fechamento indicado, não do saldo atual. Capital "
+            "não é faturamento, excesso ou capital parado presumido. A aba inclui todos "
+            "os produtos e unidades classificados do recorte, independentemente do foco, "
+            "busca e página da lista; não se devem somar contagens entre categorias.",
         ))
     edge = Side(style="thin", color="E3E9EF")
     alignment = Alignment(vertical="center", wrap_text=True)

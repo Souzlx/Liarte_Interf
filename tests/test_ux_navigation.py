@@ -99,7 +99,7 @@ class InventoryWorkspaceNavigationTests(_NavigationActions, unittest.TestCase):
         for section, name in (
             ("overview", "stockOverviewSection"),
             ("monthly", "stockMonthly"),
-            ("products", "stockPositionsSection"),
+            ("products", "stockProductsSection"),
         ):
             self.assertEqual(self.item(name).isVisible(), section == active, name)
 

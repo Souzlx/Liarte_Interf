@@ -39,6 +39,8 @@ Os workflows [Linux 40906447193](https://github.com/Souzlx/Liarte_Interf/actions
 
 ## Fontes e limites dos indicadores
 
+Nos fontes em desenvolvimento, **Produtos → Prioridades** acrescenta uma lista de revisão com cobertura, queda de vendas, saldo sem venda líquida e uma visão por capital no fechamento. A investigação preserva o recorte e a exportação registra os critérios e períodos. Essa melhoria é posterior à 5.3.1 publicada e não modifica seus pacotes; veja os [critérios de Prioridades](PRIORIDADES_PRODUTOS.md).
+
 O desktop consulta diretamente a API do Comex Stat quando uma consulta é solicitada. Navegar, filtrar e ordenar os resultados aceitos usa os dados já carregados. Pausas HTTP 429 são respeitadas e apresentadas na interface; a disponibilidade do serviço externo não é garantida pelo aplicativo.
 
 O Estoque utiliza PBIX ou snapshots `.liarte`, sem executar conexões ou expressões do PBIX. O pacote inclui uma base datada de **21/10/2026**; a última base válida importada localmente pelo usuário tem preferência. Não há conexão ao vivo com o ERP.

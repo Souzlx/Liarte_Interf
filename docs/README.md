@@ -21,6 +21,7 @@ O Setup e o ZIP portátil incluem o runtime. O código-fonte do GitHub é destin
 | Tema | Referência e alcance |
 | --- | --- |
 | Visão geral, recorte e navegação | [Guia da interface](GUIA_INTERFACE_MODULAR.md#estoque) |
+| Prioridades de revisão por produto | [Prioridades dos produtos](PRIORIDADES_PRODUTOS.md) — melhoria nos fontes, posterior à 5.3.1 publicada |
 | Desempenho, giro, cobertura e ordenações | [Desempenho dos produtos](DESEMPENHO_PRODUTOS.md) |
 | Alertas de estoque e critérios configuráveis | [Alertas de estoque](ALERTAS_ESTOQUE.md) |
 | Diferenças entre dois fechamentos | [Comparador mensal](COMPARADOR_MENSAL_ESTOQUE.md) |

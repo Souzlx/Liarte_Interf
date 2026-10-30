@@ -52,10 +52,16 @@ class StockPositionsSortingQmlTests(unittest.TestCase):
         self.assertEqual(self.c.state["sortColumn"], column)
 
     def navigate(self, section):
-        QMetaObject.invokeMethod(
-            self.item("inventoryWorkspace"), "navigate", Qt.ConnectionType.DirectConnection,
-            Q_ARG("QVariant", section),
-        )
+        workspace = self.item("inventoryWorkspace")
+        if section == "products":
+            QMetaObject.invokeMethod(
+                workspace, "showProductPositions", Qt.ConnectionType.DirectConnection,
+            )
+        else:
+            QMetaObject.invokeMethod(
+                workspace, "navigate", Qt.ConnectionType.DirectConnection,
+                Q_ARG("QVariant", section),
+            )
         self.assertTrue(pump(lambda: self.item("inventoryWorkspace").property("activeSection") == section))
         self.window.grabWindow()
         APP.processEvents()

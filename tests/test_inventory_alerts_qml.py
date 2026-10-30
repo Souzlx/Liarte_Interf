@@ -81,6 +81,11 @@ class InventoryAlertQmlTests(unittest.TestCase):
                 Q_ARG("QVariant", owner),
             )
             APP.processEvents()
+        if owner == "products" and workspace.property("productView") != "positions":
+            QMetaObject.invokeMethod(
+                workspace, "showProductPositions", Qt.ConnectionType.DirectConnection,
+            )
+            APP.processEvents()
         if (
             owner == "overview" and item.objectName().startswith("stockAlert")
             and item.objectName() != "stockAlertsToggle" and not workspace.property("showAlerts")

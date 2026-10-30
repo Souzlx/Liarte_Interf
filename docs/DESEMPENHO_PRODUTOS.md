@@ -2,6 +2,8 @@
 
 Em **Estoque > Produtos**, abra **Desempenho dos produtos**. Escolha a unidade de medida, a janela de **1, 3 ou 6 meses**, o critério em **Ordenar por** e, se desejar, o código ou nome. Nos indicadores que permitem as duas direções, use **Maior primeiro** ou **Menor primeiro** para alternar. Pressione **Aplicar**: as escolhas são provisórias até essa confirmação. A busca e a paginação pertencem a essa lista e preservam os filtros gerais, o comparador mensal e a tabela de posições.
 
+Nos fontes em desenvolvimento, [Prioridades](PRIORIDADES_PRODUTOS.md) acrescenta uma lista de situações para revisar. Sua ação **Histórico completo** abre esta investigação com o mesmo produto, unidade e janela. As duas vistas mantêm seus próprios filtros locais e registram os períodos de suas abas no Excel.
+
 ![Ranking por unidade e janelas de vendas](images/desempenho-lista.png)
 
 [Investigação mensal de um produto](images/desempenho-produto.png) · [Apresentação compacta](images/desempenho-compacto.png). As capturas usam dados sintéticos processados pelo cálculo e controller reais, com Qt em Linux. Fontes e escala do monitor influenciam a aparência nativa no Windows.
@@ -63,4 +65,4 @@ O arquivo registra períodos, filtros, data da base, unidades e definições. Va
 
 A análise usa o cache mensal já carregado, em tarefas canceláveis fora da interface. Não relê o PBIX nem consulta a internet ao buscar, ordenar, paginar ou investigar. Trocar a base ou os filtros descarta resultados antigos antes de publicar a nova análise.
 
-Esta melhoria integra a prévia **5.3.1-rc.2**. Use o Setup ou o ZIP dessa versão; veja as [notas da prévia](RELEASE_5.3.1-rc.2.md) e o [guia de instalação](INSTALACAO_531_RC2.md).
+O desempenho e as ordenações estão na estável **5.3.1**; veja as [notas](RELEASE_5.3.1.md) e o [guia de instalação](INSTALACAO_531.md). A nova lista Prioridades é posterior a essa publicação.

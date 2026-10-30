@@ -12,9 +12,13 @@ FocusScope {
     readonly property var view: inventory.analysis
     readonly property var detail: inventory.detail
     readonly property var backupState: inventory.backupState
-    readonly property bool modalOpen: sourceDialog.visible || stockFilters.visible || saveStockDialog.visible || stockDetail.visible || stockPerformance.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen || positionsSection.modalOpen
+    readonly property bool modalOpen: sourceDialog.visible || stockFilters.visible || saveStockDialog.visible || stockDetail.visible || stockPerformance.visible || stockMethodology.visible || stockChartDialog.visible || stockBackups.visible || confirmStockRestore.visible || stockAlerts.modalOpen || monthlySection.modalOpen || positionsSection.modalOpen || prioritiesSection.modalOpen
     readonly property bool controlsEnabled: state.loaded && state.task !== "load" && state.task !== "export"
     property string activeSection: "overview"
+    property string productView: "priorities"
+    property var productScroll: ({priorities: 0, positions: 0})
+    property var pendingPriorityTarget: null
+    property var pendingPriorityPerformance: null
     property var sectionScroll: ({
             overview: 0,
             monthly: 0,
@@ -91,7 +95,7 @@ FocusScope {
                 if (revision !== navigationRevision)
                     return;
                 navigating = false;
-                const owner = activeSection === "products" ? positionsSection : activeSection === "monthly" ? monthlySection : overviewSection;
+                const owner = activeSection === "products" ? productsSection : activeSection === "monthly" ? monthlySection : overviewSection;
                 const target = destination > 0 ? firstVisibleControl(content) : firstFocusableControl(owner);
                 if (target && page.visible) {
                     target.forceActiveFocus(Qt.TabFocusReason);
@@ -100,6 +104,85 @@ FocusScope {
                     restoreFocus();
             });
         });
+    }
+    function showProductView(view) {
+        if (!["priorities", "positions"].includes(view) || productView === view)
+            return;
+        productScroll[productView] = scroll.contentY;
+        productView = view;
+        const destination = productScroll[view] || 0;
+        const revision = ++navigationRevision;
+        navigating = true;
+        stockScrollMotion.stop();
+        scroll.cancelFlick();
+        Qt.callLater(() => {
+            if (revision !== navigationRevision)
+                return;
+            scroll.contentY = Math.max(0, Math.min(destination, scroll.contentHeight - scroll.height));
+            navigating = false;
+            sectionScroll.products = scroll.contentY;
+            const owner = productView === "priorities" ? prioritiesSection : positionsSection;
+            const target = firstFocusableControl(owner);
+            if (target && page.visible) {
+                target.forceActiveFocus(Qt.TabFocusReason);
+                Qt.callLater(() => page.revealComparisonFocus(target));
+            }
+        });
+    }
+    function showProductPositions() {
+        if (activeSection === "products")
+            showProductView("positions");
+        else {
+            productView = "positions";
+            sectionScroll.products = productScroll.positions || 0;
+        }
+        navigate("products");
+    }
+    function finishPriorityNavigation() {
+        if (!pendingPriorityTarget)
+            return;
+        if (!visible || state.error.length > 0 && !state.busy) {
+            pendingPriorityTarget = null;
+            return;
+        }
+        if (!state.current || state.busy)
+            return;
+        const target = pendingPriorityTarget;
+        pendingPriorityTarget = null;
+        if (state.selection.product === target.code && state.selection.unit === target.unit)
+            showProductPositions();
+    }
+    function openPriorityPerformance(code, unit, window) {
+        if (!inventory.priorities.state.current || inventory.priorities.detail.code !== code || inventory.priorities.detail.unit !== unit)
+            return;
+        pendingPriorityPerformance = {code: code, unit: unit, window: window, investigating: false};
+        inventory.performance.configure(unit, window, "all", code);
+        stockPerformance.open();
+        Qt.callLater(finishPriorityPerformance);
+    }
+    function finishPriorityPerformance() {
+        if (!pendingPriorityPerformance)
+            return;
+        if (!stockPerformance.visible || !visible) {
+            pendingPriorityPerformance = null;
+            return;
+        }
+        const current = inventory.performance.state;
+        const target = pendingPriorityPerformance;
+        if (current.busy)
+            return;
+        if (current.error || !current.current || current.unit !== target.unit || Number(current.window) !== target.window) {
+            pendingPriorityPerformance = null;
+            return;
+        }
+        if (inventory.performance.detail.code === target.code && inventory.performance.detail.unit === target.unit) {
+            pendingPriorityPerformance = null;
+            return;
+        }
+        if (!target.investigating) {
+            pendingPriorityPerformance = {code: target.code, unit: target.unit, window: target.window, investigating: true};
+            inventory.performance.investigate(target.code, target.unit);
+        }
     }
     function appliedPeriod() {
         const start = appliedSelection.start || "";
@@ -118,7 +201,7 @@ FocusScope {
         const target = pendingOverviewTarget;
         pendingOverviewTarget = null;
         if (state.selection[target.dimension] === target.key)
-            navigate("products");
+            showProductPositions();
     }
     function restoreFocus() {
         const item = visibleControl(lastFocusedControl) ? lastFocusedControl : firstVisibleControl(content);
@@ -165,7 +248,7 @@ FocusScope {
         const target = pendingAlertTarget;
         pendingAlertTarget = null;
         if (state.selection.product === target.code && state.selection.branch === target.branch && state.selection.unit === target.unit)
-            navigate("products");
+            showProductPositions();
     }
     Connections {
         target: inventory
@@ -176,6 +259,15 @@ FocusScope {
                 Qt.callLater(page.finishAlertNavigation);
             if (page.pendingComparisonFocus)
                 Qt.callLater(page.finishComparisonNavigation);
+            if (page.pendingPriorityTarget)
+                Qt.callLater(page.finishPriorityNavigation);
+        }
+    }
+    Connections {
+        target: inventory.performance
+        function onChanged() {
+            if (page.pendingPriorityPerformance)
+                Qt.callLater(page.finishPriorityPerformance);
         }
     }
     function finishComparisonNavigation() {
@@ -234,6 +326,8 @@ FocusScope {
         pendingAlertTarget = null;
         pendingComparisonFocus = null;
         pendingOverviewTarget = null;
+        pendingPriorityTarget = null;
+        pendingPriorityPerformance = null;
     }
     Connections {
         target: Ui.Theme
@@ -321,7 +415,7 @@ FocusScope {
                         iconName: "download"
                         Layout.fillWidth: stockHeaderActions.columns === 2
                         Layout.minimumWidth: 0
-                        enabled: !page.state.busy && page.state.current && inventory.comparisonState.current && !inventory.performance.state.busy
+                        enabled: !page.state.busy && page.state.current && inventory.comparisonState.current && !inventory.performance.state.busy && !inventory.priorities.state.busy
                         onClicked: saveStockDialog.open()
                     }
                     Ui.ActionButton {
@@ -639,22 +733,66 @@ FocusScope {
                 onUnitSelected: unit => inventory.setMonthlyUnit(unit)
                 onProductSelected: code => inventory.setFilter("product", code)
             }
-            Ui.StockPositions {
-                id: positionsSection
+            ColumnLayout {
+                id: productsSection
+                objectName: "stockProductsSection"
                 visible: page.state.loaded && page.activeSection === "products"
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                state: page.state
-                tableModel: stockModel
-                controlsEnabled: page.controlsEnabled
-                compact: preferences.state.compact
-                viewportHeight: page.height
-                onPerformanceRequested: stockPerformance.open()
-                onDetailRequested: stockDetail.open()
-                onSortRequested: column => inventory.sortByColumn(column)
-                onSortSelected: (column, descending) => inventory.sortPositions(column, descending)
-                onRowSelected: row => inventory.selectRow(row)
-                onPageSelected: requestedPage => inventory.setPage(requestedPage)
+                spacing: 16
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    spacing: 8
+                    Ui.ActionButton {
+                        objectName: "stockProductsView_priorities"
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        text: "Prioridades"
+                        primary: page.productView === "priorities"
+                        subtle: page.productView !== "priorities"
+                        onClicked: page.showProductView("priorities")
+                    }
+                    Ui.ActionButton {
+                        objectName: "stockProductsView_positions"
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        text: "Posições"
+                        primary: page.productView === "positions"
+                        subtle: page.productView !== "positions"
+                        onClicked: page.showProductView("positions")
+                    }
+                }
+                Ui.StockPriorities {
+                    id: prioritiesSection
+                    visible: page.productView === "priorities"
+                    priorities: inventory.priorities
+                    controlsEnabled: page.controlsEnabled && page.state.current && !page.state.busy
+                    onPositionsRequested: (code, unit) => {
+                        page.pendingPriorityTarget = {code: code, unit: unit};
+                        inventory.focusPriorityProduct(code, unit);
+                        Qt.callLater(page.finishPriorityNavigation);
+                    }
+                    onPerformanceRequested: (code, unit, window) => page.openPriorityPerformance(code, unit, window)
+                    onPerformanceListRequested: stockPerformance.open()
+                }
+                Ui.StockPositions {
+                    id: positionsSection
+                    visible: page.productView === "positions"
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    state: page.state
+                    tableModel: stockModel
+                    controlsEnabled: page.controlsEnabled
+                    compact: preferences.state.compact
+                    viewportHeight: page.height
+                    onPerformanceRequested: stockPerformance.open()
+                    onDetailRequested: stockDetail.open()
+                    onSortRequested: column => inventory.sortByColumn(column)
+                    onSortSelected: (column, descending) => inventory.sortPositions(column, descending)
+                    onRowSelected: row => inventory.selectRow(row)
+                    onPageSelected: requestedPage => inventory.setPage(requestedPage)
+                }
             }
         }
     }
@@ -860,7 +998,12 @@ FocusScope {
         id: stockPerformance
         performance: inventory.performance
         controlsEnabled: page.controlsEnabled && page.state.current && !page.state.busy
-        onProductFocusRequested: (code, unit) => inventory.focusPerformanceProduct(code, unit)
+        onClosed: page.pendingPriorityPerformance = null
+        onProductFocusRequested: (code, unit) => {
+            page.pendingOverviewTarget = {dimension: "product", key: code};
+            inventory.focusPerformanceProduct(code, unit);
+            Qt.callLater(page.finishOverviewNavigation);
+        }
     }
     Ui.AppDialog {
         id: stockDetail
