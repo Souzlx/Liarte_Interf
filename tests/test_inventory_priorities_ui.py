@@ -1,6 +1,7 @@
 """Priority views reuse monthly facts and preserve the stock session."""
 
 from pathlib import Path
+from dataclasses import replace
 from tempfile import TemporaryDirectory
 from threading import Event
 import unittest
@@ -10,6 +11,7 @@ from PySide6.QtCore import QThread, QUrl
 from PySide6.QtTest import QSignalSpy
 from openpyxl import load_workbook
 
+from liarte_core.inventory import SCALE
 from liarte_core.inventory_io import write_snapshot
 from liarte_desktop import inventory as stock_desktop
 from liarte_desktop import inventory_performance as performance_desktop
@@ -102,17 +104,23 @@ class InventoryPrioritiesUiTests(unittest.TestCase):
         counts = {item["value"]: item["count"] for item in self.c.state["categories"]}
         self.assertEqual(counts["capital"], 1)
 
-    def test_detail_has_reference_facts_and_full_export_is_not_the_visible_page(self):
+    def test_detail_has_numeric_criteria_and_full_export_is_not_the_visible_page(self):
         self.load()
         self.configure()
         row = self.c.summary["rows"][0]
         self.c.investigate(row["code"], row["unit"])
         detail = self.c.detail
         self.assertEqual((detail["code"], detail["unit"]), (row["code"], row["unit"]))
-        self.assertEqual(len(detail["metrics"]), 5)
-        self.assertTrue(detail["reasons"])
-        self.assertTrue(all(set(("key", "title", "fact", "nextStep")) <= reason.keys()
-                            for reason in detail["reasons"]))
+        self.assertEqual(len(detail["metrics"]), 6)
+        self.assertNotIn("reasons", detail)
+        self.assertNotIn("reason", row)
+        self.assertTrue(row["criterion"])
+        self.assertTrue(detail["criteria"])
+        self.assertTrue(all(set(("label", "value", "detail")) == criterion.keys()
+                            for criterion in detail["criteria"]))
+        self.assertTrue(all(" > " in criterion["value"] or " = " in criterion["value"]
+                            or " < " in criterion["value"]
+                            for criterion in detail["criteria"]))
         report, raw = self.c.export_snapshot()
         self.assertEqual(report["window"], 1)
         self.assertGreater(len(report["rows"]), len(self.c.summary["rows"]))
@@ -142,6 +150,49 @@ class InventoryPrioritiesUiTests(unittest.TestCase):
             self.idle()
         self.assertEqual(calls, [365])
         self.assertEqual(self.c.report["coverageDays"], 365)
+
+    def test_retroactive_correction_and_deletion_refresh_same_period_numeric_results(self):
+        data = performance_sample(2)
+        months, selected = performance_months(data)
+        self.c.set_source(months, selected)
+        self.c.refresh()
+        self.idle()
+        self.configure(query="P001")
+        self.c.investigate("P001", "KG")
+        before, = [row for row in self.c.report["rows"] if row["code"] == "P001"]
+        self.assertEqual(before["sold"], SCALE)
+        self.assertNotIn("idle", before["categories"])
+
+        corrected = replace(
+            data, source_hash="b" * 64,
+            sales=tuple(sale for sale in data.sales
+                        if not (sale.product == "P001" and sale.day.isoformat() == "2026-02-01")),
+            closings=tuple(replace(closing, cost=closing.cost + 1)
+                           if closing.product == "P001" and closing.period == "2026-02"
+                           else closing for closing in data.closings),
+        )
+        revised, same_selection = performance_months(corrected)
+        self.assertEqual(same_selection, selected)
+        self.c.set_source(revised, selected)
+        self.assertFalse(self.c.detail)
+        self.idle()
+        after, = [row for row in self.c.report["rows"] if row["code"] == "P001"]
+        self.assertEqual((after["sold"], after["stockCost"]), (0, before["stockCost"] + 1))
+        idle = next(criterion for criterion in after["criteria"] if criterion["key"] == "idle")
+        self.assertEqual(idle["conditions"][0]["value"], 0)
+        self.assertEqual(before["sold"], SCALE)
+
+        deleted = replace(corrected, source_hash="c" * 64,
+                          products=tuple(product for product in corrected.products if product.code != "P001"),
+                          balances=tuple(row for row in corrected.balances if row.product != "P001"),
+                          closings=tuple(row for row in corrected.closings if row.product != "P001"),
+                          sales=tuple(row for row in corrected.sales if row.product != "P001"))
+        revised, _ = performance_months(deleted)
+        self.c.set_source(revised, selected)
+        self.idle()
+        self.assertEqual(self.c.state["query"], "P001")
+        self.assertEqual(self.c.state["count"], 0)
+        self.assertNotIn("P001", {row["code"] for row in self.c.report["rows"]})
 
     def test_failure_restores_options_page_detail_and_accepted_window(self):
         self.load()
@@ -401,7 +452,7 @@ class InventoryPrioritiesIntegrationTests(unittest.TestCase):
         try:
             sheet = book["Prioridades dos produtos"]
             values = list(sheet.values)
-            self.assertEqual(len(values[0]), 25)
+            self.assertEqual(len(values[0]), 22)
             rows = [dict(zip(values[0], row, strict=True)) for row in values[1:]]
             self.assertEqual(len(rows), len(accepted["rows"]))
             self.assertEqual({(row["Código"], row["UM"]) for row in rows},
@@ -415,7 +466,10 @@ class InventoryPrioritiesIntegrationTests(unittest.TestCase):
                 self.assertEqual(row["Limite de cobertura (dias)"], 30)
                 self.assertIn(self.c._data.source_name, row["Fonte, base e filtros"])
                 self.assertIn("2026-03-15", row["Fonte, base e filtros"])
-                self.assertIn("sem os limites de busca", row["Definição e limites"])
+                self.assertNotIn("Motivos observados", row)
+                self.assertNotIn("Próxima verificação", row)
+                self.assertNotIn("Definição e limites", row)
+            self.assertIn("sem os limites de busca", sheet.cell(1, 22).comment.text)
             definitions = dict(book["Leitura dos indicadores"].values)
             self.assertIn("Prioridades dos produtos · referência", definitions)
             self.assertIn("2026-02", definitions["Prioridades dos produtos · referência"])

@@ -19,11 +19,11 @@ _SHUTTING_DOWN = set()
 PAGE_SIZE = 8
 _WINDOWS = (1, 3, 6)
 _CATEGORIES = (
-    ("review", "Situações para revisar"),
-    ("coverage", "Revisar reposição"),
-    ("decline", "Vendas em queda"),
-    ("idle", "Saldo sem venda líquida"),
-    ("capital", "Maior capital no fechamento"),
+    ("review", "Critérios combinados"),
+    ("coverage", "Cobertura < limite"),
+    ("decline", "Variação de vendas < 0"),
+    ("idle", "Saldo > 0 · vendas líquidas = 0"),
+    ("capital", "Estoque a custo"),
 )
 
 
@@ -42,24 +42,63 @@ def _evolution(row):
     return value
 
 
-def _reason_for(row, category):
-    reasons = row.get("reasons", ())
+def _criterion_for(row, category):
+    criteria = row.get("criteria", ())
     key = row.get("primaryCategory") if category == "review" else category
-    return next((reason for reason in reasons if reason["key"] == key), {})
+    return next((criterion for criterion in criteria if criterion["key"] == key), {})
+
+
+def _condition_value(value, condition):
+    unit, scale = condition["unit"], condition["scale"]
+    if unit == "R$":
+        return money(value)
+    if scale == SCALE:
+        return _quantity(value, unit)
+    if unit == "dias":
+        return number(value, 1) + " dias"
+    return number(value, 0) + (" " + unit if unit else "")
+
+
+def _condition_expression(condition):
+    return (
+        condition["label"] + ": "
+        + _condition_value(condition["value"], condition) + " "
+        + condition["operator"] + " "
+        + _condition_value(condition["reference"], condition)
+    )
+
+
+def _present_criterion(criterion, report):
+    conditions = criterion.get("conditions", ())
+    closing = report.get("targetPeriod", "")
+    closing_label = closing[5:] + "/" + closing[:4] if closing else "—"
+    reference = "Fechamento: " + closing_label
+    if criterion["key"] in ("coverage", "decline", "idle"):
+        reference += " · Vendas: " + report.get("targetLabel", "")
+    if criterion["key"] == "decline":
+        reference += " vs. " + report.get("baseLabel", "")
+    if criterion["key"] == "coverage":
+        reference += " · " + report.get("coveragePolicy", "Limite configurado")
+    return {
+        "label": criterion["label"],
+        "value": _condition_expression(conditions[0]) if conditions else "—",
+        "detail": " · ".join([*(_condition_expression(value) for value in conditions[1:]), reference]),
+    }
 
 
 def _present_row(row, category):
-    reason = _reason_for(row, category)
+    criterion = _criterion_for(row, category)
+    conditions = criterion.get("conditions", ())
     coverage = row.get("coverage")
     return {
         "code": row["code"], "name": row["name"], "unit": row["unit"],
-        "primaryTitle": reason.get("title", row.get("primaryTitle", "")),
+        "primaryTitle": criterion.get("label", row.get("primaryTitle", "")),
         "stockQuantity": _quantity(row.get("stockQuantity"), row["unit"]),
         "stockCost": money(row["stockCost"]) if row.get("stockCost") is not None else "—",
         "sold": _quantity(row.get("sold"), row["unit"]),
         "evolution": _evolution(row),
         "coverage": number(coverage, 1) + " dias" if coverage is not None else "—",
-        "reason": reason.get("fact", ""),
+        "criterion": _condition_expression(conditions[0]) if conditions else "",
         "categories": [
             {"key": key, "label": label} for key, label in _CATEGORIES
             if key != "review" and key in row.get("categories", ())
@@ -81,12 +120,14 @@ def _present_detail(row, report, category):
              "detail": closing_label + " · Não representa faturamento."},
             {"label": "Vendas líquidas", "value": presented["sold"],
              "detail": report.get("targetLabel", "")},
+            {"label": "Vendas líquidas anteriores", "value": _quantity(row.get("previous"), row["unit"]),
+             "detail": report.get("baseLabel", "")},
             {"label": "Evolução entre janelas", "value": presented["evolution"],
              "detail": report.get("targetLabel", "") + " vs. " + report.get("baseLabel", "")},
             {"label": "Cobertura estimada", "value": presented["coverage"],
              "detail": row.get("coverageReason", "")},
         ],
-        "reasons": [dict(reason) for reason in row.get("reasons", ())],
+        "criteria": [_present_criterion(criterion, report) for criterion in row.get("criteria", ())],
         "notice": row.get("dataNotice", ""),
     }
 
@@ -122,9 +163,10 @@ def _view(report, unit, category, query, requested_page, cancel):
         "scope": report.get("scope", ""),
         "referenceNotice": report.get("referenceNotice", ""),
         "coverageDays": report.get("coverageDays"),
+        "coveragePolicy": report.get("coveragePolicy", ""),
         "notice": report.get("notice", ""),
         "reason": report.get("reason", ""),
-        "orderLabel": "Maior capital no fechamento",
+        "orderLabel": "Estoque a custo · maior valor primeiro",
     }
     categories = tuple({"value": key, "label": label, "count": counts[key]} for key, label in _CATEGORIES)
     checkpoint(cancel)

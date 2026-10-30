@@ -9,20 +9,19 @@ Capital is an ordered view, without a threshold that would imply excess stock.
 
 from __future__ import annotations
 
-from decimal import Decimal
 import math
 from threading import Event
 
-from .inventory import SCALE, _checked, folded, money, number
+from .inventory import SCALE, _checked, folded
 from .query import checkpoint
 
 
 _CATEGORIES = (
-    ("review", "Situações para revisar"),
-    ("coverage", "Revisar reposição"),
-    ("decline", "Vendas em queda"),
-    ("idle", "Saldo sem venda líquida"),
-    ("capital", "Maior capital"),
+    ("review", "Critérios combinados"),
+    ("coverage", "Cobertura < limite"),
+    ("decline", "Variação de vendas < 0"),
+    ("idle", "Saldo > 0 · vendas líquidas = 0"),
+    ("capital", "Estoque a custo"),
 )
 _LABELS = dict(_CATEGORIES)
 _METADATA = (
@@ -39,16 +38,17 @@ def _integer(row, field):
     return value
 
 
-def _quantity(value, unit):
-    return number(Decimal(value) / SCALE, 3) + (" " + unit if unit else "")
+def _condition(metric, label, value, operator, reference, scale, unit, periods):
+    """Keep the exact facts behind a rule separate from its presentation."""
+    return {
+        "metric": metric, "label": label, "value": value,
+        "operator": operator, "reference": reference, "scale": scale,
+        "unit": unit, "periods": tuple(periods),
+    }
 
 
-def _period_label(period):
-    return period[5:] + "/" + period[:4] if len(period) == 7 else period
-
-
-def _reason(key, fact, next_step):
-    return {"key": key, "title": _LABELS[key], "fact": fact, "nextStep": next_step}
+def _criterion(key, *conditions):
+    return {"key": key, "label": _LABELS[key], "conditions": tuple(conditions)}
 
 
 def analyze_product_priorities(
@@ -74,9 +74,9 @@ def analyze_product_priorities(
     checkpoint(cancel)
     counts = dict.fromkeys((key for key, _ in _CATEGORIES), 0)
     rows, seen = [], set()
-    reference = _period_label(str(report.get("targetPeriod", "")))
-    recent = str(report.get("targetLabel", "")) or reference
-    previous = str(report.get("baseLabel", "")) or "janela anterior"
+    closing_periods = (report["targetPeriod"],) if report.get("targetPeriod") else ()
+    recent_periods = tuple(report.get("targetPeriods", ()))
+    previous_periods = tuple(report.get("basePeriods", ()))
     comparable = report.get("available") is True
     source_count = 0
     for original in _checked(report.get("rows", ()), cancel):
@@ -99,20 +99,23 @@ def analyze_product_priorities(
         if type(negative_positions) is not int or negative_positions < 0:
             raise ValueError("A contagem de posições negativas é inválida.")
         coverage = original.get("coverage")
-        reasons = []
+        criteria = []
         if (
             quantity is not None and quantity >= 0 and negative_positions == 0
             and sold is not None and sold > 0
             and type(coverage) in (int, float) and math.isfinite(coverage)
             and 0 <= coverage < coverage_days
         ):
-            reasons.append(_reason(
+            criteria.append(_criterion(
                 "coverage",
-                "Cobertura estimada de " + number(coverage, 1) + " dias no fechamento de "
-                + reference + ", abaixo do limite de " + str(coverage_days)
-                + " dias, pelo ritmo líquido de " + recent + ".",
-                "Confira prazo de reposição, pedidos em aberto e consumo interno. "
-                "A estimativa não confirma ruptura nem determina uma compra.",
+                _condition("coverage", "Cobertura", coverage, "<", coverage_days,
+                           1, "dias", recent_periods),
+                _condition("sold", "Vendas líquidas", sold, ">", 0,
+                           SCALE, unit, recent_periods),
+                _condition("stockQuantity", "Saldo", quantity, ">=", 0,
+                           SCALE, unit, closing_periods),
+                _condition("negativeStockPositionCount", "Posições negativas",
+                           negative_positions, "=", 0, 1, "posições", closing_periods),
             ))
         if (
             comparable and quantity is not None and quantity > 0
@@ -120,35 +123,36 @@ def analyze_product_priorities(
             and change is not None and change < 0 and change == sold - before
             and original.get("status") in ("down", "no_positive")
         ):
-            reasons.append(_reason(
+            criteria.append(_criterion(
                 "decline",
-                "Quantidade líquida de " + _quantity(sold, unit) + " em " + recent
-                + ", ante " + _quantity(before, unit) + " em " + previous
-                + "; saldo no fechamento de " + reference + ": "
-                + _quantity(quantity, unit) + ".",
-                "Confira demanda, devoluções e a finalidade desse saldo. "
-                "A queda observada não identifica sua causa.",
+                _condition("change", "Δ vendas líquidas", change, "<", 0,
+                           SCALE, unit, previous_periods + recent_periods),
+                _condition("previous", "Vendas anteriores", before, ">", 0,
+                           SCALE, unit, previous_periods),
+                _condition("sold", "Vendas recentes", sold, ">=", 0,
+                           SCALE, unit, recent_periods),
+                _condition("stockQuantity", "Saldo", quantity, ">", 0,
+                           SCALE, unit, closing_periods),
             ))
         if quantity is not None and quantity > 0 and sold == 0:
-            reasons.append(_reason(
+            criteria.append(_criterion(
                 "idle",
-                "Saldo de " + _quantity(quantity, unit) + " no fechamento de " + reference
-                + " e quantidade líquida registrada igual a zero em " + recent
-                + ". Saídas podem ter sido compensadas por devoluções.",
-                "Confira as transações e o uso interno antes de avaliar esse saldo. "
-                "Zero líquido não comprova ausência de vendas, obsolescência ou idade de lote.",
+                _condition("sold", "Vendas líquidas", sold, "=", 0,
+                           SCALE, unit, recent_periods),
+                _condition("stockQuantity", "Saldo", quantity, ">", 0,
+                           SCALE, unit, closing_periods),
             ))
         if quantity is not None and quantity > 0 and cost is not None and cost > 0:
-            reasons.append(_reason(
+            criteria.append(_criterion(
                 "capital",
-                "Estoque a custo de " + money(cost) + " no fechamento de " + reference
-                + ", dentro do recorte selecionado.",
-                "Avalie esse capital junto com demanda, giro e finalidade do produto. "
-                "A ordenação por valor não define excesso ou capital parado.",
+                _condition("stockCost", "Estoque a custo", cost, ">", 0,
+                           100, "R$", closing_periods),
+                _condition("stockQuantity", "Saldo", quantity, ">", 0,
+                           SCALE, unit, closing_periods),
             ))
-        if not reasons:
+        if not criteria:
             continue
-        categories = tuple(reason["key"] for reason in reasons)
+        categories = tuple(criterion["key"] for criterion in criteria)
         for key in categories:
             counts[key] += 1
         if any(key != "capital" for key in categories):
@@ -161,13 +165,13 @@ def analyze_product_priorities(
                 "apresentados são os agregados do fechamento."
             )
         if cost is not None and cost < 0:
-            notices.append("Custo agregado negativo preservado para conferência; fora de Maior capital.")
+            notices.append("Custo agregado negativo; fora do critério Estoque a custo > 0.")
         rows.append({
             **original,
             "categories": categories,
-            "reasons": tuple(reasons),
+            "criteria": tuple(criteria),
             "primaryCategory": categories[0],
-            "primaryTitle": reasons[0]["title"],
+            "primaryTitle": criteria[0]["label"],
             "dataNotice": " ".join(notices),
         })
 
@@ -194,6 +198,7 @@ def analyze_product_priorities(
                          for key, label in _CATEGORIES),
         counts=counts,
         coverageDays=coverage_days,
+        coveragePolicy="Limite configurado em Ajustar alertas",
         comparisonAvailable=comparable,
         sourceCount=source_count,
         referenceNotice="Saldo e capital se referem ao fechamento indicado, não ao saldo atual.",

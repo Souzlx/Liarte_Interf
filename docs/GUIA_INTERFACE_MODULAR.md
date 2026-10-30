@@ -2,7 +2,7 @@
 
 O aplicativo organiza **Estoque** e **Importações** em vistas próprias. Escolher uma vista muda o conteúdo apresentado; não percorre uma única página com todos os painéis. Os dados carregados, os filtros e as seleções continuam na mesma sessão.
 
-Nos fontes em desenvolvimento, **Produtos** passa a oferecer **Prioridades** e **Posições**. A [lista de prioridades](PRIORIDADES_PRODUTOS.md) é uma melhoria posterior à 5.3.1 publicada; os pacotes já distribuídos conservam a apresentação anterior dessa seção.
+Nos fontes em desenvolvimento, **Produtos** passa a oferecer **Indicadores** e **Posições**. Os [recortes quantitativos](PRIORIDADES_PRODUTOS.md) e a retirada de hipóteses comerciais são melhorias posteriores à 5.3.1 publicada; os pacotes já distribuídos conservam a apresentação anterior dessa seção.
 
 ![Panorama com indicadores principais e um gráfico por vez](images/interface-estoque-panorama.png)
 
@@ -14,7 +14,7 @@ Nos fontes em desenvolvimento, **Produtos** passa a oferecer **Prioridades** e *
 | --- | --- |
 | Panorama | Conferir capital a custo, produtos com saldo e giro da fonte; alternar entre evolução do estoque e capital por produto |
 | Análise mensal / Mês a mês | Consultar um fechamento, escolher o indicador do gráfico, comparar meses e explorar produtos do mês |
-| Produtos | Revisar prioridades, consultar e ordenar posições de estoque e investigar o desempenho de um produto |
+| Produtos | Consultar indicadores e critérios quantitativos, ordenar posições de estoque e investigar o desempenho de um produto |
 
 O Panorama mostra três indicadores principais. Alertas e capital por última venda ficam acessíveis sob demanda. O giro apresentado como mediana da fonte não é uma soma de giros nem um giro consolidado da empresa.
 
@@ -26,7 +26,7 @@ Na análise mensal, use o cursor ou as setas para consultar o gráfico. **Analis
 
 Em Produtos, **Desempenho dos produtos** oferece rankings por unidade, janelas consecutivas de 1, 3 ou 6 meses e investigação individual. A seleção nessa lista não altera os filtros gerais. Use **Filtrar este produto** para aplicar essa mudança explicitamente. Veja as definições no [guia de desempenho](DESEMPENHO_PRODUTOS.md).
 
-Na nova vista **Prioridades**, escolha o foco, a unidade e a janela e confirme em **Aplicar**. A lista reúne motivos para revisar reposição, queda nas vendas ou saldo sem venda líquida; **Maior capital** permite examinar valores a custo sem classificá-los como excesso. Saldo e capital se referem ao fechamento identificado, enquanto **Posições** mantém os saldos atuais. Selecionar um produto abre os motivos sem alterar o recorte; **Histórico completo** mantém produto, unidade e janela, e **Ver posições** aplica produto e unidade explicitamente. Veja os [critérios e limites](PRIORIDADES_PRODUTOS.md).
+Na nova vista **Indicadores**, escolha o foco, a unidade e a janela e confirme em **Aplicar**. A lista apresenta cobertura inferior ao limite configurado, variação de vendas negativa, saldo positivo com venda líquida zero e valores a custo. Saldo e capital se referem ao fechamento identificado, enquanto **Posições** mantém os saldos atuais. Selecionar um produto abre valores e critérios sem alterar o recorte; **Histórico completo** mantém produto, unidade e janela, e **Ver posições** aplica produto e unidade explicitamente. As narrativas de hipóteses e sugestões foram substituídas por tabelas de indicadores e referências. Veja os [critérios e limites](PRIORIDADES_PRODUTOS.md).
 
 Na lista **Posições de estoque**, use **Ordenar por** para escolher giro mensal da fonte, valor a custo, saldo, última venda, dias da fonte ou um dos campos de identificação. O botão ao lado indica a direção, como **Maior giro primeiro**, e permite invertê-la. Os cabeçalhos da tabela e esse controle compartilham a mesma ordenação. Trocar de vista preserva a escolha.
 
@@ -69,4 +69,4 @@ Os dois arquivos enviados têm o mesmo conteúdo funcional. A [análise do BI](A
 
 Receita, margem, entradas fiscais e carteira financeira são expansões possíveis porque existem campos correspondentes no BI. Esses módulos exigem contratos próprios antes de integrar o aplicativo. O custo já importado não é faturamento, e o cadastro examinado ainda não fornece o mapeamento produto–NCM necessário para cruzar diretamente empresa e mercado.
 
-A organização por tarefas e as ordenações estão na estável **5.3.1**; veja as [notas](RELEASE_5.3.1.md) e o [guia de instalação](INSTALACAO_531.md). A nova vista Prioridades está nos fontes em desenvolvimento e depende de uma entrega posterior.
+A organização por tarefas e as ordenações estão na estável **5.3.1**; veja as [notas](RELEASE_5.3.1.md) e o [guia de instalação](INSTALACAO_531.md). A nova vista Indicadores e a apresentação quantitativa estão nos fontes em desenvolvimento e dependem de uma entrega posterior.

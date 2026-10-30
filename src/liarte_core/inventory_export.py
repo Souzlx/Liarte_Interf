@@ -805,13 +805,13 @@ def export_inventory(
             "do recorte, independentemente da busca, ordenação e paginação da lista.",
         ))
         rules.append((
-            "Desempenho dos produtos · interpretação",
+            "Desempenho dos produtos · definições",
             "Vendas são quantidades líquidas, inclusive devoluções, em janelas completas "
             "consecutivas; um zero líquido não comprova ausência de saídas positivas. "
             "Percentuais exigem base positiva e nenhuma janela negativa. Giro é mediana "
             "das posições elegíveis no fechamento-alvo, não giro consolidado. Cobertura "
-            "estima dias ao ritmo registrado e não mede idade de lote. As hipóteses "
-            "orientam uma investigação, sem comprovar causas, rupturas ou compras.",
+            "estima dias ao ritmo registrado e não mede idade de lote. Indicadores e "
+            "comparações mantêm seus valores, unidades e períodos de referência.",
         ))
     if priorities is not None:
         rules.append((
@@ -828,7 +828,8 @@ def export_inventory(
             "Cobertura conhecida inferior a " + str(priorities.get("coverageDays", 30))
             + " dias; queda de vendas líquidas em janelas completas com saldo positivo; "
             "saldo positivo sem venda líquida recente; ou saldo e custo positivos na visão "
-            "Maior capital. Zero líquido pode incluir vendas compensadas por devoluções. "
+            "Estoque a custo. O limite de cobertura é uma política configurável. "
+            "Zero líquido pode incluir vendas compensadas por devoluções. "
             "Saldo e capital são do fechamento indicado, não do saldo atual. Capital "
             "não é faturamento, excesso ou capital parado presumido. A aba inclui todos "
             "os produtos e unidades classificados do recorte, independentemente do foco, "

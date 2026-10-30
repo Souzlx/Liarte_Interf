@@ -59,6 +59,8 @@ AppDialog {
     property string inspectedCode: ""
     property string inspectedUnit: ""
     property bool contextExpanded: false
+    property bool indicatorsExpanded: false
+    property bool definitionsExpanded: false
     readonly property string criticalReason: typeof summary.reason === "string" ? summary.reason : String(summary.notice || "")
     readonly property string contextNotice: typeof summary.reason === "string" ? String(summary.notice || "") : ""
     readonly property string draftSortField: sortField(draftSort)
@@ -72,7 +74,7 @@ AppDialog {
     readonly property bool unapplied: choice(draftUnit, draftWindow, draftSort, draftQuery) !== choice(viewState.unit, viewState.window, viewState.sort, viewState.query)
     signal productFocusRequested(string code, string unit)
 
-    title: investigating ? "Investigar produto" : "Desempenho dos produtos"
+    title: investigating ? "Indicadores do produto" : "Desempenho dos produtos"
     width: Math.min(980, parent ? parent.width - 32 : 980)
     height: Math.min(800, parent ? parent.height - 32 : 800)
 
@@ -148,6 +150,8 @@ AppDialog {
     }
     onInvestigatingChanged: {
         measure = "sales";
+        indicatorsExpanded = false;
+        definitionsExpanded = false;
         Qt.callLater(resetScroll);
     }
     onAboutToShow: {
@@ -700,56 +704,121 @@ AppDialog {
             font.pixelSize: 11
             wrapMode: Text.WordWrap
         }
-        Repeater {
-            model: [
-                {
-                    key: "Evidence",
-                    title: "O que os dados mostram",
-                    rows: dialog.detail.evidence || []
-                },
-                {
-                    key: "Hypotheses",
-                    title: "Hipóteses a verificar",
-                    rows: dialog.detail.hypotheses || []
-                },
-                {
-                    key: "Limitations",
-                    title: "Limites desta análise",
-                    rows: dialog.detail.limitations || []
-                }
-            ]
-            ColumnLayout {
-                id: findings
-                width: parent.width
-                required property var modelData
-                objectName: "stockPerformance" + modelData.key
-                visible: dialog.investigating && modelData.rows.length > 0
+        ActionButton {
+            objectName: "stockPerformanceIndicatorsToggle"
+            width: parent.width
+            visible: dialog.investigating && (dialog.detail.indicators || []).length > 0
+            Layout.minimumWidth: 0
+            text: dialog.indicatorsExpanded ? "Recolher indicadores" : "Mais indicadores (" + (dialog.detail.indicators || []).length + ")"
+            subtle: true
+            checkable: true
+            checked: dialog.indicatorsExpanded
+            onClicked: dialog.indicatorsExpanded = checked
+        }
+        ColumnLayout {
+            objectName: "stockPerformanceIndicators"
+            width: parent.width
+            visible: dialog.investigating && dialog.indicatorsExpanded && (dialog.detail.indicators || []).length > 0
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            Layout.fillHeight: false
+            spacing: 6
+            Text {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                Layout.fillHeight: false
-                spacing: 7
-                Text {
+                text: "Indicadores do período"
+                color: Theme.text
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+                wrapMode: Text.WordWrap
+            }
+            Repeater {
+                model: dialog.indicatorsExpanded ? dialog.detail.indicators || [] : []
+                Rectangle {
+                    id: indicatorRow
+                    required property var modelData
+                    required property int index
+                    objectName: "stockPerformanceIndicatorRow_" + index
                     Layout.fillWidth: true
                     Layout.minimumWidth: 0
-                    text: findings.modelData.title
-                    textFormat: Text.PlainText
-                    color: Theme.text
-                    font.pixelSize: 13
-                    font.weight: Font.DemiBold
-                    wrapMode: Text.WordWrap
-                }
-                Repeater {
-                    model: findings.modelData.rows
-                    Text {
-                        required property var modelData
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        text: "• " + modelData
-                        textFormat: Text.PlainText
-                        color: Theme.muted
-                        font.pixelSize: 12
-                        wrapMode: Text.WordWrap
+                    implicitHeight: indicatorValues.implicitHeight + 16
+                    color: Theme.surface
+                    border.color: Theme.softLine
+                    radius: 6
+                    GridLayout {
+                        id: indicatorValues
+                        x: 10
+                        y: 8
+                        width: parent.width - 20
+                        columns: width >= 560 ? 3 : 1
+                        columnSpacing: 14
+                        rowSpacing: 4
+                        Text {
+                            objectName: "stockPerformanceIndicatorLabel_" + indicatorRow.index
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            Layout.preferredWidth: indicatorValues.columns === 3 ? indicatorValues.width * 0.32 : -1
+                            text: indicatorRow.modelData.label
+                            textFormat: Text.PlainText
+                            color: Theme.muted
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                        }
+                        Text {
+                            objectName: "stockPerformanceIndicatorValue_" + indicatorRow.index
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            Layout.preferredWidth: indicatorValues.columns === 3 ? indicatorValues.width * 0.28 : -1
+                            text: indicatorRow.modelData.value
+                            textFormat: Text.PlainText
+                            color: Theme.text
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                            wrapMode: Text.WordWrap
+                        }
+                        Text {
+                            objectName: "stockPerformanceIndicatorReference_" + indicatorRow.index
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            text: indicatorRow.modelData.detail || ""
+                            textFormat: Text.PlainText
+                            color: Theme.muted
+                            font.pixelSize: 11
+                            wrapMode: Text.WordWrap
+                        }
                     }
+                }
+            }
+        }
+        ActionButton {
+            objectName: "stockPerformanceDefinitionsToggle"
+            visible: dialog.investigating && (dialog.detail.limitations || []).length > 0
+            Layout.minimumWidth: 0
+            text: dialog.definitionsExpanded ? "Recolher definições" : "Definições dos indicadores"
+            subtle: true
+            checkable: true
+            checked: dialog.definitionsExpanded
+            onClicked: dialog.definitionsExpanded = checked
+        }
+        ColumnLayout {
+            objectName: "stockPerformanceLimitations"
+            width: parent.width
+            visible: dialog.investigating && dialog.definitionsExpanded
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            Layout.fillHeight: false
+            spacing: 7
+            Repeater {
+                model: dialog.detail.limitations || []
+                Text {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    text: modelData
+                    textFormat: Text.PlainText
+                    color: Theme.muted
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
                 }
             }
         }

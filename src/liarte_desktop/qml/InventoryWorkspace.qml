@@ -748,7 +748,7 @@ FocusScope {
                         objectName: "stockProductsView_priorities"
                         Layout.fillWidth: true
                         Layout.minimumWidth: 0
-                        text: "Prioridades"
+                        text: "Indicadores"
                         primary: page.productView === "priorities"
                         subtle: page.productView !== "priorities"
                         onClicked: page.showProductView("priorities")

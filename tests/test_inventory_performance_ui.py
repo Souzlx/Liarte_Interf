@@ -221,12 +221,17 @@ class InventoryPerformanceUiTests(unittest.TestCase):
         self.assertEqual(self.c.state["count"], 4)
         rows = {row["code"]: row for row in self.c.summary["rows"]}
         self.assertEqual(set(rows), {"P001", "P002", "P003", "OLD"})
-        self.assertIn("devolu", rows["P002"]["status"])
-        self.assertIn("zero", rows["P003"]["status"])
+        self.assertEqual(rows["P002"]["status"], "Quantidade líquida < 0")
+        self.assertEqual(rows["P003"]["status"], "Quantidade líquida = 0")
         self.assertEqual(rows["OLD"]["stock"], "Sem fechamento")
         self.c.investigate("P002", "KG")
         self.idle()
         self.assertEqual(self.c.detail["code"], "P002")
+        self.assertTrue(self.c.detail["indicators"])
+        self.assertNotIn("evidence", self.c.detail)
+        self.assertNotIn("hypotheses", self.c.detail)
+        self.assertTrue(all(set(("key", "label", "value", "detail")) <= row.keys()
+                            for row in self.c.detail["indicators"]))
 
     def test_windows_are_cached_independently_and_source_change_invalidates_them(self):
         original = desktop.analyze_product_performance

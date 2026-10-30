@@ -1,4 +1,4 @@
-"""Export every classified product/unit and the evidence behind its priorities."""
+"""Export every classified product/unit with numerical criteria and references."""
 
 from __future__ import annotations
 
@@ -11,24 +11,24 @@ from .query import checkpoint
 _MAX_ROWS = 1_048_576
 _TITLE = "Prioridades dos produtos"
 _LABELS = {
-    "coverage": "Revisar reposição",
-    "decline": "Vendas em queda",
-    "idle": "Saldo sem venda líquida",
-    "capital": "Maior capital",
+    "coverage": "Cobertura < limite",
+    "decline": "Variação de vendas < 0",
+    "idle": "Saldo > 0 · vendas líquidas = 0",
+    "capital": "Estoque a custo",
 }
 _HEADERS = (
-    "Código", "Produto", "UM", "Situações para revisar", "Motivos observados",
-    "Próxima verificação", "Mês do fechamento", "Quantidade no fechamento",
+    "Código", "Produto", "UM", "Critérios quantitativos",
+    "Mês do fechamento", "Quantidade no fechamento",
     "Estoque a custo (R$)", "Janela anterior", "Janela recente",
     "Vendas líquidas anteriores", "Vendas líquidas recentes", "Diferença nas vendas",
     "Variação (%)", "Cobertura estimada (dias)", "Disponibilidade da cobertura",
     "Limite de cobertura (dias)", "Giro fonte · mediana (x/mês)",
     "Período do recorte", "Fonte, base e filtros", "Abrangência",
-    "Observações dos dados", "Comparação disponível", "Definição e limites",
+    "Observações dos dados", "Comparação disponível",
 )
 _WIDTHS = (
-    18, 48, 12, 40, 100, 100, 20, 28, 27, 27, 27, 28, 28, 27, 20,
-    27, 85, 24, 31, 27, 80, 90, 85, 24, 110,
+    18, 48, 12, 50, 20, 28, 27, 27, 27, 28, 28, 27, 20,
+    27, 65, 24, 31, 27, 80, 70, 75, 24,
 )
 _DEFINITION = (
     "Uma linha por produto e unidade, mesmo quando há mais de uma categoria. "
@@ -37,7 +37,7 @@ _DEFINITION = (
     "Estoque a custo não é faturamento. Vendas são líquidas: zero pode resultar de "
     "saídas compensadas por devoluções e não comprova ausência de vendas. "
     "Cobertura estimada não mede idade de lote nem confirma ruptura ou necessidade "
-    "de compra. Queda nas vendas não identifica sua causa. Maior capital é uma "
+    "de compra. Variação de vendas não identifica sua causa. Estoque a custo é uma "
     "ordenação por custo positivo, sem limiar que defina excesso ou capital parado. "
     "Ausências permanecem vazias; zero conhecido continua numérico. O arquivo inclui "
     "todas as prioridades e unidades do recorte, sem os limites de busca, categoria "
@@ -94,6 +94,7 @@ def export_product_priorities(workbook, report, *, cancel=None):
         "Janela anterior: " + str(report.get("baseLabel") or ""),
         "Janela recente: " + str(report.get("targetLabel") or ""),
         "Limite de cobertura: " + str(report.get("coverageDays") or "") + " dias",
+        report.get("coveragePolicy"),
         source_reference, report.get("scope"), report.get("notice"), report.get("reason"), definition,
     ) if value)
     layouts = {}
@@ -105,7 +106,7 @@ def export_product_priorities(workbook, report, *, cancel=None):
         title = _TITLE + (f" {part}" if part > 1 else "")
         sheet = workbook.create_sheet(title)
         sheet.append(_HEADERS)
-        sheet.cell(1, 25).comment = Comment(context, "LIARTE")
+        sheet.cell(1, len(_HEADERS)).comment = Comment(context, "LIARTE")
         sheet.freeze_panes = "A2"
         row_number = 1
         layouts[sheet.title] = _WIDTHS
@@ -114,15 +115,6 @@ def export_product_priorities(workbook, report, *, cancel=None):
         checkpoint(cancel)
         if sheet is None or row_number >= _MAX_ROWS:
             new_sheet()
-        reasons = row.get("reasons", ())
-        facts, next_steps = [], []
-        for reason in reasons:
-            checkpoint(cancel)
-            title = str(reason.get("title") or labels.get(reason["key"], reason["key"]))
-            if reason.get("fact"):
-                facts.append(title + ": " + str(reason["fact"]))
-            if reason.get("nextStep"):
-                next_steps.append(title + ": " + str(reason["nextStep"]))
         notices = " ".join(dict.fromkeys(
             str(value) for value in (
                 row.get("dataNotice"), row.get("reason"), report.get("notice"),
@@ -133,7 +125,7 @@ def export_product_priorities(workbook, report, *, cancel=None):
         values = [
             row["code"], row["name"], row["unit"],
             "; ".join(labels.get(key, key) for key in row.get("categories", ())),
-            "\n".join(facts), "\n".join(next_steps), report.get("targetPeriod", ""),
+            report.get("targetPeriod", ""),
             _excel_scaled(row.get("stockQuantity"), SCALE),
             _excel_scaled(row.get("stockCost"), 100),
             report.get("baseLabel", ""), report.get("targetLabel", ""),
@@ -142,13 +134,13 @@ def export_product_priorities(workbook, report, *, cancel=None):
             row.get("percentage"), row.get("coverage"), row.get("coverageReason", ""),
             report.get("coverageDays"), row.get("turnover"), period, source_reference,
             report.get("scope", ""), notices,
-            "Sim" if report.get("comparisonAvailable") is True else "Não", definition,
+            "Sim" if report.get("comparisonAvailable") is True else "Não",
         ]
         _append_values(sheet, values, row_number)
-        for column in (8, 12, 13, 14):
+        for column in (6, 10, 11, 12):
             sheet.cell(row_number, column).number_format = "#,##0.000;[Red](#,##0.000)"
-        sheet.cell(row_number, 9).number_format = '"R$" #,##0.00;[Red]("R$" #,##0.00)'
-        for column in (15, 16, 19):
+        sheet.cell(row_number, 7).number_format = '"R$" #,##0.00;[Red]("R$" #,##0.00)'
+        for column in (13, 14, 17):
             sheet.cell(row_number, column).number_format = "0.00"
         for column, value in enumerate(values, 1):
             if isinstance(value, str):
@@ -156,9 +148,9 @@ def export_product_priorities(workbook, report, *, cancel=None):
                 cell.data_type = "s"
                 if cell.comment is not None and cell.comment.author == "LIARTE":
                     cell.number_format = "@"
-        sheet.auto_filter.ref = f"A1:Y{row_number}"
+        sheet.auto_filter.ref = f"A1:V{row_number}"
     if sheet is None:
         new_sheet()
-        sheet.auto_filter.ref = "A1:Y1"
+        sheet.auto_filter.ref = "A1:V1"
     checkpoint(cancel)
     return layouts

@@ -115,7 +115,7 @@ ColumnLayout {
             Text {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                text: "Prioridades dos produtos"
+                text: "Indicadores dos produtos"
                 color: Theme.text
                 font.pixelSize: 18
                 font.weight: Font.DemiBold
@@ -124,7 +124,7 @@ ColumnLayout {
             Text {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                text: "Comece pelas situações que pedem revisão. Selecione um produto para entender os motivos."
+                text: "Valores, comparações e critérios do período selecionado."
                 color: Theme.muted
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap
@@ -164,7 +164,7 @@ ColumnLayout {
                     Layout.fillWidth: true
                     Layout.minimumWidth: 0
                     spacing: 4
-                    Text { text: "Foco da revisão"; color: Theme.muted; font.pixelSize: 11 }
+                    Text { text: "Critério"; color: Theme.muted; font.pixelSize: 11 }
                     AppCombo {
                         id: categoryChoice
                         objectName: "stockPrioritiesCategory"
@@ -173,7 +173,7 @@ ColumnLayout {
                         model: root.categories
                         currentIndex: root.optionIndex(model, root.draftCategory)
                         enabled: root.controlsEnabled && !root.viewState.busy && count > 0
-                        Accessible.name: "Foco da revisão dos produtos"
+                        Accessible.name: "Critério dos indicadores dos produtos"
                         onActivated: index => root.draftCategory = String(model[index].value)
                         ToolTip.visible: hovered
                         ToolTip.text: currentText
@@ -192,7 +192,7 @@ ColumnLayout {
                         model: root.units
                         currentIndex: root.optionIndex(model, root.draftUnit)
                         enabled: root.controlsEnabled && !root.viewState.busy && count > 0
-                        Accessible.name: "Unidade das prioridades dos produtos"
+                        Accessible.name: "Unidade dos indicadores dos produtos"
                         onActivated: index => root.draftUnit = String(model[index].value)
                     }
                 }
@@ -209,7 +209,7 @@ ColumnLayout {
                         model: root.windows
                         currentIndex: root.optionIndex(model, root.draftWindow)
                         enabled: root.controlsEnabled && !root.viewState.busy && count > 0
-                        Accessible.name: "Janela de vendas das prioridades"
+                        Accessible.name: "Janela de vendas dos indicadores"
                         onActivated: index => root.draftWindow = String(model[index].value)
                     }
                 }
@@ -237,7 +237,7 @@ ColumnLayout {
                     leftPadding: 12
                     rightPadding: 12
                     enabled: root.controlsEnabled && !root.viewState.busy
-                    Accessible.name: "Buscar na lista de prioridades"
+                    Accessible.name: "Buscar na lista de indicadores"
                     Accessible.description: "Digite o código ou nome e use Aplicar. Os filtros gerais do estoque são preservados."
                     onTextEdited: root.draftQuery = text
                     onAccepted: root.applyChoice()
@@ -255,7 +255,7 @@ ColumnLayout {
                     text: "Aplicar"
                     primary: true
                     enabled: root.controlsEnabled && !root.viewState.busy && root.validChoice
-                    Accessible.name: "Aplicar foco, unidade, janela e busca das prioridades"
+                    Accessible.name: "Aplicar critério, unidade, janela e busca dos indicadores"
                     onClicked: root.applyChoice()
                 }
             }
@@ -290,7 +290,7 @@ ColumnLayout {
             subtle: true
             implicitWidth: Math.max(82, naturalWidth)
             enabled: root.viewState.current
-            Accessible.name: root.contextExpanded ? "Recolher critérios das prioridades" : "Mostrar critérios das prioridades"
+            Accessible.name: root.contextExpanded ? "Recolher critérios dos indicadores" : "Mostrar critérios dos indicadores"
             onClicked: root.contextExpanded = !root.contextExpanded
         }
     }
@@ -309,7 +309,7 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.minimumWidth: 0
         visible: root.contextExpanded && root.viewState.current
-        text: [root.summary.scope || "", root.summary.notice || "", "Ordenação: " + (root.summary.orderLabel || "Maior capital no fechamento") + ". Capital é custo, não faturamento. Cobertura não mede a idade dos lotes."].filter(value => value.length > 0).join("\n")
+        text: [root.summary.scope || "", root.summary.notice || "", "Ordenação: " + (root.summary.orderLabel || "Estoque a custo no fechamento") + ".", "Limite de cobertura: " + root.summary.coverageDays + " dias · " + (root.summary.coveragePolicy || "política configurável") + ".", "Custo ≠ faturamento · cobertura ≠ idade dos lotes."].filter(value => value.length > 0).join("\n")
         textFormat: Text.PlainText
         color: Theme.muted
         font.pixelSize: 11
@@ -319,7 +319,7 @@ ColumnLayout {
         objectName: "stockPrioritiesNotice"
         Layout.fillWidth: true
         Layout.minimumWidth: 0
-        text: root.viewState.error || (root.viewState.busy ? "Preparando as prioridades dos produtos…" : root.viewState.cancelled ? (root.viewState.current ? "Atualização cancelada. Os resultados anteriores foram mantidos." : "A preparação das prioridades foi cancelada.") : root.summary.reason || "")
+        text: root.viewState.error || (root.viewState.busy ? "Calculando os indicadores dos produtos…" : root.viewState.cancelled ? (root.viewState.current ? "Atualização cancelada. Os resultados anteriores foram mantidos." : "O cálculo dos indicadores foi cancelado.") : root.summary.reason || "")
         visible: text.length > 0
         textFormat: Text.PlainText
         color: root.viewState.error ? Theme.danger : Theme.muted
@@ -329,7 +329,7 @@ ColumnLayout {
     ActionButton {
         objectName: "stockPrioritiesRefresh"
         visible: root.viewState.available && !root.viewState.current && !root.viewState.busy
-        text: root.viewState.error ? "Tentar novamente" : "Preparar prioridades"
+        text: root.viewState.error ? "Tentar novamente" : "Calcular indicadores"
         primary: true
         enabled: root.controlsEnabled
         onClicked: root.priorities.refresh()
@@ -358,7 +358,7 @@ ColumnLayout {
             bottomPadding: 12
             enabled: root.canInspect
             hoverEnabled: true
-            Accessible.name: modelData.code + " · " + modelData.name + " · " + modelData.unit + ". " + modelData.primaryTitle + ". Investigar produto."
+            Accessible.name: modelData.code + " · " + modelData.name + " · " + modelData.unit + ". " + modelData.primaryTitle + ". Ver indicadores do produto."
             onClicked: root.inspect(modelData)
             contentItem: ColumnLayout {
                 spacing: 7
@@ -414,14 +414,15 @@ ColumnLayout {
                 Text {
                     Layout.fillWidth: true
                     Layout.minimumWidth: 0
-                    text: productRow.modelData.reason
+                    objectName: "stockPrioritiesCriterion_" + productRow.index
+                    text: productRow.modelData.criterion || ""
                     textFormat: Text.PlainText
                     color: Theme.muted
                     font.pixelSize: 11
                     wrapMode: Text.WordWrap
                 }
                 Text {
-                    text: "Investigar produto →"
+                    text: "Ver indicadores →"
                     textFormat: Text.PlainText
                     color: Theme.accent
                     font.pixelSize: 11
@@ -440,7 +441,7 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.minimumWidth: 0
         visible: root.viewState.current && !root.viewState.busy && root.viewState.count === 0
-        text: "Nenhum produto atende ao foco aplicado. Escolha outro foco ou refine a unidade e o período. Dados indisponíveis não são tratados como zero."
+        text: "Nenhum produto atende ao critério aplicado. Dados indisponíveis não são tratados como zero."
         color: Theme.muted
         font.pixelSize: 12
         wrapMode: Text.WordWrap
@@ -452,7 +453,7 @@ ColumnLayout {
             objectName: "stockPrioritiesCount"
             Layout.fillWidth: true
             Layout.minimumWidth: 0
-            text: (root.viewState.count || 0) + " produtos · " + (root.summary.orderLabel || "Maior capital no fechamento")
+            text: (root.viewState.count || 0) + " produtos · " + (root.summary.orderLabel || "Estoque a custo no fechamento")
             textFormat: Text.PlainText
             color: Theme.muted
             font.pixelSize: 11
@@ -464,7 +465,7 @@ ColumnLayout {
             iconName: "left"
             implicitWidth: 40
             enabled: root.canInspect && root.viewState.page > 1
-            Accessible.name: "Página anterior das prioridades"
+            Accessible.name: "Página anterior dos indicadores"
             onClicked: root.priorities.setPage(root.viewState.page - 1)
         }
         Text {
@@ -478,14 +479,14 @@ ColumnLayout {
             iconName: "right"
             implicitWidth: 40
             enabled: root.canInspect && root.viewState.page < root.viewState.pages
-            Accessible.name: "Próxima página das prioridades"
+            Accessible.name: "Próxima página dos indicadores"
             onClicked: root.priorities.setPage(root.viewState.page + 1)
         }
     }
     AppDialog {
         id: priorityDetail
         objectName: "stockPrioritiesDetail"
-        title: "Investigar prioridade"
+        title: "Indicadores do produto"
         width: Math.min(780, parent ? parent.width - 32 : 780)
         height: Math.min(720, parent ? parent.height - 32 : 720)
         onClosed: root.detailRequested = false
@@ -552,40 +553,75 @@ ColumnLayout {
                 }
             }
         }
-        Repeater {
-            model: root.detail.reasons || []
-            ColumnLayout {
-                required property var modelData
+        ColumnLayout {
+            objectName: "stockPrioritiesCriteria"
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            visible: (root.detail.criteria || []).length > 0
+            spacing: 6
+            Text {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                spacing: 5
-                Text {
+                text: "Critérios quantitativos"
+                color: Theme.text
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+                wrapMode: Text.WordWrap
+            }
+            Repeater {
+                model: root.detail.criteria || []
+                Rectangle {
+                    id: criterionRow
+                    required property var modelData
+                    required property int index
+                    objectName: "stockPrioritiesCriterionRow_" + index
                     Layout.fillWidth: true
                     Layout.minimumWidth: 0
-                    text: modelData.title
-                    textFormat: Text.PlainText
-                    color: Theme.text
-                    font.pixelSize: 13
-                    font.weight: Font.DemiBold
-                    wrapMode: Text.WordWrap
-                }
-                Text {
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: 0
-                    text: modelData.fact
-                    textFormat: Text.PlainText
-                    color: Theme.muted
-                    font.pixelSize: 12
-                    wrapMode: Text.WordWrap
-                }
-                Text {
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: 0
-                    text: "Próximo passo: " + modelData.nextStep
-                    textFormat: Text.PlainText
-                    color: Theme.muted
-                    font.pixelSize: 12
-                    wrapMode: Text.WordWrap
+                    implicitHeight: criterionValues.implicitHeight + 16
+                    color: Theme.surface
+                    border.color: Theme.softLine
+                    radius: 6
+                    GridLayout {
+                        id: criterionValues
+                        x: 10
+                        y: 8
+                        width: parent.width - 20
+                        columns: width >= 500 ? 3 : 1
+                        columnSpacing: 14
+                        rowSpacing: 4
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            Layout.preferredWidth: criterionValues.columns === 3 ? criterionValues.width * 0.32 : -1
+                            text: criterionRow.modelData.label
+                            textFormat: Text.PlainText
+                            color: Theme.muted
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                        }
+                        Text {
+                            objectName: "stockPrioritiesCriterionValue_" + criterionRow.index
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            Layout.preferredWidth: criterionValues.columns === 3 ? criterionValues.width * 0.30 : -1
+                            text: criterionRow.modelData.value
+                            textFormat: Text.PlainText
+                            color: Theme.text
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                            wrapMode: Text.WordWrap
+                        }
+                        Text {
+                            objectName: "stockPrioritiesCriterionReference_" + criterionRow.index
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            text: criterionRow.modelData.detail || ""
+                            textFormat: Text.PlainText
+                            color: Theme.muted
+                            font.pixelSize: 11
+                            wrapMode: Text.WordWrap
+                        }
+                    }
                 }
             }
         }

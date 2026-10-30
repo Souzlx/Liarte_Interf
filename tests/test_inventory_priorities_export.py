@@ -53,7 +53,7 @@ class InventoryPrioritiesExportTests(unittest.TestCase):
         values = list(sheet.values)
         return [dict(zip(values[0], row, strict=True)) for row in values[1:]]
 
-    def test_all_units_export_once_per_identity_with_every_reason_in_the_same_row(self):
+    def test_all_units_export_once_per_identity_with_quantitative_criteria_only(self):
         original = deepcopy(self.report)
         layouts = export_product_priorities(self.book, self.report)
         rows = self.rows()
@@ -61,17 +61,20 @@ class InventoryPrioritiesExportTests(unittest.TestCase):
         self.assertEqual({(r["Código"], r["UM"]) for r in rows},
                          {("A", "KG"), ("A", "UN"), ("B", "L")})
         a = next(row for row in rows if row["Código"] == "A" and row["UM"] == "KG")
-        self.assertIn("Vendas em queda", a["Situações para revisar"])
-        self.assertIn("Saldo sem venda líquida", a["Situações para revisar"])
-        self.assertIn("Maior capital", a["Situações para revisar"])
-        self.assertIn("devoluções", a["Motivos observados"])
-        self.assertIn("uso interno", a["Próxima verificação"])
+        self.assertIn("Variação de vendas < 0", a["Critérios quantitativos"])
+        self.assertIn("Saldo > 0 · vendas líquidas = 0", a["Critérios quantitativos"])
+        self.assertIn("Estoque a custo", a["Critérios quantitativos"])
+        for header in ("Situações para revisar", "Motivos observados", "Próxima verificação",
+                       "Definição e limites"):
+            self.assertNotIn(header, a)
+        self.assertFalse(any("Confira" in str(value) or "Avalie" in str(value)
+                             for row in rows for value in row.values()))
         self.assertEqual(a["Quantidade no fechamento"], 10)
         self.assertEqual(a["Estoque a custo (R$)"], 123.45)
         self.assertEqual(a["Vendas líquidas anteriores"], 5)
         self.assertEqual(a["Diferença nas vendas"], -5)
         self.assertEqual(self.report, original)
-        self.assertEqual(len(layouts["Prioridades dos produtos"]), 25)
+        self.assertEqual(len(layouts["Prioridades dos produtos"]), 22)
 
     def test_known_zero_remains_numeric_and_missing_metrics_remain_empty(self):
         export_product_priorities(self.book, self.report)
@@ -97,9 +100,11 @@ class InventoryPrioritiesExportTests(unittest.TestCase):
             self.assertEqual(row["Limite de cobertura (dias)"], 30)
             self.assertEqual(row["Abrangência"], self.report["scope"])
             self.assertEqual(row["Comparação disponível"], "Sim")
-            for term in ("não é faturamento", "não mede idade", "não comprova ausência de vendas",
-                         "sem os limites de busca", "não devem ser somadas"):
-                self.assertIn(term, row["Definição e limites"])
+        context = self.book["Prioridades dos produtos"].cell(1, 22).comment.text
+        for term in ("não é faturamento", "não mede idade", "não comprova ausência de vendas",
+                     "sem os limites de busca", "não devem ser somadas",
+                     "Limite configurado em Ajustar alertas"):
+            self.assertIn(term, context)
 
     def test_optional_source_base_date_and_explicit_filters_stay_in_each_exported_row(self):
         report = dict(self.report, sourceName="Base sintética.pbix", asOf="2026-03-15",
@@ -130,9 +135,9 @@ class InventoryPrioritiesExportTests(unittest.TestCase):
                         self.assertEqual(row[0].value, "=1+1")
                         self.assertEqual(row[0].data_type, "s")
                         self.assertEqual(row[1].data_type, "s")
-                        self.assertEqual(row[12].value, "10000000000000000.000001")
-                        self.assertEqual(row[8].value, "10000000000000000.01")
-                        for cell in (row[8], row[12]):
+                        self.assertEqual(row[10].value, "10000000000000000.000001")
+                        self.assertEqual(row[6].value, "10000000000000000.01")
+                        for cell in (row[6], row[10]):
                             self.assertEqual(cell.number_format, "@")
                             self.assertIsNotNone(cell.comment)
             finally:
@@ -143,11 +148,11 @@ class InventoryPrioritiesExportTests(unittest.TestCase):
         export_product_priorities(self.book, report)
         sheet = self.book["Prioridades dos produtos"]
         self.assertEqual(sheet.max_row, 1)
-        self.assertEqual(sheet.max_column, 25)
-        self.assertEqual(sheet.auto_filter.ref, "A1:Y1")
+        self.assertEqual(sheet.max_column, 22)
+        self.assertEqual(sheet.auto_filter.ref, "A1:V1")
         self.assertEqual(sheet.freeze_panes, "A2")
-        self.assertIn("Histórico insuficiente", sheet.cell(1, 25).comment.text)
-        self.assertIn("02/2026", sheet.cell(1, 25).comment.text)
+        self.assertIn("Histórico insuficiente", sheet.cell(1, 22).comment.text)
+        self.assertIn("02/2026", sheet.cell(1, 22).comment.text)
 
     def test_pre_cancelled_export_does_not_add_a_partial_sheet(self):
         cancel = Event()

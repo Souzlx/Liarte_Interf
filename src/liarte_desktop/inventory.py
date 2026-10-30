@@ -137,7 +137,7 @@ def _alert_presentation(result, cancel):
         if key == "low_coverage" and not result.coverage_available:
             notice = "Indisponível com filtro de armazém: as vendas são registradas por filial."
         elif key == "low_coverage" and no_coverage:
-            notice = "Nenhuma combinação tem cobertura calculável neste recorte. Confira o período, as vendas positivas e os saldos; valores ausentes não representam cobertura zero."
+            notice = "Nenhuma combinação tem cobertura calculável neste recorte. A cobertura exige vendas positivas e saldo elegível; valores ausentes não representam cobertura zero."
         elif key == "low_coverage" and result.coverage_unavailable_count:
             notice = f"{result.coverage_unavailable_count} combinações sem cobertura calculável ficam fora deste alerta."
         categories.append({
@@ -453,7 +453,7 @@ def _monthly_view(months, units, selected, names, period, unit):
                 if focused["stockChange"] is not None
                 else "Sem comparação entre fechamentos completos consecutivos"
             )
-            + ". Registros observados; confira mudanças de cobertura.",
+            + ". Comparação dos registros observados nos fechamentos.",
         },
         {
             "label": "Vendas do mês" + (" · parcial" if focused["partial"] else ""),

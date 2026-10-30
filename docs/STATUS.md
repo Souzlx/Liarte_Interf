@@ -39,11 +39,13 @@ Os workflows [Linux 40906447193](https://github.com/Souzlx/Liarte_Interf/actions
 
 ## Fontes e limites dos indicadores
 
-Nos fontes em desenvolvimento, **Produtos → Prioridades** acrescenta uma lista de revisão com cobertura, queda de vendas, saldo sem venda líquida e uma visão por capital no fechamento. A investigação preserva o recorte e a exportação registra os critérios e períodos. Essa melhoria é posterior à 5.3.1 publicada e não modifica seus pacotes; veja os [critérios de Prioridades](PRIORIDADES_PRODUTOS.md).
+Nos fontes em desenvolvimento, **Produtos → Indicadores** acrescenta recortes quantitativos de cobertura, variação de vendas, saldo com venda líquida zero e estoque a custo no fechamento. A investigação preserva o recorte e a exportação registra valores, critérios e períodos. Hipóteses comerciais e sugestões prontas foram retiradas do desempenho e dos recortes por produto, inclusive no Excel. Essa melhoria é posterior à 5.3.1 publicada e não modifica seus pacotes; veja os [critérios quantitativos](PRIORIDADES_PRODUTOS.md).
 
 O desktop consulta diretamente a API do Comex Stat quando uma consulta é solicitada. Navegar, filtrar e ordenar os resultados aceitos usa os dados já carregados. Pausas HTTP 429 são respeitadas e apresentadas na interface; a disponibilidade do serviço externo não é garantida pelo aplicativo.
 
 O Estoque utiliza PBIX ou snapshots `.liarte`, sem executar conexões ou expressões do PBIX. O pacote inclui uma base datada de **21/10/2026**; a última base válida importada localmente pelo usuário tem preferência. Não há conexão ao vivo com o ERP.
+
+Foi informada uma futura origem **SQL Server**, compartilhada com o BI. Os leitores atuais passam por um contrato normalizado e validado, preparado para reutilização por um adaptador futuro. A conexão real, o mapeamento autorizado e a estratégia de consistência e atualização ainda dependem do esquema e do acesso fornecidos pela empresa; veja a [diretriz de migração](ANALISE_QUANTITATIVA_E_SQL_SERVER.md).
 
 Giro da fonte, cobertura estimada e tempo desde a última venda são conceitos distintos. Quantidades de unidades diferentes não são somadas. Custo não representa faturamento, e a base atual não permite determinar a idade física dos lotes. Veja as [definições de desempenho](DESEMPENHO_PRODUTOS.md) e a [análise do BI](ANALISE_BI_E_EXPERIENCIA.md).
 

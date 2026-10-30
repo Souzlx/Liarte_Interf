@@ -44,7 +44,7 @@ def classified(*rows, **options):
 
 
 class InventoryPrioritiesTests(unittest.TestCase):
-    def test_overlapping_reasons_count_one_product_unit_in_review(self):
+    def test_overlapping_criteria_count_one_product_unit_in_review(self):
         value = row(sold=5 * SCALE, change=-5 * SCALE, status="down", coverage=20)
         result = classified(value)
         self.assertEqual(result["counts"], {
@@ -53,8 +53,17 @@ class InventoryPrioritiesTests(unittest.TestCase):
         item, = result["rows"]
         self.assertEqual(item["categories"], ("coverage", "decline", "capital"))
         self.assertEqual(item["primaryCategory"], "coverage")
-        self.assertEqual([r["key"] for r in item["reasons"]], list(item["categories"]))
-        self.assertTrue(all(r["fact"] and r["nextStep"] for r in item["reasons"]))
+        self.assertEqual([r["key"] for r in item["criteria"]], list(item["categories"]))
+        self.assertNotIn("reasons", item)
+        coverage, decline, capital = item["criteria"]
+        self.assertEqual(coverage["conditions"][0], {
+            "metric": "coverage", "label": "Cobertura", "value": 20,
+            "operator": "<", "reference": 30, "scale": 1, "unit": "dias",
+            "periods": ("2026-02",),
+        })
+        self.assertEqual(decline["conditions"][0]["value"], -5 * SCALE)
+        self.assertEqual(capital["conditions"][0]["value"], value["stockCost"])
+        self.assertTrue(all("fact" not in r and "nextStep" not in r for r in item["criteria"]))
 
     def test_coverage_threshold_is_strict_and_zero_is_a_known_value(self):
         for coverage, expected in ((0, 1), (29.999, 1), (30, 0), (None, 0), (-1, 0),
@@ -94,10 +103,13 @@ class InventoryPrioritiesTests(unittest.TestCase):
     def test_zero_net_sales_remains_distinct_from_no_sales_or_old_stock(self):
         value = row(sold=0, change=-10 * SCALE, status="no_positive", positiveMonths=1)
         item, = classified(value)["rows"]
-        reason = next(r for r in item["reasons"] if r["key"] == "idle")
-        self.assertEqual(reason["title"], "Saldo sem venda líquida")
-        self.assertIn("compensadas por devoluções", reason["fact"])
-        self.assertIn("não comprova ausência de vendas", reason["nextStep"])
+        criterion = next(r for r in item["criteria"] if r["key"] == "idle")
+        self.assertEqual(criterion["label"], "Saldo > 0 · vendas líquidas = 0")
+        sales, stock = criterion["conditions"]
+        self.assertEqual((sales["metric"], sales["operator"], sales["value"], sales["reference"]),
+                         ("sold", "=", 0, 0))
+        self.assertEqual((stock["metric"], stock["operator"], stock["value"]),
+                         ("stockQuantity", ">", 100 * SCALE))
         self.assertEqual(item["positiveMonths"], 1)
         for sold in (None, -SCALE, SCALE):
             with self.subTest(sold=sold):
@@ -107,8 +119,11 @@ class InventoryPrioritiesTests(unittest.TestCase):
         result = classified(row(stockCost=1))
         self.assertEqual(result["counts"]["capital"], 1)
         self.assertEqual(result["counts"]["review"], 0)
-        self.assertEqual(result["rows"][0]["primaryTitle"], "Maior capital")
-        self.assertIn("não define excesso", result["rows"][0]["reasons"][0]["nextStep"])
+        self.assertEqual(result["rows"][0]["primaryTitle"], "Estoque a custo")
+        condition = result["rows"][0]["criteria"][0]["conditions"][0]
+        self.assertEqual((condition["metric"], condition["value"], condition["operator"],
+                          condition["reference"], condition["scale"]),
+                         ("stockCost", 1, ">", 0, 100))
         for cost, quantity in ((0, SCALE), (-1, SCALE), (None, SCALE), (100, 0), (100, None)):
             with self.subTest(cost=cost, quantity=quantity):
                 self.assertEqual(classified(row(stockCost=cost, stockQuantity=quantity))[
@@ -157,7 +172,33 @@ class InventoryPrioritiesTests(unittest.TestCase):
         self.assertEqual(result["excludedPeriods"], ("2026-04",))
         self.assertEqual(result["targetLabel"], prepared["targetLabel"])
         for item in result["rows"]:
-            self.assertTrue(all("03/2026" in reason["fact"] for reason in item["reasons"]))
+            stock_conditions = [condition for criterion in item["criteria"]
+                                for condition in criterion["conditions"]
+                                if condition["metric"] in ("stockQuantity", "stockCost")]
+            self.assertTrue(stock_conditions)
+            self.assertTrue(all(condition["periods"] == ("2026-03",)
+                                for condition in stock_conditions))
+
+    def test_criteria_follow_changed_identifiers_dates_and_exact_revised_facts(self):
+        huge = 10**24 + 1
+        value = row("NOVO-845", "CX", sold=0, change=-10 * SCALE,
+                    status="no_positive", stockCost=huge)
+        prepared = source(value, selectionStart="2044-07", selectionEnd="2044-08",
+                          basePeriods=("2044-07",), targetPeriods=("2044-08",),
+                          baseLabel="07/2044", targetLabel="08/2044", targetPeriod="2044-08")
+        result = analyze_product_priorities(prepared)
+        item, = result["rows"]
+        self.assertEqual((item["code"], item["unit"]), ("NOVO-845", "CX"))
+        criteria = {criterion["key"]: criterion for criterion in item["criteria"]}
+        capital = criteria["capital"]["conditions"][0]
+        self.assertEqual((capital["value"], capital["periods"]), (huge, ("2044-08",)))
+        self.assertEqual(criteria["idle"]["conditions"][0]["periods"], ("2044-08",))
+        updated = dict(prepared, rows=(dict(value, sold=15 * SCALE, change=5 * SCALE,
+                                           status="up", stockCost=1),))
+        revised = analyze_product_priorities(updated)
+        self.assertEqual(revised["rows"][0]["categories"], ("capital",))
+        self.assertEqual(revised["counts"]["review"], 0)
+        self.assertEqual(item["stockCost"], huge)
 
     def test_missing_baseline_keeps_known_recent_capital_and_coverage(self):
         prepared = report(extended_sample(), start="2026-03", end="2026-06", window=3)

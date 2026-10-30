@@ -125,9 +125,11 @@ def main():
         InventoryPrioritiesUiTests, InventoryPrioritiesIntegrationTests,
     )
     from tests.test_inventory_priorities_qml import InventoryPrioritiesQmlTests
+    from tests.test_inventory_source import InventorySourceContractTests
 
     suite = unittest.TestSuite()
     for case in (
+        InventorySourceContractTests,
         InventoryPrioritiesTests,
         InventoryPrioritiesExportTests,
         InventoryPrioritiesUiTests,

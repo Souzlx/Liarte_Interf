@@ -188,7 +188,7 @@ class InventoryPrioritiesQmlTests(unittest.TestCase):
         self.assertNotIn(self.c.state["asOf"], period)
         self.assertEqual(self.bundle.messages, [])
 
-    def test_investigation_shows_reasons_without_changing_global_filters_or_list(self):
+    def test_investigation_shows_numeric_criteria_without_changing_global_filters_or_list(self):
         priorities = self.open_priorities()
         self.configure()
         first = priorities.summary["rows"][0]
@@ -200,13 +200,58 @@ class InventoryPrioritiesQmlTests(unittest.TestCase):
         self.assertEqual((priorities.detail["code"], priorities.detail["unit"]),
                          (first["code"], first["unit"]))
         self.assertTrue(priorities.detail["metrics"])
-        self.assertTrue(priorities.detail["reasons"])
+        self.assertTrue(priorities.detail["criteria"])
+        for index, criterion in enumerate(priorities.detail["criteria"]):
+            self.assertEqual(self.item(f"stockPrioritiesCriterionValue_{index}").property("text"),
+                             criterion["value"])
+            self.assertEqual(self.item(f"stockPrioritiesCriterionReference_{index}").property("text"),
+                             criterion["detail"])
+        self.assertEqual(self.item("stockPrioritiesCriterion_0").property("text"), first["criterion"])
         self.assertEqual((self.c.state["selection"], self.c.table.rows, self.c.monthly,
                           priorities.state["category"], priorities.state["page"]), before)
         self.assertTrue(self.workspace.property("modalOpen"))
         QTest.keyClick(self.window, Qt.Key.Key_Escape)
         self.assertTrue(pump(lambda: not dialog.property("visible")))
         self.assertTrue(pump(lambda: not self.workspace.property("modalOpen")))
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_numeric_detail_keeps_all_criteria_visible_at_wide_and_compact_sizes(self):
+        priorities = self.open_priorities()
+        self.configure(category="review")
+        if not priorities.summary["rows"]:
+            self.configure(category="capital")
+        self.click_control(self.item("stockPrioritiesRow_0"))
+        self.assertTrue(pump(lambda: self.item("stockPrioritiesDetail").property("opened")))
+        criteria = priorities.detail["criteria"]
+        self.assertTrue(criteria)
+        for width, height in ((1380, 900), (900, 700), (500, 400)):
+            with self.subTest(width=width):
+                self.window.resize(width, height)
+                self.assertTrue(pump(lambda: abs(self.window.contentItem().width() - width) < 1))
+                for index, criterion in enumerate(criteria):
+                    row = self.item(f"stockPrioritiesCriterionRow_{index}")
+                    self.ready(row)
+                    value = self.item(f"stockPrioritiesCriterionValue_{index}")
+                    self.assertEqual(value.property("text"), criterion["value"])
+                    for control in (row, value):
+                        x, y, control_width, control_height = self.geometry(control)["control"]
+                        viewport = self.geometry(control)["viewport"]
+                        self.assertGreaterEqual(x, -1)
+                        self.assertLessEqual(x + control_width, viewport[0] + 1)
+                        self.assertGreater(control_height, 0)
+
+        def texts(item):
+            value = item.property("text")
+            if isinstance(value, str) and item.isVisible():
+                yield value
+            for child in item.childItems():
+                yield from texts(child)
+
+        rendered = "\n".join(texts(self.window.contentItem()))
+        self.assertNotIn("Próximo passo:", rendered)
+        self.assertNotIn("Confira demanda", rendered)
+        self.assertNotIn("Revisar reposição", rendered)
+        self.assertIn("Critérios quantitativos", rendered)
         self.assertEqual(self.bundle.messages, [])
 
     def test_history_opens_the_same_product_unit_and_window_without_filtering_inventory(self):
@@ -225,6 +270,10 @@ class InventoryPrioritiesQmlTests(unittest.TestCase):
         ), 15), performance.state)
         self.assertTrue(self.item("stockPerformanceDialog").property("visible"))
         self.assertEqual(performance.state["window"], 1)
+        self.assertTrue(performance.detail["indicators"])
+        self.click_control(self.item("stockPerformanceIndicatorsToggle"))
+        self.assertEqual(self.item("stockPerformanceIndicatorValue_0").property("text"),
+                         performance.detail["indicators"][0]["value"])
         self.assertEqual((self.c.state["selection"], self.c.table.rows, self.c.monthly), before)
         self.assertEqual(self.bundle.messages, [])
 
