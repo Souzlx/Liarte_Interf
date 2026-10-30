@@ -1,6 +1,6 @@
 # Alertas de estoque
 
-Esta melhoria está nos fontes em desenvolvimento. Os pacotes publicados anteriormente não recebem a alteração automaticamente.
+Os alertas estão disponíveis na estável **5.3.1**. A [nova vista Prioridades](PRIORIDADES_PRODUTOS.md), posterior a essa publicação, reutiliza o limite de cobertura aplicado, mas avalia o fechamento e a janela recente identificados na própria vista. Os alertas deste guia mantêm suas referências de saldo atual e data da base.
 
 No módulo **Estoque**, o painel **Atenção ao estoque** resume situações para investigar na base carregada. Selecione uma categoria para abrir suas ocorrências; **Ver posições** aplica produto, filial e unidade juntos à tabela. Os demais filtros do recorte são preservados.
 

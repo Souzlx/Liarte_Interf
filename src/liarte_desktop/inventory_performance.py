@@ -36,12 +36,12 @@ _SORTS = {"most", "least", "decline", "turnover", "all"} | _METRIC_ORDERS.keys()
 _WINDOWS = (1, 3, 6)
 _STATUS = {
     "insufficient": "Histórico insuficiente",
-    "negative": "Saldo líquido negativo · confira devoluções",
-    "no_positive": "Quantidade líquida zero",
-    "resumed": "Sem quantidade líquida positiva na janela anterior",
-    "up": "Quantidade líquida em alta",
-    "down": "Quantidade líquida em queda",
-    "stable": "Quantidade líquida estável",
+    "negative": "Quantidade líquida < 0",
+    "no_positive": "Quantidade líquida = 0",
+    "resumed": "Anterior = 0 · recente > 0",
+    "up": "Δ vendas > 0",
+    "down": "Δ vendas < 0",
+    "stable": "Δ vendas = 0",
 }
 
 
@@ -227,6 +227,26 @@ def _present_detail(raw, report, cancel):
                 "display": display,
             })
         series[key] = {"title": title, "unit": symbol, "points": points, "note": note}
+    indicators = []
+    for indicator in raw.get("indicators", ()):
+        checkpoint(cancel)
+        value, scale, symbol = indicator["value"], indicator["scale"], indicator["unit"]
+        if value is None:
+            display = "—"
+        elif scale == SCALE:
+            display = _quantity(value, symbol)
+        elif symbol == "R$":
+            display = money(value)
+        else:
+            digits = 1 if symbol in ("%", "dias") and type(value) is not int else 2 if symbol == "x/mês" else 0
+            display = number(value, digits) + (" " + symbol if symbol else "")
+        references = tuple(
+            period[5:] + "/" + period[:4] for period in indicator["periods"]
+        )
+        indicators.append({
+            "key": indicator["key"], "label": indicator["label"], "value": display,
+            "detail": " · ".join(filter(None, (", ".join(references), indicator.get("reason", "")))),
+        })
     return {
         "code": row["code"], "name": row["name"], "unit": unit,
         "scope": report.get("scope", ""),
@@ -250,8 +270,7 @@ def _present_detail(raw, report, cancel):
             {"value": "turnover", "label": "Giro da fonte"},
         ],
         "series": series,
-        "evidence": list(raw.get("evidence", ())),
-        "hypotheses": list(raw.get("hypotheses", ())),
+        "indicators": indicators,
         "limitations": list(raw.get("limitations", ())),
     }
 

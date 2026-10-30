@@ -57,6 +57,7 @@ from liarte_core.inventory_backup import (
 from liarte_core.query import Cancelled, checkpoint
 from .inventory_compare_view import prepare_comparison
 from .inventory_performance import InventoryPerformanceController
+from .inventory_priorities import InventoryPrioritiesController
 
 LOGGER = logging.getLogger("liarte.desktop")
 # A timed-out shutdown must retain its QObject tree until QThread.finished.
@@ -136,7 +137,7 @@ def _alert_presentation(result, cancel):
         if key == "low_coverage" and not result.coverage_available:
             notice = "Indisponível com filtro de armazém: as vendas são registradas por filial."
         elif key == "low_coverage" and no_coverage:
-            notice = "Nenhuma combinação tem cobertura calculável neste recorte. Confira o período, as vendas positivas e os saldos; valores ausentes não representam cobertura zero."
+            notice = "Nenhuma combinação tem cobertura calculável neste recorte. A cobertura exige vendas positivas e saldo elegível; valores ausentes não representam cobertura zero."
         elif key == "low_coverage" and result.coverage_unavailable_count:
             notice = f"{result.coverage_unavailable_count} combinações sem cobertura calculável ficam fora deste alerta."
         categories.append({
@@ -452,7 +453,7 @@ def _monthly_view(months, units, selected, names, period, unit):
                 if focused["stockChange"] is not None
                 else "Sem comparação entre fechamentos completos consecutivos"
             )
-            + ". Registros observados; confira mudanças de cobertura.",
+            + ". Comparação dos registros observados nos fechamentos.",
         },
         {
             "label": "Vendas do mês" + (" · parcial" if focused["partial"] else ""),
@@ -716,6 +717,10 @@ class InventoryController(QObject):
         self._performance_source = None
         self._performance_shutdown_complete = False
         self._performance.shutdownFinished.connect(self._performance_stopped)
+        self._priorities = InventoryPrioritiesController(self)
+        self._priorities_source = None
+        self._priorities_shutdown_complete = False
+        self._priorities.shutdownFinished.connect(self._priorities_stopped)
         self.changed.connect(self._sync_performance)
         self.changed.connect(self.comparisonChanged.emit)
         self._debounce = QTimer(self)
@@ -843,6 +848,10 @@ class InventoryController(QObject):
     def performance(self):
         return self._performance
 
+    @Property(QObject, constant=True)
+    def priorities(self):
+        return self._priorities
+
     @Slot()
     def _sync_performance(self):
         ready = (
@@ -858,6 +867,23 @@ class InventoryController(QObject):
                 self._monthly_data if ready else None,
                 self._applied_selection if ready else None,
             )
+        # Sorting and an applied alert-policy update do not replace monthly
+        # facts. Keep that cache so a changed limit only reclassifies priorities.
+        priority_ready = (
+            not self._closed and self._task != "load"
+            and self._selection == self._applied_selection and bool(self._monthly_data)
+        )
+        priority_source = (
+            id(self._monthly_data), self._applied_selection,
+            self._applied_alert_policy.coverage_days,
+        ) if priority_ready else None
+        if priority_source != self._priorities_source:
+            self._priorities_source = priority_source
+            self._priorities.set_source(
+                self._monthly_data if priority_ready else None,
+                self._applied_selection if priority_ready else None,
+                self._applied_alert_policy.coverage_days,
+            )
 
     @Slot(str, str)
     def focusPerformanceProduct(self, code, unit):
@@ -865,6 +891,27 @@ class InventoryController(QObject):
             self._closed or self._thread or not self._is_current()
             or not self._performance.state["current"]
             or (self._performance.detail.get("code"), self._performance.detail.get("unit"))
+            != (code, unit)
+        ):
+            return
+        updated = replace(self._selection, product=code, unit=unit, search="")
+        if updated == self._selection:
+            return
+        self._selection = updated
+        self._generation += 1
+        self._pending = True
+        self._error = ""
+        self._page = 1
+        self._debounce.start()
+        self.changed.emit()
+        self.backupChanged.emit()
+
+    @Slot(str, str)
+    def focusPriorityProduct(self, code, unit):
+        if (
+            self._closed or self._thread or not self._is_current()
+            or not self._priorities.state["current"]
+            or (self._priorities.detail.get("code"), self._priorities.detail.get("unit"))
             != (code, unit)
         ):
             return
@@ -1905,6 +1952,7 @@ class InventoryController(QObject):
             or self._data is None
             or self._analysis is None
             or self._performance.state["busy"]
+            or self._priorities.state["busy"]
             or not self._is_current()
             or self._comparison_result is not None and not self.comparisonState["current"]
             or not url.isLocalFile()
@@ -1918,19 +1966,34 @@ class InventoryController(QObject):
         monthly, alerts, comparison = self._monthly_data, self._alerts, self._comparison_result
         performance, performance_detail = self._performance.export_snapshot()
         performance_window = self._performance.state["window"]
+        priorities, _priority_detail = self._priorities.export_snapshot()
+        priority_window = self._priorities.state["window"]
+        coverage_days = self._applied_alert_policy.coverage_days
 
         def action(cancel, progress):
             from liarte_core.inventory_performance import analyze_product_performance
+            from liarte_core.inventory_priorities import analyze_product_priorities
 
             product_report = performance
             if product_report is None:
                 product_report = analyze_product_performance(
                     monthly, selected, window=performance_window, cancel=cancel
                 )
+            priority_report = priorities
+            if priority_report is None:
+                priority_performance = product_report
+                if product_report["window"] != priority_window:
+                    priority_performance = analyze_product_performance(
+                        monthly, selected, window=priority_window, cancel=cancel
+                    )
+                priority_report = analyze_product_priorities(
+                    priority_performance, coverage_days=coverage_days, cancel=cancel
+                )
             export_inventory(
                 data, analysis, selected, path, cancel,
                 monthly=monthly, alerts=alerts, comparison=comparison,
                 performance=product_report, performance_detail=performance_detail,
+                priorities=priority_report,
             )
             return ("export",)
 
@@ -1961,6 +2024,7 @@ class InventoryController(QObject):
         self._closed = True
         self.cancel()
         self._performance_shutdown_complete = self._performance.shutdown(wait_ms=wait_ms)
+        self._priorities_shutdown_complete = self._priorities.shutdown(wait_ms=wait_ms)
         thread = self._thread
         if thread is not None:
             thread.quit()
@@ -1985,8 +2049,17 @@ class InventoryController(QObject):
         if self._closed and self._thread is None:
             self._complete_shutdown()
 
+    @Slot()
+    def _priorities_stopped(self):
+        self._priorities_shutdown_complete = True
+        if self._closed and self._thread is None:
+            self._complete_shutdown()
+
     def _complete_shutdown(self):
-        if self._shutdown_complete or not self._performance_shutdown_complete:
+        if (
+            self._shutdown_complete or not self._performance_shutdown_complete
+            or not self._priorities_shutdown_complete
+        ):
             return
         self._discard_staged_cache()
         self._shutdown_complete = True

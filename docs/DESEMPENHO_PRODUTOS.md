@@ -2,9 +2,11 @@
 
 Em **Estoque > Produtos**, abra **Desempenho dos produtos**. Escolha a unidade de medida, a janela de **1, 3 ou 6 meses**, o critério em **Ordenar por** e, se desejar, o código ou nome. Nos indicadores que permitem as duas direções, use **Maior primeiro** ou **Menor primeiro** para alternar. Pressione **Aplicar**: as escolhas são provisórias até essa confirmação. A busca e a paginação pertencem a essa lista e preservam os filtros gerais, o comparador mensal e a tabela de posições.
 
+Nos fontes em desenvolvimento, [Indicadores](PRIORIDADES_PRODUTOS.md) acrescenta recortes quantitativos por produto. Sua ação **Histórico completo** abre esta investigação com o mesmo produto, unidade e janela. As duas vistas mantêm seus próprios filtros locais e registram os períodos de suas abas no Excel. A apresentação quantitativa descrita abaixo é posterior à 5.3.1 publicada.
+
 ![Ranking por unidade e janelas de vendas](images/desempenho-lista.png)
 
-[Investigação mensal de um produto](images/desempenho-produto.png) · [Apresentação compacta](images/desempenho-compacto.png). As capturas usam dados sintéticos processados pelo cálculo e controller reais, com Qt em Linux. Fontes e escala do monitor influenciam a aparência nativa no Windows.
+[Indicadores de um produto](images/indicadores-desempenho-produto.png) · [Tabela de valores e referências](images/indicadores-desempenho-tabela.png). As capturas quantitativas usam dados sintéticos no Qt real em Linux. A [apresentação compacta anterior](images/desempenho-compacto.png) registra a interface da 5.3.1; hipóteses daquela apresentação foram retiradas nos fontes atuais. Fontes e escala do monitor influenciam a aparência nativa no Windows.
 
 [Lista com ordenação de giro e direção](images/estoque-ordenacao-giro.png) · [Ordenação das posições de estoque](images/estoque-ordenacao-posicoes.png).
 
@@ -41,9 +43,7 @@ Selecione um produto para abrir sua investigação na mesma janela. Fechar a jan
 
 A investigação apresenta vendas, evolução entre janelas, cobertura estimada e giro da fonte. O gráfico alterna **Vendas**, **Quantidade no fechamento** e **Giro da fonte**, sem combinar escalas diferentes. Use o cursor ou as setas para consultar cada mês. Meses parciais são identificados; lacunas permanecem sem valor.
 
-**O que os dados mostram** reúne valores e períodos: vendas, fechamentos, picos mensais completos, concentração das quantidades líquidas positivas e diferenças entre posições comparáveis. Empates no pico são informados. Um pico isolado não comprova sazonalidade.
-
-**Hipóteses a verificar** propõe investigações condicionais. Por exemplo, queda nas vendas e crescimento do saldo nas mesmas posições justificam conferir demanda, entradas e finalidade do item. Matérias-primas e itens de uso interno não devem ser classificados como encalhados apenas por apresentarem pouca venda.
+**Indicadores do período** reúne uma tabela de valores, unidades e referências: vendas, fechamentos, picos mensais completos, concentração das quantidades líquidas positivas e diferenças entre posições comparáveis. Empates no pico conservam todos os períodos. A tabela substitui as frases de evidências e hipóteses; não gera recomendações comerciais. As definições ficam acessíveis sob demanda.
 
 ## Giro, cobertura e tempo no estoque
 
@@ -57,10 +57,10 @@ As diferenças de estoque usam posições idênticas de produto, filial, armazé
 
 ## Excel e processamento
 
-**Baixar Excel** inclui **Desempenho dos produtos**, com todos os produtos e unidades do recorte na janela aplicada, independentemente da busca, ordenação ou página da lista. Quando existe investigação concluída, inclui também **Investigação do produto**, com os fatos, hipóteses e limites do produto selecionado. Sem abrir o painel, a exportação usa a janela padrão de três meses.
+**Baixar Excel** inclui **Desempenho dos produtos**, com todos os produtos e unidades do recorte na janela aplicada, independentemente da busca, ordenação ou página da lista. Quando existe investigação concluída, inclui também **Investigação do produto**, com indicadores numéricos, unidades, períodos e disponibilidade. Hipóteses e recomendações foram retiradas dessa exportação. Sem abrir o painel, a exportação usa a janela padrão de três meses.
 
 O arquivo registra períodos, filtros, data da base, unidades e definições. Valores desconhecidos ficam vazios. Listas extensas são divididas antes do limite do Excel; valores além de sua precisão numérica ficam em texto decimal exato, identificado por comentário.
 
 A análise usa o cache mensal já carregado, em tarefas canceláveis fora da interface. Não relê o PBIX nem consulta a internet ao buscar, ordenar, paginar ou investigar. Trocar a base ou os filtros descarta resultados antigos antes de publicar a nova análise.
 
-Esta melhoria integra a prévia **5.3.1-rc.2**. Use o Setup ou o ZIP dessa versão; veja as [notas da prévia](RELEASE_5.3.1-rc.2.md) e o [guia de instalação](INSTALACAO_531_RC2.md).
+O desempenho e as ordenações estão na estável **5.3.1**; veja as [notas](RELEASE_5.3.1.md) e o [guia de instalação](INSTALACAO_531.md). A nova lista Indicadores e a retirada das narrativas são posteriores a essa publicação. Veja a [diretriz e a preparação para SQL Server](ANALISE_QUANTITATIVA_E_SQL_SERVER.md).

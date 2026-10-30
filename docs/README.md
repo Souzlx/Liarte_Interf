@@ -21,12 +21,14 @@ O Setup e o ZIP portátil incluem o runtime. O código-fonte do GitHub é destin
 | Tema | Referência e alcance |
 | --- | --- |
 | Visão geral, recorte e navegação | [Guia da interface](GUIA_INTERFACE_MODULAR.md#estoque) |
+| Critérios quantitativos por produto | [Indicadores dos produtos](PRIORIDADES_PRODUTOS.md) — melhoria nos fontes, posterior à 5.3.1 publicada |
 | Desempenho, giro, cobertura e ordenações | [Desempenho dos produtos](DESEMPENHO_PRODUTOS.md) |
 | Alertas de estoque e critérios configuráveis | [Alertas de estoque](ALERTAS_ESTOQUE.md) |
 | Diferenças entre dois fechamentos | [Comparador mensal](COMPARADOR_MENSAL_ESTOQUE.md) |
 | Fechamentos, vendas e meses incompletos | [Análise mensal](ANALISE_MENSAL_530_RC2.md) — documento versionado da introdução do recurso |
 | Base local e definições do estoque | [Estoque 5.2.0](ESTOQUE_520.md) — referência de origem; a interface atual está no guia por tarefa |
 | Modelo e medidas dos PBIX examinados | [Análise do BI e experiência](ANALISE_BI_E_EXPERIENCIA.md) |
+| Indicadores sem narrativas e preparação da origem SQL | [Diretriz quantitativa e SQL Server](ANALISE_QUANTITATIVA_E_SQL_SERVER.md) |
 | Bases anteriores e restauração | [Guia da 5.3.1](INSTALACAO_531.md#bases-anteriores-e-remoção) |
 
 Saldo atual e fechamentos históricos têm datas e escopos diferentes. Giro da fonte, cobertura estimada, recência de venda e idade física dos lotes não são equivalentes. As regras de cada guia acompanham os indicadores apresentados.

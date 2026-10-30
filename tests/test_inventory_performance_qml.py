@@ -145,9 +145,15 @@ class PerformanceFixture(QObject):
                 "quantity": series("Quantidade no fechamento", unit, [100, None, 120], "Ausência de fechamento permanece desconhecida."),
                 "turnover": series("Giro da fonte · mediana", "x/mês", [0.5, 0.4, 0.4], "Mediana por posição; não é giro consolidado."),
             },
-            "evidence": ["Vendas líquidas caíram 20,0% entre as duas janelas completas."],
-            "hypotheses": ["Verifique se houve mudança na demanda ou no planejamento de reposição."],
-            "limitations": ["A base não comprova idade do lote, ruptura nem causa comercial da variação."],
+            "indicators": [
+                {"key": "previous", "label": "Vendas líquidas anteriores", "value": "225,000 " + unit,
+                 "detail": "Abr/2026 a Jun/2026"},
+                {"key": "change", "label": "Diferença entre janelas", "value": "−45,000 " + unit,
+                 "detail": "Jul/2026 a Set/2026 vs. Abr/2026 a Jun/2026"},
+                {"key": "cost", "label": "Estoque a custo", "value": "R$ 12.000,00",
+                 "detail": "Set/2026"},
+            ],
+            "limitations": ["Cobertura = saldo no fechamento / média diária das vendas líquidas."],
         }
         self.changed.emit()
 
@@ -329,8 +335,11 @@ ApplicationWindow {
         self.click_dialog(self.item("stockPerformanceRow0"))
         self.assertEqual(self.fixture.detail["code"], "P10")
         self.assertEqual(self.window.property("focusedProduct"), "")
-        self.assertTrue(self.item("stockPerformanceEvidence").isVisible())
-        self.assertTrue(self.item("stockPerformanceHypotheses").isVisible())
+        self.assertFalse(self.item("stockPerformanceIndicators").isVisible())
+        self.click_dialog(self.item("stockPerformanceIndicatorsToggle"))
+        self.assertTrue(self.item("stockPerformanceIndicators").isVisible())
+        self.assertEqual(self.item("stockPerformanceIndicatorValue_0").property("text"), "225,000 KG")
+        self.assertEqual(self.item("stockPerformanceIndicatorReference_0").property("text"), "Abr/2026 a Jun/2026")
         self.click_dialog(self.item("stockPerformanceBack"))
         self.assertEqual(self.fixture.detail, {})
         self.assertEqual(self.fixture.state["page"], 2)
@@ -338,6 +347,50 @@ ApplicationWindow {
         self.click_dialog(self.item("stockPerformancePrevious"))
         self.assertEqual(self.fixture.state["page"], 1)
         self.assertFalse(self.item("stockPerformancePrevious").isEnabled())
+        self.assertEqual(self.messages, [])
+
+    def test_detail_renders_numeric_indicators_and_definitions_without_legacy_narratives(self):
+        self.open()
+        self.click_dialog(self.item("stockPerformanceRow0"))
+        self.fixture._detail.update(
+            evidence=["LEGACY_EVIDENCE_MUST_NOT_RENDER"],
+            hypotheses=["LEGACY_HYPOTHESIS_MUST_NOT_RENDER"],
+        )
+        self.fixture.changed.emit()
+        self.assertFalse(self.item("stockPerformanceIndicators").isVisible())
+        self.click_dialog(self.item("stockPerformanceIndicatorsToggle"))
+        self.assertFalse(self.item("stockPerformanceLimitations").isVisible())
+        for width, height in ((1380, 900), (900, 700), (500, 400)):
+            with self.subTest(width=width):
+                self.window.resize(width, height)
+                self.assertTrue(pump(lambda: abs(self.window.contentItem().width() - width) < 1))
+                for index, indicator in enumerate(self.fixture.detail["indicators"]):
+                    row = self.item(f"stockPerformanceIndicatorRow_{index}")
+                    self.ready(row)
+                    for suffix, field in (("Label", "label"), ("Value", "value"), ("Reference", "detail")):
+                        item = self.item(f"stockPerformanceIndicator{suffix}_{index}")
+                        self.assertEqual(item.property("text"), indicator[field])
+                        x, y, control_width, control_height = self.geometry(item)["control"]
+                        viewport = self.geometry(item)["viewport"]
+                        self.assertGreaterEqual(x, -1)
+                        self.assertLessEqual(x + control_width, viewport[0] + 1)
+                        self.assertGreater(control_height, 0)
+        self.click_dialog(self.item("stockPerformanceDefinitionsToggle"))
+        self.assertTrue(self.item("stockPerformanceLimitations").isVisible())
+
+        def texts(item):
+            value = item.property("text")
+            if isinstance(value, str) and item.isVisible():
+                yield value
+            for child in item.childItems():
+                yield from texts(child)
+
+        rendered = "\n".join(texts(self.window.contentItem()))
+        self.assertIn("225,000 KG", rendered)
+        self.assertIn("R$ 12.000,00", rendered)
+        self.assertNotIn("LEGACY_", rendered)
+        self.assertNotIn("Hipóteses", rendered)
+        self.assertNotIn("O que os dados mostram", rendered)
         self.assertEqual(self.messages, [])
 
     def test_chart_switches_single_series_keeps_gaps_and_accepts_keyboard_month_selection(self):

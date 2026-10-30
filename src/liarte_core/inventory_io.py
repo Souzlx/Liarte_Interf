@@ -21,6 +21,7 @@ from pathlib import Path
 from threading import Event
 
 from .inventory import SCALE, Balance, Closing, InventoryData, Product, Sale, _checked, scaled
+from .inventory_source import inventory_from_records
 from .query import checkpoint
 
 FORMAT = "liarte.inventory/1"
@@ -252,19 +253,19 @@ def read_snapshot(path: Path, cancel: Event | None = None) -> InventoryData:
 
         if not isinstance(p["notes"], list):
             raise ValueError("Notas inválidas na base.")
-        data = InventoryData(
-            date.fromisoformat(p["as_of"]),
-            p["source_name"],
-            p["source_hash"],
-            tuple(Product(*r) for r in records("products", (5,))),
-            tuple(Balance(*r) for r in records("balances", (6,))),
-            tuple(Closing(*r) for r in records("closings", (9,))),
-            tuple(Sale(*r[:3], date.fromisoformat(r[3]), *r[4:]) for r in records("sales", (6, 7))),
-            tuple(tuple(r) for r in records("branches", (2,))),
-            tuple(tuple(r) for r in records("warehouses", (2,))),
-            tuple(p["notes"]),
+        return inventory_from_records(
+            as_of=date.fromisoformat(p["as_of"]),
+            source_name=p["source_name"],
+            source_hash=p["source_hash"],
+            products=tuple(Product(*r) for r in records("products", (5,))),
+            balances=tuple(Balance(*r) for r in records("balances", (6,))),
+            closings=tuple(Closing(*r) for r in records("closings", (9,))),
+            sales=tuple(Sale(*r[:3], date.fromisoformat(r[3]), *r[4:]) for r in records("sales", (6, 7))),
+            branches=tuple(tuple(r) for r in records("branches", (2,))),
+            warehouses=tuple(tuple(r) for r in records("warehouses", (2,))),
+            notes=tuple(p["notes"]),
+            cancel=cancel,
         )
-        return validate_data(data, cancel)
     except (
         OSError,
         EOFError,
@@ -530,20 +531,18 @@ def read_pbix(
             "O PBIX foi alterado durante a leitura. Aguarde a atualização e tente novamente."
         )
     progress(85, "Validando a base de estoque")
-    data = validate_data(
-        InventoryData(
-            as_of,
-            path.name,
-            source_hash,
-            products,
-            tuple(balances),
-            tuple(closings),
-            sales,
-            branches,
-            warehouses,
-            notes,
-        ),
-        cancel,
+    data = inventory_from_records(
+        as_of=as_of,
+        source_name=path.name,
+        source_hash=source_hash,
+        products=products,
+        balances=balances,
+        closings=closings,
+        sales=sales,
+        branches=branches,
+        warehouses=warehouses,
+        notes=notes,
+        cancel=cancel,
     )
     progress(95, "Preparando a análise")
     return data
