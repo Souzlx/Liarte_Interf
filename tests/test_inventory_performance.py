@@ -1,4 +1,4 @@
-"""Product performance keeps observed facts distinct from stock hypotheses."""
+"""Product performance exposes numeric observations over accepted monthly facts."""
 
 from copy import deepcopy
 from dataclasses import replace
@@ -328,10 +328,11 @@ class InventoryPerformanceTests(unittest.TestCase):
         self.assertEqual(a["sold"], 0)
         detail = product_performance_detail(months, selection, "A", "KG", window=1, report=result)
         self.assertEqual(detail["series"][-1]["sales"], 0)
-        facts = " ".join(detail["evidence"]).lower()
-        self.assertNotIn("não houve vendas", facts)
-        self.assertNotIn("nenhuma venda ocorreu", facts)
-        self.assertNotIn("nunca vendeu", facts)
+        indicators = {item["key"]: item for item in detail["indicators"]}
+        self.assertEqual(indicators["sold"]["value"], 0)
+        self.assertEqual(indicators["sold"]["scale"], SCALE)
+        self.assertNotIn("evidence", detail)
+        self.assertNotIn("hypotheses", detail)
 
     def test_matching_stock_positions_includes_branch_warehouse_and_unit(self):
         source = monthly_sample()
@@ -408,7 +409,7 @@ class InventoryPerformanceTests(unittest.TestCase):
                 months, replace(selection, branch="03"), "A", "KG", window=1, report=result
             )
 
-    def test_peak_evidence_uses_complete_months_and_identifies_tied_months(self):
+    def test_peak_indicator_uses_complete_months_and_identifies_tied_months(self):
         source = monthly_sample()
         source = replace(
             source,
@@ -420,14 +421,67 @@ class InventoryPerformanceTests(unittest.TestCase):
         )
         months, selection = prepared(source, end="2026-04")
         detail = product_performance_detail(months, selection, "A", "KG", window=1)
-        peaks = [fact for fact in detail["evidence"] if "pico observado" in fact]
-        self.assertEqual(len(peaks), 1)
-        self.assertIn("40,000 KG", peaks[0])
-        self.assertIn("01/2026", peaks[0])
-        self.assertIn("03/2026", peaks[0])
-        self.assertIn("empate", peaks[0])
-        self.assertNotIn("04/2026", peaks[0])
-        self.assertNotIn("999", peaks[0])
+        indicators = {item["key"]: item for item in detail["indicators"]}
+        peak = indicators["peakMonthlySales"]
+        self.assertEqual(peak["value"], 40 * SCALE)
+        self.assertEqual(peak["scale"], SCALE)
+        self.assertEqual(peak["unit"], "KG")
+        self.assertEqual(peak["periods"], ("2026-01", "2026-03"))
+        self.assertEqual(indicators["peakMonthCount"]["value"], 2)
+
+    def test_numeric_detail_tracks_changed_dates_codes_and_calendar_days(self):
+        months, selection = prepared()
+        shifted = deepcopy(months)
+        for month in shifted:
+            month["period"] = "2032" + month["period"][4:]
+            month["label"] = month["period"][5:] + "/2032"
+            for field in ("stockRows", "saleRows"):
+                for row in month[field]:
+                    if row["code"] == "A":
+                        row["code"] = "SQL-NEW-902"
+        selected = replace(selection, start="2032-01", end="2032-02")
+        detail = product_performance_detail(shifted, selected, "SQL-NEW-902", "KG", window=1)
+        indicators = {item["key"]: item for item in detail["indicators"]}
+        self.assertEqual(detail["code"], "SQL-NEW-902")
+        self.assertEqual(indicators["sold"]["value"], 20 * SCALE)
+        self.assertEqual(indicators["sold"]["periods"], ("2032-02",))
+        self.assertEqual(indicators["targetDays"]["value"], 29)
+        self.assertEqual(indicators["matchedStockChange"]["value"], 20 * SCALE)
+
+    def test_concentration_exposes_exact_numerator_and_positive_denominator(self):
+        months, selection = prepared(end="2026-03")
+        detail = product_performance_detail(months, selection, "A", "KG", window=1)
+        indicators = {item["key"]: item for item in detail["indicators"]}
+        self.assertEqual(indicators["top3PositiveSales"]["value"], 70 * SCALE)
+        self.assertEqual(indicators["positiveMonthlySales"]["value"], 70 * SCALE)
+        self.assertEqual(indicators["top3PositiveShare"]["value"], 100)
+        self.assertEqual(indicators["top3PositiveSales"]["periods"],
+                         ("2026-03", "2026-02", "2026-01"))
+
+    def test_unknown_closing_stays_missing_in_numeric_indicators(self):
+        months, selection = prepared(end="2026-03")
+        detail = product_performance_detail(months, selection, "A", "KG", window=1)
+        indicators = {item["key"]: item for item in detail["indicators"]}
+        for key in ("stockQuantity", "stockCost", "matchedCount", "coverage"):
+            self.assertIsNone(indicators[key]["value"])
+            self.assertTrue(indicators[key]["reason"])
+        self.assertEqual(indicators["completeSalesMonths"]["value"], 3)
+
+    def test_zero_and_negative_monthly_values_are_not_replaced_by_positive_peaks(self):
+        source = monthly_sample()
+        for negative, expected, ties in ((False, 0, 3), (True, -SCALE, 1)):
+            with self.subTest(negative=negative):
+                changed = replace(source, sales=tuple(
+                    replace(sale, quantity=-sale.day.month * SCALE if negative else 0)
+                    if sale.product == "A" else sale for sale in source.sales
+                ))
+                months, selection = prepared(changed, end="2026-03")
+                detail = product_performance_detail(months, selection, "A", "KG", window=1)
+                indicators = {item["key"]: item for item in detail["indicators"]}
+                self.assertEqual(indicators["peakMonthlySales"]["value"], expected)
+                self.assertEqual(indicators["peakMonthCount"]["value"], ties)
+                self.assertEqual(indicators["positiveMonthlySales"]["value"], 0)
+                self.assertIsNone(indicators["top3PositiveShare"]["value"])
 
     def test_unsupported_window_is_rejected_instead_of_silently_changed(self):
         months, selection = prepared()

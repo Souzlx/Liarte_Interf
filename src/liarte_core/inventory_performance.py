@@ -9,12 +9,11 @@ from __future__ import annotations
 
 from dataclasses import fields
 from datetime import date
-from decimal import Decimal
 import math
 import statistics
 from threading import Event
 
-from .inventory import SCALE, StockSelection, _checked, money, month_end, month_range, number
+from .inventory import SCALE, StockSelection, _checked, month_end, month_range
 from .query import checkpoint
 
 
@@ -344,7 +343,7 @@ def analyze_product_performance(
             pass
         elif row["negativeStockPositionCount"]:
             row["coverageReason"] = (
-                "Há saldo negativo em uma posição; confira a base antes de estimar cobertura."
+                "Cobertura indisponível: há saldo negativo em uma posição."
             )
         elif row["sold"] <= 0:
             row["coverageReason"] = (
@@ -408,8 +407,98 @@ def analyze_product_performance(
     return result
 
 
-def _quantity(value, unit) -> str:
-    return number(Decimal(value) / SCALE, 3) + " " + unit
+def _detail_indicators(row, report, series, cancel):
+    """Keep observations numeric, with the original scale and source periods.
+
+    Values are suitable for reconciliation and export without parsing a
+    generated sentence. Peak ties retain every month. Concentration uses only
+    positive complete-month totals and publishes its numerator and denominator.
+    """
+    indicators = []
+    unit = row["unit"]
+    base, target = tuple(report["basePeriods"]), tuple(report["targetPeriods"])
+    closing = (report["targetPeriod"],)
+    endpoints = (base[-1], target[-1])
+
+    def add(key, label, value, symbol, periods, *, scale=1, reason=""):
+        checkpoint(cancel)
+        indicators.append({
+            "key": key, "label": label, "value": value, "scale": scale,
+            "unit": symbol, "periods": tuple(periods),
+            "reason": reason if value is None else "",
+        })
+
+    sales_reason = row.get("reason", "")
+    add("previous", "Vendas líquidas · anterior", row["previous"], unit, base,
+        scale=SCALE, reason=sales_reason)
+    add("sold", "Vendas líquidas · recente", row["sold"], unit, target,
+        scale=SCALE, reason=sales_reason)
+    add("change", "Diferença das vendas líquidas", row["change"], unit, base + target,
+        scale=SCALE, reason=sales_reason)
+    add("percentage", "Variação das vendas líquidas", row["percentage"], "%", base + target,
+        reason=sales_reason or "Percentual exige base positiva e janela recente não negativa.")
+    add("stockQuantity", "Saldo no fechamento", row["stockQuantity"], unit, closing,
+        scale=SCALE, reason="Sem fechamento conhecido do produto.")
+    add("stockCost", "Estoque a custo", row["stockCost"], "R$", closing,
+        scale=100, reason="Sem fechamento conhecido do produto.")
+    add("turnover", "Giro da fonte · mediana", row["turnover"], "x/mês", closing,
+        reason="Sem posições elegíveis com giro conhecido.")
+    add("turnoverCount", "Posições com giro elegível", row["turnoverCount"], "posições", closing)
+    add("coverage", "Cobertura estimada", row["coverage"], "dias", target,
+        reason=row.get("coverageReason", ""))
+    paired_known = row["matchedStockChange"] is not None
+    paired_reason = "Fechamentos comparáveis indisponíveis."
+    add("matchedStockChange", "Variação do saldo · posições pareadas",
+        row["matchedStockChange"], unit, endpoints, scale=SCALE, reason=paired_reason)
+    add("matchedStockCostChange", "Variação do custo · posições pareadas",
+        row["matchedStockCostChange"], "R$", endpoints, scale=100, reason=paired_reason)
+    add("matchedCount", "Posições pareadas", row["matchedCount"] if paired_known else None,
+        "posições", endpoints, reason=paired_reason)
+    add("addedCount", "Posições somente no fechamento recente", row["addedCount"],
+        "posições", closing, reason=paired_reason)
+    add("missingCount", "Posições somente no fechamento anterior", row["missingCount"],
+        "posições", (base[-1],), reason=paired_reason)
+    add("positiveMonths", "Meses com quantidade líquida > 0", row["positiveMonths"],
+        "meses", target, reason=sales_reason)
+    add("noPositiveMonths", "Meses com quantidade líquida ≤ 0", row["noPositiveMonths"],
+        "meses", target, reason=sales_reason)
+    add("baseDays", "Dias de calendário · anterior", report["baseDays"], "dias", base)
+    add("targetDays", "Dias de calendário · recente", report["targetDays"], "dias", target)
+    add("stockBranchCount", "Filiais com registros de estoque",
+        len(row["stockBranches"]) if row["stockQuantity"] is not None else None,
+        "filiais", closing, reason="Sem fechamento conhecido do produto.")
+    add("salesBranchCount", "Filiais com registros de vendas",
+        len(row["salesBranches"]) if row["sold"] is not None else None,
+        "filiais", target, reason=sales_reason)
+
+    complete = [point for point in _checked(series, cancel)
+                if point["sales"] is not None and not point["salesPartial"]]
+    complete_periods = tuple(point["period"] for point in complete)
+    add("completeSalesMonths", "Meses completos com vendas observadas", len(complete),
+        "meses", complete_periods)
+    peak = max((point["sales"] for point in _checked(complete, cancel)), default=None)
+    peak_periods = tuple(point["period"] for point in _checked(complete, cancel)
+                         if point["sales"] == peak)
+    add("peakMonthlySales", "Máximo mensal de vendas líquidas", peak, unit, peak_periods,
+        scale=SCALE, reason="Sem meses completos com vendas observadas.")
+    add("peakMonthCount", "Meses no máximo mensal", len(peak_periods) if peak is not None else None,
+        "meses", peak_periods, reason="Sem meses completos com vendas observadas.")
+    positive = [point for point in _checked(complete, cancel) if point["sales"] > 0]
+    leaders = sorted(positive, key=lambda point: (-point["sales"], point["period"]))[:3]
+    leader_periods = tuple(point["period"] for point in leaders)
+    positive_periods = tuple(point["period"] for point in positive)
+    total = sum(point["sales"] for point in _checked(positive, cancel)) if complete else None
+    leading_total = sum(point["sales"] for point in _checked(leaders, cancel)) if complete else None
+    add("top3PositiveSales", "Vendas líquidas positivas · até três maiores meses",
+        leading_total, unit, leader_periods, scale=SCALE,
+        reason="Sem meses completos com vendas observadas.")
+    add("positiveMonthlySales", "Vendas líquidas positivas · denominador",
+        total, unit, positive_periods, scale=SCALE,
+        reason="Sem meses completos com vendas observadas.")
+    add("top3PositiveShare", "Participação dos até três maiores meses positivos",
+        leading_total / total * 100 if total else None, "%", leader_periods,
+        reason="Sem quantidade mensal líquida positiva no denominador.")
+    return tuple(indicators)
 
 
 def product_performance_detail(
@@ -449,8 +538,7 @@ def product_performance_detail(
             "unit": unit,
             "row": None,
             "series": (),
-            "evidence": (),
-            "hypotheses": (),
+            "indicators": (),
             "limitations": (),
             "reason": "Produto e unidade indisponíveis no recorte mensal selecionado.",
         }
@@ -519,152 +607,14 @@ def product_performance_detail(
         )
         # Missing/partial months explicitly interrupt adjacent comparisons.
         previous_positions, previous_known = positions, known
-    evidence, hypotheses = [], []
-    if row["sold"] is not None:
-        evidence.append(
-            "Quantidade líquida registrada em "
-            + report["targetLabel"]
-            + ": "
-            + _quantity(row["sold"], unit)
-            + "."
-        )
-    if row["previous"] is not None and row["sold"] is not None:
-        evidence.append(
-            "Na janela anterior ("
-            + report["baseLabel"]
-            + "): "
-            + _quantity(row["previous"], unit)
-            + "; variação líquida "
-            + _quantity(row["change"], unit)
-            + (" (" + number(row["percentage"], 1) + "%)" if row["percentage"] is not None else "")
-            + "."
-        )
-    elif report.get("reason"):
-        evidence.append(report["reason"])
-    if row["stockQuantity"] is not None:
-        evidence.append(
-            "Saldo observado no fechamento de "
-            + _label(report["targetPeriod"])
-            + ": "
-            + _quantity(row["stockQuantity"], unit)
-            + ", a custo de "
-            + money(row["stockCost"])
-            + "."
-        )
-    else:
-        evidence.append(
-            "Não há fechamento conhecido deste produto no mês de referência; o saldo não foi tratado como zero."
-        )
-    if row["turnover"] is not None:
-        evidence.append(
-            "Giro mensal da fonte: mediana de "
-            + number(row["turnover"], 2)
-            + " x/mês em "
-            + str(row["turnoverCount"])
-            + " posição(ões) com saldo positivo e indicador válido."
-        )
-    if row["matchedCount"]:
-        evidence.append(
-            "Entre os fechamentos finais das janelas, "
-            + str(row["matchedCount"])
-            + " posição(ões) presentes nos dois meses variaram "
-            + _quantity(row["matchedStockChange"], unit)
-            + "."
-        )
-    if row["stockCoverageChanged"]:
-        evidence.append(
-            "Há "
-            + str(row["addedCount"])
-            + " registro(s) apenas no fechamento-alvo e "
-            + str(row["missingCount"])
-            + " apenas no fechamento-base. Isso altera a cobertura observada, sem comprovar movimentos físicos."
-        )
-    if row["coverage"] is not None:
-        evidence.append(
-            "Cobertura estimada de "
-            + number(row["coverage"], 1)
-            + " dias se o ritmo líquido registrado se repetir. "
-            + row["coverageReason"]
-        )
-    if row["noPositiveMonths"]:
-        evidence.append(
-            str(row["noPositiveMonths"])
-            + " de "
-            + str(window)
-            + " meses completos da janela recente não tiveram quantidade líquida positiva registrada. Isso não exclui vendas compensadas por devoluções."
-        )
-    complete_sales = [
-        point
-        for point in _checked(series, cancel)
-        if point["sales"] is not None and not point["salesPartial"]
-    ]
-    positive_sales = [point for point in _checked(complete_sales, cancel) if point["sales"] > 0]
-    if positive_sales:
-        peak = max(point["sales"] for point in _checked(positive_sales, cancel))
-        peak_labels = [
-            point["label"] for point in _checked(positive_sales, cancel) if point["sales"] == peak
-        ]
-        evidence.append(
-            "Maior quantidade líquida mensal nos meses completos do recorte: "
-            + _quantity(peak, unit)
-            + " em "
-            + ", ".join(peak_labels)
-            + (" (empate entre meses)" if len(peak_labels) > 1 else "")
-            + ". Isso identifica um pico observado, sem demonstrar sazonalidade."
-        )
-        if len(complete_sales) >= 4:
-            leaders = sorted(positive_sales, key=lambda point: (-point["sales"], point["period"]))[
-                :3
-            ]
-            positive_total = sum(point["sales"] for point in _checked(positive_sales, cancel))
-            share = sum(point["sales"] for point in leaders) / positive_total * 100
-            evidence.append(
-                number(share, 1)
-                + "% da soma das quantidades líquidas mensais positivas ficou em "
-                + ", ".join(point["label"] for point in leaders)
-                + ". Meses com líquido zero ou negativo ficam fora desse denominador."
-            )
-    if row["status"] == "negative":
-        hypotheses.append(
-            "Uma janela tem quantidade líquida negativa. Devoluções podem explicar esse sinal; confira os movimentos antes de interpretar o resultado como mudança de demanda."
-        )
-    if row["change"] is not None and row["matchedCount"] and row["status"] != "negative":
-        if row["change"] < 0 and row["matchedStockChange"] > 0:
-            hypotheses.append(
-                "A venda líquida caiu no recorte enquanto o saldo cresceu nas posições comparáveis. Houve redução do ritmo de saída ou mudança na finalidade do item? Confira entradas, consumo interno e a adequação do saldo antes de concluir excesso de estoque."
-            )
-        elif row["change"] > 0 and row["matchedStockChange"] < 0:
-            hypotheses.append(
-                "A venda líquida cresceu no recorte enquanto o saldo caiu nas posições comparáveis. Convém revisar disponibilidade e planejamento de reposição; os fechamentos mensais não demonstram ruptura ou venda perdida."
-            )
-    if (
-        row["stockQuantity"] is not None
-        and row["stockQuantity"] > 0
-        and row["sold"] is not None
-        and row["sold"] <= 0
-    ):
-        hypotheses.append(
-            "Há saldo positivo e nenhuma quantidade líquida positiva na janela recente. Confira se o item é destinado à venda ou ao consumo interno, e se devoluções ou a cobertura da base explicam o resultado, antes de classificá-lo como baixa movimentação."
-        )
-    if (
-        row["stockBranches"]
-        and row["salesBranches"]
-        and row["stockBranches"] != row["salesBranches"]
-    ):
-        hypotheses.append(
-            "Estoque e vendas têm filiais com registros diferentes. A exportação e o recorte cobrem os mesmos locais?"
-        )
-    if not hypotheses:
-        hypotheses.append(
-            "Para investigar a variação observada, confira a finalidade do item (venda ou consumo interno), a cobertura da base, entradas e mudanças de demanda. Esses dados não determinam uma causa."
-        )
+    indicators = _detail_indicators(row, report, series, cancel)
     limitations = [
         "Vendas são quantidades líquidas por filial; devoluções podem compensar saídas positivas. Um mês sem registro contribui zero apenas no calendário observado, sem certificar completude por produto ou filial.",
         "Quantidades de unidades diferentes não são somadas. As janelas têm o mesmo número de meses, mas podem ter números diferentes de dias de calendário.",
         "Giro é o indicador da fonte por posição, apresentado pela mediana das posições válidas com saldo positivo; não é um giro consolidado nem uma soma de giros.",
         "Cobertura estima dias ao ritmo registrado e não mede idade do lote. Tempo sem venda também não determina há quanto tempo as unidades estão no estoque.",
-        "Não há dados de entradas, lotes, pedidos não atendidos, preços de venda ou motivos das transações nesta análise. Não é possível confirmar reposição, ruptura, excesso de compras, margem ou causa da variação.",
-        "Confira se o item é destinado à venda ou ao consumo interno. Picos mensais isolados não comprovam sazonalidade, e custo do estoque não representa receita.",
+        "Estoque a custo não representa receita; esta análise não contém entradas, lotes, pedidos não atendidos ou preços de venda.",
+        "Máximo mensal inclui os empates entre meses completos observados. Participação dos três maiores meses usa apenas quantidades líquidas mensais positivas no numerador e no denominador.",
     ]
     if selected.warehouse:
         limitations.append(
@@ -680,8 +630,7 @@ def product_performance_detail(
         "unit": unit,
         "row": row,
         "series": tuple(series),
-        "evidence": tuple(evidence),
-        "hypotheses": tuple(hypotheses),
+        "indicators": indicators,
         "limitations": tuple(limitations),
         "reason": report.get("reason", ""),
     }

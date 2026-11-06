@@ -119,9 +119,22 @@ def main():
     from tests.test_performance_sorting import (
         ProductPerformanceSortingTests, ProductPerformanceSortingQmlTests,
     )
+    from tests.test_inventory_priorities import InventoryPrioritiesTests
+    from tests.test_inventory_priorities_export import InventoryPrioritiesExportTests
+    from tests.test_inventory_priorities_ui import (
+        InventoryPrioritiesUiTests, InventoryPrioritiesIntegrationTests,
+    )
+    from tests.test_inventory_priorities_qml import InventoryPrioritiesQmlTests
+    from tests.test_inventory_source import InventorySourceContractTests
 
     suite = unittest.TestSuite()
     for case in (
+        InventorySourceContractTests,
+        InventoryPrioritiesTests,
+        InventoryPrioritiesExportTests,
+        InventoryPrioritiesUiTests,
+        InventoryPrioritiesIntegrationTests,
+        InventoryPrioritiesQmlTests,
         StockPositionOrderingTests,
         StockPositionSortingControllerTests,
         StockPositionsSortingQmlTests,

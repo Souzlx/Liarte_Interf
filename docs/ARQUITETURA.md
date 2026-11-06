@@ -53,6 +53,8 @@ Uma consulta explícita obtém e valida os dados da API antes de publicar o novo
 
 A leitura do PBIX utiliza os dados e metadados gravados no arquivo; não executa M, DAX, SQL ou conexões do modelo. O snapshot integrado só é usado quando não há uma base local válida com preferência. Os arquivos de origem não são modificados.
 
+Nos fontes posteriores à 5.3.1, `inventory_source.py` oferece `inventory_from_records()` como entrada comum para coleções normalizadas, usada pelos leitores PBIX e snapshot. Ela preserva as revisões legadas e valida o mesmo `InventoryData`. Quando uma origem normalizada não fornece um hash, calcula uma revisão de conteúdo; isso não comprova consistência transacional de uma leitura SQL. A [diretriz quantitativa e SQL Server](ANALISE_QUANTITATIVA_E_SQL_SERVER.md) separa essa preparação da conexão real ainda a implementar. Indicadores e critérios estruturados substituem hipóteses e recomendações prontas na apresentação e no Excel de produtos.
+
 Quantidades de Estoque usam milionésimos da unidade original; custos usam centavos de real. Quantidades de unidades diferentes não são somadas. Giro e dias da fonte não são somados entre posições. A mediana do giro elegível não representa um giro consolidado, e cobertura estimada não mede a idade dos lotes.
 
 Fechamento ausente permanece desconhecido. Comparações separam posições pareadas de registros presentes somente em um dos meses. Filtros ABC, última venda e sinal de saldo selecionam a coorte atual, sem reconstruir sua classificação histórica. As definições completas ficam nos guias de [análise mensal](ANALISE_MENSAL_530_RC2.md), [comparação](COMPARADOR_MENSAL_ESTOQUE.md) e [desempenho](DESEMPENHO_PRODUTOS.md).

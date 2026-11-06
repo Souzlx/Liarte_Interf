@@ -116,6 +116,8 @@ class UsabilityTests(unittest.TestCase):
         self.assertTrue(self.controller.state["loaded"])
 
     def test_presets_fill_draft_without_network_or_losing_result(self):
+        # The fixture's available range is independent of the host calendar.
+        self.controller._limits = Period("1997-01", "2026-09")
         self.load()
         before = self.controller.analysis
         calls = len(self.transport.calls)

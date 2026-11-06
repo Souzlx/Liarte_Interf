@@ -48,11 +48,11 @@ def append_performance_sheets(workbook, report, detail, data, selection, cancel)
         row_number += 1
         status = {
             "insufficient": "Histórico insuficiente",
-            "negative": "Saldo líquido negativo · confira devoluções",
-            "no_positive": "Quantidade líquida zero",
-            "resumed": "Sem quantidade líquida positiva na janela anterior",
-            "up": "Quantidade líquida em alta", "down": "Quantidade líquida em queda",
-            "stable": "Quantidade líquida estável",
+            "negative": "Quantidade líquida < 0",
+            "no_positive": "Quantidade líquida = 0",
+            "resumed": "Anterior = 0 · recente > 0",
+            "up": "Δ vendas > 0", "down": "Δ vendas < 0",
+            "stable": "Δ vendas = 0",
         }.get(row.get("status"), "Histórico insuficiente")
         values = [
             row["code"], row["name"], row["unit"], report.get("baseLabel", ""),
@@ -78,20 +78,44 @@ def append_performance_sheets(workbook, report, detail, data, selection, cancel)
         layouts[sheet.title] = widths
     if detail:
         sheet = workbook.create_sheet("Investigação do produto")
-        sheet.append(("Categoria", "Informação"))
-        layouts[sheet.title] = (30, 110)
+        sheet.append(("Indicador", "Valor", "Unidade", "Períodos (AAAA-MM)", "Disponibilidade"))
+        layouts[sheet.title] = (52, 48, 18, 80, 100)
         entries = [
-            ("Produto", str(detail.get("code", "")) + " · " + str(detail.get("name", ""))),
-            ("Unidade", detail.get("unit", "")), ("Abrangência", report.get("scope", "")),
-            ("Janela anterior", report.get("baseLabel", "")),
-            ("Janela recente", report.get("targetLabel", "")),
+            ["Código", detail.get("code", ""), "", "", ""],
+            ["Produto", detail.get("name", ""), "", "", ""],
+            ["Unidade", detail.get("unit", ""), "", "", ""],
+            ["Abrangência", report.get("scope", ""), "", "", ""],
+            ["Fonte", data.source_name, "", "", ""],
+            ["Data da base", data.as_of, "", "", ""],
+            ["Filtros", filters, "", "", ""],
         ]
-        for category, key in (("O que os dados mostram", "evidence"),
-                              ("Hipótese a verificar", "hypotheses"),
-                              ("Limite da análise", "limitations")):
-            entries.extend((category, value) for value in detail.get(key, ()))
+        formats = {}
+        for indicator in detail.get("indicators", ()):
+            checkpoint(cancel)
+            value, scale = indicator["value"], indicator["scale"]
+            exported = _excel_scaled(value, scale) if type(value) is int else value
+            entries.append([
+                indicator["label"], exported, indicator["unit"],
+                ", ".join(indicator["periods"]), indicator.get("reason", ""),
+            ])
+            formats[len(entries) + 1] = (
+                '"R$" #,##0.00;[Red]("R$" #,##0.00)' if indicator["unit"] == "R$" else
+                "#,##0.000;[Red](#,##0.000)" if scale == SCALE else
+                "0.00" if indicator["unit"] in ("%", "dias", "x/mês") else "0"
+            )
+        entries.extend(["Definição", value, "", "", ""]
+                       for value in detail.get("limitations", ()))
         for index, entry in enumerate(entries, 2):
             checkpoint(cancel)
-            _append_values(sheet, list(entry), index)
+            _append_values(sheet, entry, index)
+            if index in formats:
+                sheet.cell(index, 2).number_format = formats[index]
+            for column, value in enumerate(entry, 1):
+                if isinstance(value, str):
+                    sheet.cell(index, column).data_type = "s"
+                    if sheet.cell(index, column).comment is not None:
+                        sheet.cell(index, column).number_format = "@"
+        sheet.freeze_panes = "A2"
+        sheet.auto_filter.ref = f"A1:E{len(entries) + 1}"
     checkpoint(cancel)
     return layouts

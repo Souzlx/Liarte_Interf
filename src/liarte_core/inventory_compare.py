@@ -335,7 +335,7 @@ def compare_inventory_months(months, base_period, target_period, *, cancel=None)
             + (", ".join(sorted(after_branches[unit])) or "nenhuma")
             + ". Ausência de documento em mês observado contribui zero; não certifica cobertura por filial nem explica as causas da variação."
             if comparable
-            else "A comparação de vendas exige dois meses completos observados. Confira o recorte de vendas informado para cada mês; dados indisponíveis não comprovam ausência de transações."
+            else "A comparação de vendas exige dois meses completos observados. O recorte de vendas é informado para cada mês; dados indisponíveis não comprovam ausência de transações."
         )
         result["salesByUnit"][unit].update(
             {

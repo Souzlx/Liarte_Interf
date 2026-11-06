@@ -26,6 +26,8 @@ Mantenha cada alteração concentrada em um problema ou melhoria. A [arquitetura
 
 Ao modificar indicadores, registre o período, a unidade, o recorte e a regra de cálculo. Preserve a distinção entre zero e informação ausente, entre unidades de medida e entre giro da fonte, cobertura estimada e idade física dos lotes. Os [guias de análise](docs/README.md) documentam os contratos atuais.
 
+Siga a [diretriz de análises e fontes](AGENTS.md): apresentação quantitativa, sem hipóteses comerciais ou recomendações por frases prontas. A [preparação para SQL Server](docs/ANALISE_QUANTITATIVA_E_SQL_SERVER.md) descreve o contrato compartilhado das fontes, as atualizações consistentes e o mapeamento ainda necessário para a conexão real.
+
 Novos exemplos e fixtures devem usar dados sintéticos. Bases da empresa, PBIX, caches, logs completos, credenciais, ambientes virtuais e binários gerados não devem acompanhar a contribuição. Arquivos compilados são distribuídos pelos fluxos de build e releases.
 
 ## Validar
