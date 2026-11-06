@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import replace
+from datetime import date
 from decimal import Decimal
 import copy
 import io
@@ -353,9 +354,27 @@ class ComexTests(ComexFixtureCase):
         self.assertLess(time.monotonic() - start, 0.1)
 
     def test_future_period_is_rejected_before_dataset_post(self):
-        with self.assertRaises(ComexError):
-            self.query(period=Period("2026-10", "2026-10"))
-        self.assertFalse(any(m == "POST" for m, _ in self.transport.calls))
+        for current_day in (
+            date(2026, 10, 1), date(2026, 11, 6), date(2026, 12, 31), date(2027, 1, 1)
+        ):
+            class CalendarDate(date):
+                @classmethod
+                def today(cls):
+                    return current_day
+
+            next_month = date(
+                current_day.year + current_day.month // 12,
+                current_day.month % 12 + 1,
+                1,
+            )
+            for forbidden_month in (current_day, next_month):
+                with self.subTest(today=current_day, period=forbidden_month), patch(
+                    "liarte_core.comex.date", CalendarDate
+                ):
+                    period = forbidden_month.strftime("%Y-%m")
+                    with self.assertRaisesRegex(ComexError, "anterior ao mês atual"):
+                        self.query(period=Period(period, period))
+                    self.assertFalse(any(m == "POST" for m, _ in self.transport.calls))
 
     def test_offline_availability_is_explicit(self):
         self.provider.availability(Event())
