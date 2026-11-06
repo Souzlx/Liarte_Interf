@@ -84,3 +84,5 @@ Faltam o esquema autorizado, as regras das transformações da origem, as chaves
 6. Uma atualização obsoleta ou cancelada não substitui a mais recente; falhas preservam a última versão válida identificada.
 
 Os testes locais usam dados sintéticos. Eles não substituem a reconciliação futura com consultas autorizadas ao SQL Server da empresa.
+
+A [conferência automática de estoque](RECONCILIACAO_ESTOQUE.md) já oferece uma referência independente das tabelas gravadas no PBIX, totais conferidos e diferenças em Excel ou JSON. Essa etapa permite verificar a importação e os cálculos atuais antes de implementar a conexão real.
