@@ -127,9 +127,17 @@ def main():
     )
     from tests.test_inventory_priorities_qml import InventoryPrioritiesQmlTests
     from tests.test_inventory_source import InventorySourceContractTests
+    from tests.test_inventory_reference import InventoryReferenceTests
+    from tests.test_inventory_reconciliation import InventoryReconciliationTests
+    from tests.test_inventory_reconciliation_export import InventoryReconciliationExportTests
+    from tests.test_inventory_reconciliation_cli import InventoryReconciliationCliTests
 
     suite = unittest.TestSuite()
     for case in (
+        InventoryReferenceTests,
+        InventoryReconciliationTests,
+        InventoryReconciliationExportTests,
+        InventoryReconciliationCliTests,
         InventorySourceContractTests,
         InventoryPrioritiesTests,
         InventoryPrioritiesExportTests,

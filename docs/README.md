@@ -29,6 +29,7 @@ O Setup e o ZIP portátil incluem o runtime. O código-fonte do GitHub é destin
 | Base local e definições do estoque | [Estoque 5.2.0](ESTOQUE_520.md) — referência de origem; a interface atual está no guia por tarefa |
 | Modelo e medidas dos PBIX examinados | [Análise do BI e experiência](ANALISE_BI_E_EXPERIENCIA.md) |
 | Indicadores sem narrativas e preparação da origem SQL | [Diretriz quantitativa e SQL Server](ANALISE_QUANTITATIVA_E_SQL_SERVER.md) |
+| Conferir os números importados e os cálculos | [Reconciliação numérica do estoque](RECONCILIACAO_ESTOQUE.md) — ferramenta nos fontes, posterior à 5.3.1 |
 | Bases anteriores e restauração | [Guia da 5.3.1](INSTALACAO_531.md#bases-anteriores-e-remoção) |
 
 Saldo atual e fechamentos históricos têm datas e escopos diferentes. Giro da fonte, cobertura estimada, recência de venda e idade física dos lotes não são equivalentes. As regras de cada guia acompanham os indicadores apresentados.

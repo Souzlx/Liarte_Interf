@@ -49,6 +49,8 @@ O Estoque utiliza PBIX ou snapshots `.liarte`, sem executar conexões ou express
 
 Foi informada uma futura origem **SQL Server**, compartilhada com o BI. Os leitores atuais passam por um contrato normalizado e validado, preparado para reutilização por um adaptador futuro. A conexão real, o mapeamento autorizado e a estratégia de consistência e atualização ainda dependem do esquema e do acesso fornecidos pela empresa; veja a [diretriz de migração](ANALISE_QUANTITATIVA_E_SQL_SERVER.md).
 
+A ferramenta de fontes `tools/reconcile_inventory.py` acrescenta conferência automática entre uma referência independente do PBIX, a base importada ou snapshot e os cálculos de saldo e análise mensal. Gera totais e diferenças em Excel ou JSON, com proteção de revisão e precisão; não altera o aplicativo publicado nem executa medidas DAX. Veja o [escopo da reconciliação](RECONCILIACAO_ESTOQUE.md).
+
 Giro da fonte, cobertura estimada e tempo desde a última venda são conceitos distintos. Quantidades de unidades diferentes não são somadas. Custo não representa faturamento, e a base atual não permite determinar a idade física dos lotes. Veja as [definições de desempenho](DESEMPENHO_PRODUTOS.md) e a [análise do BI](ANALISE_BI_E_EXPERIENCIA.md).
 
 ## Referências

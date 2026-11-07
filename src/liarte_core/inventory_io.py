@@ -327,9 +327,12 @@ def read_pbix(
     progress(5, "Lendo o modelo de dados")
     source_hash = _hash(path, cancel)
     from pandas import isna
+    from pandas.api.types import is_bool
     from pbixray import PBIXRay
 
     def indicator(value):
+        if is_bool(value):
+            raise ValueError("Indicador de giro ou dias inválido na fonte.")
         return None if isna(value) else _ratio(float(value))
 
     with PBIXRay(str(path)) as model:
