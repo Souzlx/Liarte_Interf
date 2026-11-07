@@ -43,6 +43,8 @@ Nos fontes em desenvolvimento, **Produtos → Indicadores** acrescenta recortes 
 
 O desktop consulta diretamente a API do Comex Stat quando uma consulta é solicitada. Navegar, filtrar e ordenar os resultados aceitos usa os dados já carregados. Pausas HTTP 429 são respeitadas e apresentadas na interface; a disponibilidade do serviço externo não é garantida pelo aplicativo.
 
+Os fontes posteriores à 5.3.1 corrigem a retomada de uma operação incompleta após HTTP 429, evitando repetir uma etapa já validada e preservando o último resultado completo. O estado distingue limite da origem, recuperação local e indisponibilidade HTTP, com proteção de concorrência dos prazos. Veja o [escopo e os testes da correção](CORRECAO_PAUSAS_COMEX.md).
+
 O Estoque utiliza PBIX ou snapshots `.liarte`, sem executar conexões ou expressões do PBIX. O pacote inclui uma base datada de **21/10/2026**; a última base válida importada localmente pelo usuário tem preferência. Não há conexão ao vivo com o ERP.
 
 Foi informada uma futura origem **SQL Server**, compartilhada com o BI. Os leitores atuais passam por um contrato normalizado e validado, preparado para reutilização por um adaptador futuro. A conexão real, o mapeamento autorizado e a estratégia de consistência e atualização ainda dependem do esquema e do acesso fornecidos pela empresa; veja a [diretriz de migração](ANALISE_QUANTITATIVA_E_SQL_SERVER.md).

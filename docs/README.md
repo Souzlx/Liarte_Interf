@@ -42,7 +42,7 @@ Saldo atual e fechamentos históricos têm datas e escopos diferentes. Giro da f
 | Unidade, moeda, preço médio e leitura dos gráficos | [Indicadores e gráficos](GUIA_INTERFACE_MODULAR.md#ler-os-gráficos-e-indicadores) |
 | Excel, PDF e escopo das exportações | [Instruções do aplicativo](../LEIA_PRIMEIRO.txt) |
 | Abrir e conferir o projeto Power BI gerado | [Guia Power BI](POWERBI_USO_RC7.md) — mantém as notas da RC7 em que foi escrito |
-| Cliente direto e tratamento de HTTP 429 | [Arquitetura atual](ARQUITETURA.md), [estado do projeto](STATUS.md) e [suporte](../SUPPORT.md) |
+| Cliente direto, pausas e retomada | [Pausas e retomada nos fontes](CORRECAO_PAUSAS_COMEX.md), [arquitetura atual](ARQUITETURA.md) e [suporte](../SUPPORT.md) |
 
 Os documentos da série 5.2.0 sobre central, acesso automático e clientes anteriores registram etapas distintas da evolução. Para entender o comportamento atual da consulta, consulte primeiro a arquitetura e o estado atuais; os fluxos antigos não devem ser aplicados como configuração obrigatória.
 

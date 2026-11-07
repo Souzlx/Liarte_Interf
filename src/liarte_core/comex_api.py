@@ -108,6 +108,7 @@ def retry_delay(headers, text, *, now=None):
                 target = parsedate_to_datetime(value)
                 if target.tzinfo is None:
                     target = target.replace(tzinfo=timezone.utc)
+                age = 0
                 try:
                     origin = parsedate_to_datetime(headers.get("Date"))
                     if origin.tzinfo is None:
@@ -116,7 +117,19 @@ def retry_delay(headers, text, *, now=None):
                     origin = datetime.fromtimestamp(
                         time.time() if now is None else now, timezone.utc
                     )
-                seconds = max(0.0, (target - origin).total_seconds())
+                else:
+                    # Date belongs to the original response. A cache can replay
+                    # it later; Age accounts for that elapsed time without
+                    # trusting a potentially skewed desktop clock. Delay-seconds
+                    # and body messages still apply after receipt, unchanged.
+                    raw_age = headers.get("Age")
+                    if isinstance(raw_age, str):
+                        raw_age = raw_age.strip()
+                        if re.fullmatch(r"[0-9]{1,10}", raw_age):
+                            candidate = int(raw_age)
+                            if candidate <= 2**31:
+                                age = candidate
+                seconds = max(0.0, (target - origin).total_seconds() - age)
             except (ValueError, TypeError, OverflowError):
                 seconds = -1
         if math.isfinite(seconds) and seconds >= 0:
@@ -142,12 +155,27 @@ class ApiPause:
         self.clock = clock
         self.until = 0.0
         self.status = 429
+        # HTTP work may hold self.lock for minutes. Readers only need this
+        # short, independent mutex to merge the deadline and its provenance.
+        self._state_lock = RLock()
+        self._source_delay = self._recovery_delay = None
+        self._reason, self._endpoint = "unknown", ""
         with self._registry_lock:
             self.lock = (
                 self._locks.setdefault(str(self.path.resolve()), RLock()) if self.path else RLock()
             )
 
-    def remaining(self):
+    @staticmethod
+    def _delay(value):
+        if type(value) not in (int, float):
+            return None
+        try:
+            delay = float(value)
+        except (ValueError, TypeError, OverflowError):
+            return None
+        return delay if math.isfinite(delay) and delay >= 0 else None
+
+    def _disk_state(self):
         if self.path is not None:
             try:
                 if self.path.stat().st_size > 8192:
@@ -156,20 +184,93 @@ class ApiPause:
                 until = data["until"]
                 if type(until) not in (int, float) or not math.isfinite(until):
                     raise ValueError("Prazo inválido")
-                if until > self.until:
-                    self.until, self.status = until, int(data.get("status", 429))
+                status = int(data.get("status", 429))
+                source = self._delay(data.get("source_delay"))
+                recovery = self._delay(data.get("recovery_delay"))
+                reason = data.get("reason", "unknown")
+                if reason not in ("source", "recovery", "unavailable", "unknown"):
+                    reason = "unknown"
+                if source is not None and recovery is not None and source > recovery:
+                    source = recovery = None
+                    reason = "unknown"
+                if reason != "unknown" and (
+                    source is None or recovery is None
+                    or reason == "source" and (status != 429 or source != recovery)
+                    or reason == "recovery" and (status != 429 or recovery <= source)
+                    or reason == "unavailable" and status == 429
+                ):
+                    reason = "unknown"
+                endpoint = data.get("endpoint", "")
+                if not isinstance(endpoint, str) or endpoint not in {path for _, path in PATHS}:
+                    endpoint = ""
+                return until, status, source, recovery, reason, endpoint
             except (OSError, ValueError, TypeError, KeyError, OverflowError):
                 pass
-        return max(0.0, self.until - self.clock())
+        return None
 
-    def defer(self, seconds, status, *, cancel_check=None, cancel_wait=None):
+    def _state(self):
+        # Read outside the memory mutex. In particular, no UI reader waits for
+        # the HTTP lock or for a process that is publishing another deadline.
+        incoming = self._disk_state()
+        with self._state_lock:
+            if incoming is not None and incoming[0] > self.until:
+                (
+                    self.until, self.status, self._source_delay,
+                    self._recovery_delay, self._reason, self._endpoint,
+                ) = incoming
+            return {
+                "until": self.until, "status": self.status,
+                "source_delay": self._source_delay,
+                "recovery_delay": self._recovery_delay,
+                "reason": self._reason, "endpoint": self._endpoint,
+                "remaining": max(0.0, self.until - self.clock()),
+            }
+
+    def remaining(self):
+        return self._state()["remaining"]
+
+    def snapshot(self):
+        """One coherent presentation; old until/status-only files stay valid."""
+        state = self._state()
+        active = state["remaining"] > 0
+        return {
+            "pause_seconds": min(2**31 - 1, math.ceil(state["remaining"])),
+            "pause_status": state["status"] if active else 0,
+            "pause_reason": state["reason"] if active else "",
+            "source_delay": state["source_delay"] if active else None,
+            "recovery_delay": state["recovery_delay"] if active else None,
+            "pause_endpoint": state["endpoint"] if active else "",
+            "pause_until": state["until"] if active else None,
+        }
+
+    def defer(
+        self, seconds, status, *, source_delay=None, endpoint="",
+        cancel_check=None, cancel_wait=None,
+    ):
         deadline = self.clock() + seconds
         if not math.isfinite(seconds) or seconds < 0 or not math.isfinite(deadline):
             raise contract.ComexStatError("A fonte retornou um prazo de espera inválido.")
+        if source_delay is not None and (
+            self._delay(source_delay) is None or source_delay > seconds
+        ):
+            raise contract.ComexStatError("A fonte retornou um prazo de espera inválido.")
         with self.lock:
             self.remaining()
-            if deadline > self.until:
-                self.until, self.status = deadline, status
+            with self._state_lock:
+                if deadline > self.until:
+                    self.until, self.status = deadline, status
+                    self._source_delay = source_delay
+                    self._recovery_delay = float(seconds)
+                    self._reason = (
+                        "unknown" if source_delay is None
+                        else "unavailable" if status != 429
+                        else "recovery" if seconds > source_delay else "source"
+                    )
+                    self._endpoint = (
+                        endpoint
+                        if isinstance(endpoint, str) and endpoint in {path for _, path in PATHS}
+                        else ""
+                    )
             if self.path is not None:
                 try:
                     # Trava distinta da operação HTTP: nenhum leitor da pausa
@@ -177,7 +278,14 @@ class ApiPause:
                     # indivisível a comparação/gravação entre processos.
                     with _process_lock(self.state_lock_path, check=cancel_check, wait=cancel_wait):
                         self.remaining()
-                        atomic_json(self.path, {"until": self.until, "status": self.status})
+                        with self._state_lock:
+                            state = {
+                                "until": self.until, "status": self.status,
+                                "source_delay": self._source_delay,
+                                "recovery_delay": self._recovery_delay,
+                                "reason": self._reason, "endpoint": self._endpoint,
+                            }
+                        atomic_json(self.path, state)
                 except OSError:
                     pass  # A pausa continua ativa na memória desta instalação.
 
@@ -400,7 +508,9 @@ class ApiClient:
                 raise contract.ComexStatError("A API retornou texto inválido.") from exc
             return status, headers, text
 
-    def _diagnose(self, path, status, effective, headers, text):
+    def _diagnose(
+        self, path, status, effective, headers, text, *, source_delay=None, recovery_delay=None
+    ):
         if self.failure_callback is not None:
             try:
                 self.failure_callback(
@@ -410,6 +520,13 @@ class ApiClient:
                         "http_status": effective,
                         "captured_at": time.time(),
                         "retry_after_header": str(headers.get("Retry-After") or "")[:200],
+                        "source_delay": source_delay,
+                        "recovery_delay": recovery_delay,
+                        "pause_reason": (
+                            "unknown" if source_delay is None or recovery_delay is None
+                            else "unavailable" if effective != 429
+                            else "recovery" if recovery_delay > source_delay else "source"
+                        ),
                         "response_excerpt": text[:1500],
                         "response_headers": {
                             key: str(headers.get(key))[:200]
@@ -504,10 +621,10 @@ class ApiClient:
                         and str(code) == "429"
                         else status
                     )
-                    if effective != 200:
+                    if effective not in (200, 429, 500, 502, 503, 504):
                         self._diagnose(path, status, effective, response_headers, text)
                     if effective in (429, 500, 502, 503, 504):
-                        delay = retry_delay(response_headers, text)
+                        source_delay = delay = retry_delay(response_headers, text)
                         rate_limited = effective == 429
                         if rate_limited and self.rate_limit_attempts > self.max_attempts:
                             # A short generic pause can repeat while the origin is
@@ -515,9 +632,15 @@ class ApiClient:
                             # subsequent refusals within this endpoint operation.
                             delay = max(delay, previous_rate_delay * 2)
                             previous_rate_delay = delay
+                        self._diagnose(
+                            path, status, effective, response_headers, text,
+                            source_delay=source_delay, recovery_delay=delay,
+                        )
                         self.pause.defer(
                             delay,
                             effective,
+                            source_delay=source_delay,
+                            endpoint=path,
                             cancel_check=self._check,
                             cancel_wait=self.cancel_wait,
                         )
@@ -566,7 +689,9 @@ class ApiClient:
             raise contract.ComexStatError("Mês de publicação inválido.") from exc
         return period, data.get("updated")
 
-    def _query(self, ncms, start, end, *, municipal):
+    @staticmethod
+    def query_stage_keys(ncms, start, end, *, municipal):
+        """Plan the exact wire stages, including the municipal SH4 union."""
         if isinstance(ncms, (str, bytes)):
             raise ValueError("Informe uma sequência de NCMs.")
         codes = {contract.normalize_ncm(code) for code in ncms}
@@ -577,6 +702,16 @@ class ApiClient:
             raise ValueError("Período inválido.")
         if municipal:
             codes = {code[:4] for code in codes}
+        classification = tuple(sorted(codes))
+        return tuple(
+            (municipal, max(start, f"{year:04d}-01"), min(end, f"{year:04d}-12"), classification)
+            for year in range(int(start[:4]), int(end[:4]) + 1)
+        )
+
+    def _query(self, ncms, start, end, *, municipal, completed_stages=None,
+               validate_stage=None, stage_completed=None):
+        stages = self.query_stage_keys(ncms, start, end, municipal=municipal)
+        codes = set(stages[0][3])
         self._notify("Baixando a base municipal" if municipal else "Baixando a base geral")
         body = {
             "flow": "import",
@@ -600,15 +735,20 @@ class ApiClient:
         # The source returned an empty cross-year interval containing a known
         # nonempty month. Keep each request inside one calendar year, including
         # partial first/last years, without gaps or overlaps.
-        for year in range(int(start[:4]), int(end[:4]) + 1):
+        for stage in stages:
             self._check()
-            window_start, window_end = max(start, f"{year:04d}-01"), min(end, f"{year:04d}-12")
-            body["period"] = {"from": window_start, "to": window_end}
-            payload = self.request_json("POST", path, body)
-            data = payload.get("data")
-            rows = data.get("list") if isinstance(data, dict) else None
-            if not isinstance(rows, list):
-                raise contract.ComexStatError("A resposta não contém uma lista de registros válida.")
+            _, window_start, window_end, _ = stage
+            already_complete = completed_stages is not None and stage in completed_stages
+            if already_complete:
+                rows = completed_stages[stage]
+            else:
+                body["period"] = {"from": window_start, "to": window_end}
+                payload = self.request_json("POST", path, body)
+                data = payload.get("data")
+                rows = data.get("list") if isinstance(data, dict) else None
+                if not isinstance(rows, list):
+                    raise contract.ComexStatError("A resposta não contém uma lista de registros válida.")
+            validated = {}
             for index, row in enumerate(rows):
                 if index % 256 == 0:
                     self._check()
@@ -622,11 +762,29 @@ class ApiClient:
                         "A API retornou registros duplicados com valores divergentes."
                     )
                 unique[key] = row
+                validated[key] = row
+            if not already_complete:
+                accepted = tuple(validated.values())
+                if validate_stage is not None:
+                    validate_stage(accepted)
+                self._check()
+                if completed_stages is not None:
+                    # Owned by this unfinished operation, never a source cache.
+                    # Empty validated responses must also mark a stage complete.
+                    completed_stages[stage] = tuple(dict(row) for row in accepted)
+                if stage_completed is not None:
+                    stage_completed(stage)
         self._notify("Base municipal validada" if municipal else "Base geral validada", 1.0)
         return list(unique.values())
 
-    def query_imports(self, ncms, start_period, end_period, chunk_size=50):
-        return self._query(ncms, start_period, end_period, municipal=False)
+    def query_imports(self, ncms, start_period, end_period, chunk_size=50, *,
+                      completed_stages=None, validate_stage=None, stage_completed=None):
+        return self._query(ncms, start_period, end_period, municipal=False,
+                           completed_stages=completed_stages, validate_stage=validate_stage,
+                           stage_completed=stage_completed)
 
-    def query_municipal_imports(self, ncms, start_period, end_period, chunk_size=50):
-        return self._query(ncms, start_period, end_period, municipal=True)
+    def query_municipal_imports(self, ncms, start_period, end_period, chunk_size=50, *,
+                                completed_stages=None, validate_stage=None, stage_completed=None):
+        return self._query(ncms, start_period, end_period, municipal=True,
+                           completed_stages=completed_stages, validate_stage=validate_stage,
+                           stage_completed=stage_completed)

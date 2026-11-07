@@ -173,7 +173,12 @@ class ProcessPauseTests(unittest.TestCase):
         self.assertEqual(following.remaining(), 1800)
         self.assertEqual(following.status, 503)
         persisted = json.loads(self.path.read_text(encoding="utf-8"))
-        self.assertEqual(persisted, {"until": 2800, "status": 503})
+        self.assertEqual(persisted["until"], 2800)
+        self.assertEqual(persisted["status"], 503)
+        self.assertIsNone(persisted["source_delay"])
+        self.assertEqual(persisted["recovery_delay"], 1800)
+        self.assertEqual(persisted["reason"], "unknown")
+        self.assertEqual(persisted["endpoint"], "")
 
     def test_independent_processes_serialize_posts_without_preventive_interval(self):
         release = self.context.Event()

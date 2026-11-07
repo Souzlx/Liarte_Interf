@@ -155,12 +155,29 @@ FocusScope {
     readonly property string valueBasis: viewState.appliedKind === "municipal" ? "FOB" : "CIF"
     readonly property int pauseSeconds: viewState.sourcePauseSeconds || 0
     readonly property string pauseLabel: Math.floor(pauseSeconds / 60) + ":" + String(pauseSeconds % 60).padStart(2, "0")
+    readonly property bool resumingQuery: Boolean(viewState.sourceResumeStart)
+        && queryPanel.startValue === viewState.sourceResumeStart
+        && queryPanel.endValue === viewState.sourceResumeEnd
+    function pauseMessage() {
+        const status = Number(viewState.sourcePauseStatus || 0);
+        const reason = viewState.sourcePauseReason || "";
+        const prefix = status >= 500 ? "O Comex Stat está temporariamente indisponível (HTTP " + status + "). "
+            : reason === "recovery" ? "Limite de consultas do Comex Stat. Intervalo de recuperação da aplicação. "
+            : reason === "source" ? "O Comex Stat solicitou uma pausa. "
+            : "Há uma pausa de consultas em andamento. ";
+        return prefix + (viewState.sourceResumeUnavailable ? "O prazo da fonte excede a janela de retomada desta operação. " : "")
+            + (viewState.busy || viewState.metadataBusy
+            ? "Nova tentativa automática em " + pauseLabel + "."
+            : "Aguarde " + pauseLabel + " antes de consultar novamente.");
+    }
     function sourcePauseError(message) {
         return message.includes("Comex Stat solicitou uma pausa") || /HTTP\s*429|"code"\s*:\s*429/.test(message);
     }
     function userError(message) {
         if (message.includes("Comex Stat solicitou uma pausa"))
-            return "A pausa solicitada pelo Comex Stat terminou. Você pode consultar novamente.";
+            return viewState.sourceResumeExpired
+                ? "A consulta incompleta expirou. Consulte novamente para atualizar as duas bases."
+                : "O intervalo de espera terminou. Você pode consultar novamente.";
         if (sourcePauseError(message))
             return "O Comex Stat está com limite de consultas. Você pode tentar novamente.";
         if (/HTTP\s*5\d\d/.test(message))
