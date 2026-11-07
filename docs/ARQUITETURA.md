@@ -38,6 +38,8 @@ As bases geral e municipal têm contratos separados. A geral identifica NCM e va
 
 Uma consulta explícita obtém e valida os dados da API antes de publicar o novo snapshot. Metadados e pausas podem ser persistidos; respostas de consultas anteriores em disco não substituem a API no cliente direto. Tentativas e esperas são limitadas, cooperam com o cancelamento e respeitam HTTP 429. O transporte Windows preserva a verificação HTTPS pelo sistema operacional.
 
+Nos fontes posteriores à 5.3.1, uma operação interrompida por HTTP 429 pode retomar sua etapa pendente, conservando em memória a parte já validada dentro de um prazo limitado. O resultado continua sendo publicado somente após concluir as duas bases; uma consulta nova após o sucesso recarrega ambas. O [guia de pausas e retomada](CORRECAO_PAUSAS_COMEX.md) registra validade, descarte, diagnóstico e a distinção entre espera da origem e recuperação local.
+
 ### Estoque e produtos
 
 | Componente | Responsabilidade |

@@ -627,6 +627,23 @@ class ExportTests(ComexFixtureCase):
         self.assertTrue(request.destination.is_file())
         self.assertEqual(result["name"], request.destination.name)
 
+    def test_export_audit_retains_distinct_acquisition_times_after_a_resumed_operation(self):
+        request = self.request("excel")
+        times = {
+            "acquisition_started_at": "2026-10-06T12:00:00+00:00",
+            "general_received_at": "2026-10-06T12:00:02+00:00",
+            "municipal_received_at": "2026-10-06T12:03:03+00:00",
+            "fetched_at": "2026-10-06T12:03:04+00:00",
+        }
+        request = replace(request, snapshot=replace(request.snapshot, **times))
+        result = self.export(request)
+        audit = json.loads(
+            (self.directory / "audit" / (result["sha256"] + ".json")).read_text(encoding="utf-8")
+        )
+        self.assertEqual({key: audit[key] for key in times}, times)
+        self.assertNotEqual(audit["general_received_at"], audit["fetched_at"])
+        self.assertTrue(audit["response_validated"])
+
 
 class RealQtTests(unittest.TestCase):
     def setUp(self):

@@ -73,6 +73,7 @@ def main():
     from tests.test_secure_http import SecureHttpTests, LocalHttpsTests
     from tests.test_comex_direct import DirectApiTests, DirectApiUiTests
     from tests.test_comex_api import NativeApiTests, ApiProtocolTests, NativeApiQtTests
+    from tests.test_comex_pause_flow import ComexPauseFlowTests, ComexPauseFlowQtTests
     from tests.test_audit_build import BuildAuditTests
     from tests.test_audit_stock_core import AuditStockCoreTests
     from tests.test_audit_network import ProcessPauseTests, EndpointStatusTests
@@ -184,6 +185,8 @@ def main():
         NativeApiTests,
         ApiProtocolTests,
         NativeApiQtTests,
+        ComexPauseFlowTests,
+        ComexPauseFlowQtTests,
         DirectApiTests,
         DirectApiUiTests,
         SecureHttpTests,

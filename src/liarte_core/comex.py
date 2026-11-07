@@ -24,6 +24,7 @@ from .query import DatasetQuery, checkpoint
 from .comex_api import ApiClient, ApiPause
 
 LOGGER = logging.getLogger("liarte.desktop")
+_MAX_INCOMPLETE_LIFETIME = 3600.0
 
 
 class ComexError(RuntimeError):
@@ -107,6 +108,21 @@ class Snapshot:
     shared_cache_hits: int = 0
     source_channels: tuple[str, ...] = ()
     response_validated: bool = False
+    acquisition_started_at: str = ""
+    general_received_at: str = ""
+    municipal_received_at: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class _IncompleteQuery:
+    identity: tuple
+    completed_stages: dict[tuple, tuple[dict, ...]]
+    api_requests: int
+    started_at: str
+    general_received_at: str
+    municipal_received_at: str
+    first_received_clock: float
+    expires_clock: float
 
 
 class ComexProvider:
@@ -120,7 +136,21 @@ class ComexProvider:
         codes=None,
         automatic_access=False,
         verify_official_totals=False,
+        incomplete_grace=120.0,
+        incomplete_idle_seconds=600.0,
     ):
+        if (
+            type(incomplete_grace) not in (int, float)
+            or type(incomplete_idle_seconds) not in (int, float)
+            or not math.isfinite(incomplete_grace)
+            or not math.isfinite(incomplete_idle_seconds)
+            or not 0 <= incomplete_grace <= _MAX_INCOMPLETE_LIFETIME
+            or not 0 < incomplete_idle_seconds <= _MAX_INCOMPLETE_LIFETIME
+        ):
+            raise ValueError("A validade da operação incompleta deve ser finita e limitada a uma hora.")
+        self._incomplete_grace = float(incomplete_grace)
+        self._incomplete_idle_seconds = float(incomplete_idle_seconds)
+        self._operation_clock = time.monotonic
         self.directory = Path(directory)
         # A aplicação usa exclusivamente a API. O opt-in legado é conservado
         # para ferramentas de migração e regressão; não é exposto no desktop.
@@ -164,6 +194,9 @@ class ComexProvider:
             for k in ("general", "municipal")
         }
         self._lock = Lock()
+        self._incomplete_api = None
+        self._incomplete_expired = False
+        self._incomplete_unavailable = False
         self._general = DatasetQuery()
         self._municipal = DatasetQuery()
         self._refresh_next = False
@@ -179,6 +212,7 @@ class ComexProvider:
     def cancel_pending_options(self):
         self._refresh_next = False
         self._revalidate_next = False
+        self._discard_incomplete()
 
     def revalidate_next(self):
         self._refresh_next = False
@@ -188,18 +222,59 @@ class ComexProvider:
         """Chamado apenas com os workers parados; preserva a última consulta válida."""
         self._availability = None
         self._availability_time = 0
+        self._discard_incomplete()
         self.revalidate_next()
 
     def force_refresh(self):
         self._refresh_next = True
+        self._discard_incomplete()
 
     def close(self):
+        self._discard_incomplete()
         if self._automatic is not None:
             self._automatic.close()
 
+    def _discard_incomplete(self, *, preserve_expired=False):
+        with self._lock:
+            self._incomplete_api = None
+            if not preserve_expired:
+                self._incomplete_expired = False
+                self._incomplete_unavailable = False
+
+    def _operation_identity(self, period):
+        availability = self._availability
+        revision = (
+            availability.latest, availability.updated,
+            availability.municipal_latest, availability.municipal_updated,
+        ) if availability is not None else None
+        return period, tuple(self.codes), self.client_factory, self.direct_api, revision
+
+    def _pending_operation(self):
+        with self._lock:
+            pending = self._incomplete_api
+            if pending is not None:
+                if pending.identity != self._operation_identity(pending.identity[0]):
+                    self._incomplete_api = None
+                elif self._operation_clock() >= pending.expires_clock:
+                    self._incomplete_api = None
+                    self._incomplete_expired = True
+            return self._incomplete_api
+
     def access_status(self):
         if self._api_pause is not None:
-            return {"pause_seconds": min(2**31 - 1, math.ceil(self._api_pause.remaining()))}
+            state = self._api_pause.snapshot()
+            incomplete = self._pending_operation()
+            state.update(
+                resume_pending=incomplete is not None,
+                resume_start=incomplete.identity[0].start if incomplete else "",
+                resume_end=incomplete.identity[0].end if incomplete else "",
+                resume_started_at=incomplete.started_at if incomplete else "",
+                resume_received_at=incomplete.general_received_at if incomplete else "",
+                resume_valid_seconds=max(0, math.ceil(incomplete.expires_clock - self._operation_clock())) if incomplete else 0,
+                resume_expired=self._incomplete_expired,
+                resume_unavailable=self._incomplete_unavailable,
+            )
+            return state
         from liarte_engine.comex_access import RequestCoordinator
 
         # An API pause does not block the independent official file source.
@@ -430,6 +505,9 @@ class ComexProvider:
         return tuple(generals), tuple(municipals)
 
     def load(self, period, cancel, progress):
+        if cancel.is_set():
+            self._discard_incomplete()
+            checkpoint(cancel)
         refresh = self._refresh_next
         current = self.snapshot
         # Consultar baixa cada base uma vez. Filtros e páginas utilizam apenas
@@ -477,17 +555,84 @@ class ComexProvider:
         def report_general(fraction, message):
             progress(5 + int(42 * (fraction or 0)), message)
 
-        client = self._client(cancel, report_general, refresh=refresh)
+        operation = self._operation_identity(period)
+        incomplete = self._pending_operation()
+        if refresh or incomplete is not None and incomplete.identity != operation:
+            self._discard_incomplete()
+            incomplete = None
+        completed_stages = dict(incomplete.completed_stages) if incomplete else {}
+        previous_requests = incomplete.api_requests if incomplete is not None else 0
+        started_at = incomplete.started_at if incomplete else datetime.now(timezone.utc).isoformat(timespec="seconds")
+        received_at = incomplete.general_received_at if incomplete else ""
+        municipal_received_at = incomplete.municipal_received_at if incomplete else ""
+        received_clock = incomplete.first_received_clock if incomplete else None
+        planned_stages = ()
+        keep_incomplete, client = False, None
+
+        def stage_completed(stage):
+            nonlocal received_clock, received_at, municipal_received_at
+            checkpoint(cancel)
+            if incomplete is not None and self._operation_clock() >= incomplete.expires_clock:
+                with self._lock:
+                    self._incomplete_expired = True
+                raise ComexError("A consulta incompleta expirou. Consulte novamente para atualizar as duas bases.")
+            if operation != self._operation_identity(period):
+                raise ComexError("A origem da consulta mudou. Consulte novamente para atualizar as duas bases.")
+            if received_clock is None:
+                received_clock = self._operation_clock()
+            timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            if stage[0]:
+                municipal_received_at = timestamp
+            else:
+                received_at = timestamp
+
         try:
-            general = client.query_imports(self.codes, period.start, period.end, 50)
+            client = self._client(cancel, report_general, refresh=refresh)
+            if incomplete is None:
+                with self._lock:
+                    self._incomplete_expired = False
+                    self._incomplete_unavailable = False
+            else:
+                progress(5, "Retomando consulta incompleta · etapas já validadas nesta operação")
+            if self._native_api:
+                planned_stages = tuple(
+                    stage for municipal in (False, True)
+                    for stage in client.query_stage_keys(self.codes, period.start, period.end, municipal=municipal)
+                )
+            general = client.query_imports(
+                self.codes, period.start, period.end, 50,
+                **({
+                    "completed_stages": completed_stages,
+                    "validate_stage": lambda rows: self._convert(rows, (), cancel),
+                    "stage_completed": stage_completed,
+                } if self._native_api else {}),
+            )
+            if not self._native_api:
+                # The API contract and the domain have distinct validation
+                # rules (for example, recognized UF labels). Do not retain a
+                # response as resumable before both layers have accepted it.
+                self._convert(general, (), cancel)
+                received_clock = self._operation_clock()
+                received_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
             checkpoint(cancel)
             client.progress_callback = lambda fraction, message: progress(
                 48 + int(32 * (fraction or 0)), message
             )
             municipal = client.query_municipal_imports(
-                self.codes, period.start, period.end, 50
+                self.codes, period.start, period.end, 50,
+                **({
+                    "completed_stages": completed_stages,
+                    "validate_stage": lambda rows: self._convert((), rows, cancel),
+                    "stage_completed": stage_completed,
+                } if self._native_api else {}),
             )
+            if not self._native_api:
+                municipal_received_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
             checkpoint(cancel)
+            if incomplete is not None and self._operation_clock() >= incomplete.expires_clock:
+                with self._lock:
+                    self._incomplete_expired = True
+                raise ComexError("A consulta incompleta expirou. Consulte novamente para atualizar as duas bases.")
             # Complete both endpoints and validate them before replacing anything.
             general_records, municipal_records = self._convert(
                 general, municipal, cancel
@@ -503,7 +648,7 @@ class ComexProvider:
                 availability,
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 stats.get("hits", 0),
-                getattr(client, "network_requests", 0)
+                previous_requests + getattr(client, "network_requests", 0)
                 if self.direct_api
                 else max(
                     0,
@@ -522,6 +667,9 @@ class ComexProvider:
                     )
                 ),
                 True,
+                started_at,
+                received_at,
+                municipal_received_at,
             )
             checkpoint(cancel)
             options = {}
@@ -541,19 +689,60 @@ class ComexProvider:
                     else [],
                 }
             with self._lock:
+                # Conversion and option preparation can be substantial. Check
+                # again at the publication boundary, rather than accepting a
+                # response that expired or was cancelled while being prepared.
+                checkpoint(cancel)
+                if incomplete is not None and self._operation_clock() >= incomplete.expires_clock:
+                    self._incomplete_expired = True
+                    raise ComexError("A consulta incompleta expirou. Consulte novamente para atualizar as duas bases.")
+                if operation != self._operation_identity(period):
+                    raise ComexError("A origem da consulta mudou. Consulte novamente para atualizar as duas bases.")
                 self._snapshot = snapshot
                 self._options = options
+                self._incomplete_expired = False
+                self._incomplete_unavailable = False
             self._general._rows = snapshot.general_records
             self._municipal._rows = snapshot.municipal_records
             self._refresh_next = False
             self._revalidate_next = False
             return snapshot
         except engine.ComexStatError as exc:
+            if (
+                self._native_api and isinstance(exc, engine.ComexRateLimitError)
+                and completed_stages and not cancel.is_set()
+                and operation == self._operation_identity(period)
+            ):
+                # Keep only this unfinished operation in memory. A later retry
+                # must not replay a successful base/year and consume the origin's
+                # next permitted request before the pending stage can run.
+                remaining_stages = max(1, len(planned_stages) - len(completed_stages))
+                expires = incomplete.expires_clock if incomplete else self._operation_clock() + max(
+                    self._incomplete_idle_seconds,
+                    remaining_stages * self._api_pause.remaining() + self._incomplete_grace,
+                )
+                resume_allowed = self._operation_clock() + self._api_pause.remaining() < received_clock + _MAX_INCOMPLETE_LIFETIME
+                expires = min(expires, received_clock + _MAX_INCOMPLETE_LIFETIME)
+                if self._operation_clock() < expires and resume_allowed:
+                    with self._lock:
+                        self._incomplete_api = _IncompleteQuery(
+                            operation, completed_stages,
+                            previous_requests + getattr(client, "network_requests", 0),
+                            started_at, received_at, municipal_received_at, received_clock, expires,
+                        )
+                    keep_incomplete = True
+                else:
+                    with self._lock:
+                        self._incomplete_expired = self._operation_clock() >= expires
+                        self._incomplete_unavailable = not resume_allowed
             raise ComexError(
                 "Consulta oficial não concluída: " + str(exc)[:500]
             ) from exc
         finally:
-            client.close()
+            if not keep_incomplete:
+                self._discard_incomplete(preserve_expired=True)
+            if client is not None:
+                client.close()
 
     def cached_query(self, selection):
         """A prepared local view; never bypass an explicit source revalidation.

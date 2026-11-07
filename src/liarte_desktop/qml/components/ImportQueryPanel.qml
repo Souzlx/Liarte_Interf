@@ -117,7 +117,7 @@ Rectangle {
                 id: queryButton
                 objectName: "queryButton"
                 iconName: "search"
-                text: queryPanel.workspace.draftPeriod ? "Aplicar período" : queryPanel.workspace.viewState.busy && !queryPanel.workspace.viewState.localBusy ? "Consultando…" : "Consultar"
+                text: queryPanel.workspace.resumingQuery && !queryPanel.workspace.viewState.busy ? "Retomar consulta" : queryPanel.workspace.draftPeriod ? "Aplicar período" : queryPanel.workspace.viewState.busy && !queryPanel.workspace.viewState.localBusy ? "Consultando…" : "Consultar"
                 primary: true
                 Layout.fillWidth: true
                 Layout.preferredWidth: 155
@@ -131,6 +131,18 @@ Rectangle {
             visible: queryPanel.fieldsVisible || queryPanel.workspace.viewState.metadataBusy || (queryPanel.workspace.viewState.busy && !queryPanel.workspace.viewState.localBusy) || queryPanel.workspace.localActivityVisible || (queryPanel.workspace.viewState.waiting && !queryPanel.workspace.viewState.loaded)
             Layout.fillWidth: true
             spacing: 6
+            ActionButton {
+                objectName: "restartIncompleteQuery"
+                visible: queryPanel.workspace.resumingQuery
+                enabled: !queryPanel.workspace.viewState.busy && !queryPanel.workspace.viewState.metadataBusy && queryPanel.workspace.pauseSeconds === 0
+                text: "Reiniciar consulta"
+                implicitHeight: 30
+                subtle: true
+                onClicked: queryPanel.backend.restartQueryPeriod(startPeriod.currentValue, endPeriod.currentValue)
+                ToolTip.visible: hovered
+                ToolTip.text: "Descartar a parte incompleta e consultar as duas bases novamente."
+                ToolTip.delay: 500
+            }
             ActionButton {
                 objectName: "cancelButton"
                 text: queryPanel.workspace.viewState.busy || queryPanel.workspace.viewState.waiting || queryPanel.workspace.viewState.metadataBusy ? "Cancelar" : queryPanel.workspace.viewState.demo ? "Todo o período" : "Último mês"
@@ -215,7 +227,7 @@ Rectangle {
             textFormat: Text.PlainText
             Layout.fillWidth: true
             visible: queryPanel.workspace.pauseSeconds > 0 || queryPanel.workspace.viewState.error.length > 0 || queryPanel.workspace.viewState.metadataError.length > 0
-            text: queryPanel.workspace.pauseSeconds > 0 ? "O Comex Stat solicitou uma pausa. " + (queryPanel.workspace.viewState.busy || queryPanel.workspace.viewState.metadataBusy ? "Aguardando " + queryPanel.workspace.pauseLabel + " para uma nova tentativa automática." : "Aguarde " + queryPanel.workspace.pauseLabel + " antes de consultar novamente.") : queryPanel.workspace.userError(queryPanel.workspace.viewState.error || queryPanel.workspace.viewState.metadataError)
+            text: queryPanel.workspace.pauseSeconds > 0 ? queryPanel.workspace.pauseMessage() : queryPanel.workspace.userError(queryPanel.workspace.viewState.error || queryPanel.workspace.viewState.metadataError)
             color: queryPanel.workspace.pauseSeconds > 0 || queryPanel.workspace.sourcePauseError(queryPanel.workspace.viewState.error || queryPanel.workspace.viewState.metadataError) ? Theme.muted : Theme.danger
             font.pixelSize: 12
             wrapMode: Text.WordWrap

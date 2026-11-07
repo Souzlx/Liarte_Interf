@@ -169,6 +169,9 @@ def export_document(
             else "Validação da resposta recebida: estrutura, período, códigos, duplicidades e valores exatos; CIF = FOB + frete + seguro. Sem consulta adicional de totais."
         ),
         "fetched_at": snapshot.fetched_at,
+        "acquisition_started_at": getattr(snapshot, "acquisition_started_at", ""),
+        "general_received_at": getattr(snapshot, "general_received_at", ""),
+        "municipal_received_at": getattr(snapshot, "municipal_received_at", ""),
         "general_records": len(snapshot.general),
         "municipal_records": len(snapshot.municipal),
         "filtered_pdf": request.kind == "pdf",

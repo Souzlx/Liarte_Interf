@@ -181,6 +181,12 @@ class DesktopController(QObject):
             "metadataBusy": False,
             "metadataError": "",
             "sourcePauseSeconds": 0,
+            "sourcePauseStatus": 0,
+            "sourcePauseReason": "",
+            "sourceResumeStart": "",
+            "sourceResumeEnd": "",
+            "sourceResumeExpired": False,
+            "sourceResumeUnavailable": False,
             "sourceStatus": "Dados demonstrativos" if self._is_demo else "Comex Stat",
             "sourceUpdated": "",
             "cacheStatus": "",
@@ -258,8 +264,17 @@ class DesktopController(QObject):
     def _sync_access_status(self):
         status = getattr(self._provider, "access_status", None)
         if status is not None:
-            seconds = status().get("pause_seconds", 0)
-            self._update(sourcePauseSeconds=max(0, int(seconds)))
+            state = status()
+            seconds = max(0, int(state.get("pause_seconds", 0)))
+            self._update(
+                sourcePauseSeconds=seconds,
+                sourcePauseStatus=int(state.get("pause_status", 0)) if seconds else 0,
+                sourcePauseReason=state.get("pause_reason", "") if seconds else "",
+                sourceResumeStart=state.get("resume_start", ""),
+                sourceResumeEnd=state.get("resume_end", ""),
+                sourceResumeExpired=bool(state.get("resume_expired", False)),
+                sourceResumeUnavailable=bool(state.get("resume_unavailable", False)),
+            )
 
     @Slot(str, bool)
     def _preference_changed(self, key: str, value: bool):
@@ -724,6 +739,13 @@ class DesktopController(QObject):
 
     @Slot(str, str)
     def queryPeriod(self, start: str, end: str):
+        self._query_period(start, end)
+
+    @Slot(str, str)
+    def restartQueryPeriod(self, start: str, end: str):
+        self._query_period(start, end, restart=True)
+
+    def _query_period(self, start: str, end: str, *, restart=False):
         try:
             self._sync_access_status()
             if self._state["sourcePauseSeconds"]:
@@ -739,6 +761,8 @@ class DesktopController(QObject):
             self._update(error=str(exc))
             return
         if not self._is_demo:
+            if restart:
+                self._provider.cancel_pending_options()
             self._provider.revalidate_next()
         self._selection = replace(self._selection, period=period, page=1)
         self._update(defaultStart=start, defaultEnd=end)
@@ -1159,6 +1183,7 @@ class DesktopController(QObject):
     @Slot()
     def _finished(self):
         self._thread, self._worker = None, None
+        self._sync_access_status()
         pending, self._pending = self._pending, None
         source_query, self._pending_source_query = self._pending_source_query, False
         self._running_source_query = False
@@ -1177,6 +1202,7 @@ class DesktopController(QObject):
         self._cancel.set()
         if not self._is_demo:
             self._provider.cancel_pending_options()
+            self._sync_access_status()
         if self._result is not None:
             self._selection = replace(self._result.selection, page=self._result.page)
             self._sync_filters()

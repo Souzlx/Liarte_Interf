@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from decimal import Decimal
 import gzip
 import io
@@ -9,7 +10,7 @@ import json
 from pathlib import Path
 import ssl
 import tempfile
-from threading import Event
+from threading import Event, Thread, current_thread
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
@@ -549,6 +550,44 @@ class ApiProtocolTests(unittest.TestCase):
             self.assertEqual(retry_delay({"Retry-After": value}, "Tente em 10 segundos"), 10.5)
         self.assertEqual(retry_delay({}, ""), 30)
 
+    def test_cached_absolute_retry_after_accounts_for_valid_age(self):
+        headers = {
+            "Retry-After": "Wed, 21 Oct 2026 19:00:00 GMT",
+            "Date": "Wed, 21 Oct 2026 18:00:00 GMT",
+        }
+        for age, remaining in (("0", 3600.5), ("1800", 1800.5), ("3600", 0.5), ("7200", 0.5)):
+            with self.subTest(age=age):
+                self.assertEqual(retry_delay({**headers, "Age": age}, ""), remaining)
+        for age in ("-1", "1.5", "NaN", "Infinity", "bad", "١٢", "2147483649"):
+            with self.subTest(invalid_age=age):
+                self.assertEqual(retry_delay({**headers, "Age": age}, ""), 3600.5)
+        # Relative delays apply after receipt. Age must not shorten them or a
+        # body instruction, and must not be subtracted twice without Date.
+        self.assertEqual(retry_delay({"Retry-After": "1800", "Age": "7200"}, ""), 1800.5)
+        self.assertEqual(retry_delay({"Age": "7200"}, "10 segundos"), 10.5)
+        self.assertEqual(
+            retry_delay(
+                {"Retry-After": headers["Retry-After"], "Date": "bad", "Age": "7200"},
+                "", now=1792607400,  # 2026-10-21 18:30 UTC.
+            ),
+            1800.5,
+        )
+
+    def test_an_expired_cached_absolute_limit_does_not_restart_an_old_wait(self):
+        client = self.client()
+        responses = [
+            BytesResponse(b"busy", status=429, headers={
+                "Date": "Thu, 01 Jan 1970 00:10:00 GMT",
+                "Retry-After": "Thu, 01 Jan 1970 00:11:00 GMT", "Age": "401",
+            }),
+            BytesResponse(b'{"data":{}}'),
+        ]
+        client._network_opener = lambda *args, **kwargs: responses.pop(0)
+        with patch("liarte_core.comex_api.time.monotonic", new=self.clock):
+            self.assertEqual(self.request(client), {"data": {}})
+        self.assertEqual(client.network_requests, 2)
+        self.assertAlmostEqual(sum(self.waits), 0.5)
+
     def test_200_with_error_code_429_is_not_accepted_as_success(self):
         client = self.client(attempts=1)
         events = []
@@ -700,6 +739,217 @@ class ApiProtocolTests(unittest.TestCase):
             with patch("liarte_core.comex_api.atomic_json", side_effect=OSError("disk full")):
                 client.pause.defer(180, 429)
             self.assertEqual(client.pause.remaining(), 180)
+
+    def test_pause_snapshot_distinguishes_source_delay_from_recovery_backoff(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "pause.json"
+            clock = Clock()
+            pause = ApiPause(path, clock=clock)
+            pause.defer(84, 429, source_delay=10.5, endpoint="/cities?language=pt")
+            expected = {
+                "pause_seconds": 84, "pause_status": 429, "pause_reason": "recovery",
+                "source_delay": 10.5, "recovery_delay": 84.0,
+                "pause_endpoint": "/cities?language=pt", "pause_until": clock() + 84,
+            }
+            self.assertEqual(pause.snapshot(), expected)
+            following = ApiPause(path, clock=clock)
+            self.assertEqual(following.snapshot(), expected)
+            following.defer(2, 503, source_delay=2, endpoint="/general?language=pt")
+            self.assertEqual(following.snapshot(), expected)
+            clock.wait(85)
+            self.assertEqual(following.snapshot(), {
+                "pause_seconds": 0, "pause_status": 0, "pause_reason": "",
+                "source_delay": None, "recovery_delay": None,
+                "pause_endpoint": "", "pause_until": None,
+            })
+
+    def test_rate_limit_diagnostic_records_source_and_recovery_delays_separately(self):
+        client = self.client(rate_attempts=4)
+        events = []
+        client.failure_callback = events.append
+        client._network_opener = lambda *args, **kwargs: (_ for _ in ()).throw(limited(None))
+        with (
+            patch("liarte_core.comex_api.time.monotonic", new=self.clock),
+            self.assertRaises(legacy.ComexRateLimitError),
+        ):
+            self.request(client)
+        self.assertEqual([event["source_delay"] for event in events], [10.5] * 4)
+        self.assertEqual([event["recovery_delay"] for event in events], [10.5, 21, 42, 84])
+        self.assertEqual([event["pause_reason"] for event in events],
+                         ["source", "recovery", "recovery", "recovery"])
+        self.assertEqual(client.pause.snapshot()["pause_reason"], "recovery")
+        self.assertEqual(client.pause.snapshot()["pause_seconds"], 84)
+
+    def test_server_unavailability_keeps_its_distinct_snapshot_and_diagnostic_status(self):
+        client = self.client(attempts=1)
+        events = []
+        client.failure_callback = events.append
+        client._network_opener = lambda *args, **kwargs: BytesResponse(
+            b"busy", status=503, headers={"Retry-After": "120"}
+        )
+        with self.assertRaises(legacy.ComexStatError):
+            self.request(client)
+        self.assertEqual(client.pause.snapshot()["pause_status"], 503)
+        self.assertEqual(client.pause.snapshot()["pause_reason"], "unavailable")
+        self.assertEqual(events[0]["http_status"], 503)
+        self.assertEqual(events[0]["source_delay"], 120.5)
+        self.assertEqual(events[0]["recovery_delay"], 120.5)
+        self.assertEqual(events[0]["pause_reason"], "unavailable")
+
+    def test_legacy_pause_is_read_without_inventing_its_origin_or_rewriting_it(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "pause.json"
+            clock = Clock()
+            path.write_text(json.dumps({"until": clock() + 90, "status": 503}), encoding="utf-8")
+            before = path.read_bytes()
+            state = ApiPause(path, clock=clock).snapshot()
+            self.assertEqual(state["pause_seconds"], 90)
+            self.assertEqual(state["pause_status"], 503)
+            self.assertEqual(state["pause_reason"], "unknown")
+            self.assertIsNone(state["source_delay"])
+            self.assertIsNone(state["recovery_delay"])
+            self.assertEqual(path.read_bytes(), before)
+
+    def test_malformed_optional_pause_metadata_never_discards_an_active_deadline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "pause.json"
+            clock = Clock()
+            path.write_text(json.dumps({
+                "until": clock() + 180, "status": 429, "endpoint": [],
+                "reason": {"unexpected": True}, "source_delay": False,
+                "recovery_delay": "84",
+            }), encoding="utf-8")
+            state = ApiPause(path, clock=clock).snapshot()
+            self.assertEqual(state["pause_seconds"], 180)
+            self.assertEqual(state["pause_status"], 429)
+            self.assertEqual(state["pause_reason"], "unknown")
+            self.assertEqual(state["pause_endpoint"], "")
+            self.assertIsNone(state["source_delay"])
+            self.assertIsNone(state["recovery_delay"])
+
+    def test_optional_delay_overflow_and_nonfinite_values_preserve_the_real_deadline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "pause.json"
+            clock = Clock()
+            for field in ("source_delay", "recovery_delay"):
+                for value in (10**400, -(10**400), float("nan"), float("inf"), -float("inf"),
+                              True, False, "bad", -1):
+                    with self.subTest(field=field, value=str(value)):
+                        path.write_text(json.dumps({
+                            "until": clock() + 180, "status": 429,
+                            field: value, "reason": "unknown",
+                        }), encoding="utf-8")
+                        pause = ApiPause(path, clock=clock)
+                        self.assertEqual(pause.remaining(), 180)
+                        state = pause.snapshot()
+                        self.assertEqual(state["pause_seconds"], 180)
+                        self.assertEqual(state["pause_status"], 429)
+                        self.assertEqual(state["pause_reason"], "unknown")
+                        self.assertIsNone(state[field])
+
+    def test_pause_read_during_defer_cannot_shorten_a_newer_persisted_deadline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "pause.json"
+            path.write_text('{"until":100,"status":429}', encoding="utf-8")
+            pause = ApiPause(path, clock=lambda: 0)
+            reader_before_merge, release_reader = Event(), Event()
+            writer_before_save, release_writer = Event(), Event()
+            failures = []
+            original_loads, original_remaining = json.loads, pause.remaining
+            writer_reads = 0
+
+            class DelayedStatus(dict):
+                def get(self, key, default=None):
+                    if key == "status":
+                        reader_before_merge.set()
+                        if not release_reader.wait(3):
+                            raise AssertionError("reader was not released")
+                    return super().get(key, default)
+
+            def decode(text, *args, **kwargs):
+                result = original_loads(text, *args, **kwargs)
+                return DelayedStatus(result) if current_thread().name == "pause-reader" else result
+
+            def remaining():
+                nonlocal writer_reads
+                result = original_remaining()
+                if current_thread().name == "pause-writer":
+                    writer_reads += 1
+                    if writer_reads == 2:
+                        writer_before_save.set()
+                        if not release_writer.wait(3):
+                            raise AssertionError("writer was not released")
+                return result
+
+            def run(action):
+                try:
+                    action()
+                except BaseException as error:
+                    failures.append(error)
+
+            reader = Thread(name="pause-reader", target=lambda: run(pause.remaining))
+            writer = Thread(name="pause-writer", target=lambda: run(lambda: pause.defer(200, 429)))
+            with patch("liarte_core.comex_api.json.loads", side_effect=decode), patch.object(
+                pause, "remaining", side_effect=remaining
+            ):
+                try:
+                    reader.start()
+                    self.assertTrue(reader_before_merge.wait(2))
+                    writer.start()
+                    self.assertTrue(writer_before_save.wait(2))
+                    release_reader.set()
+                    reader.join(2)
+                    memory_deadline = pause.until
+                finally:
+                    release_reader.set()
+                    release_writer.set()
+                    reader.join(3)
+                    if writer.ident is not None:
+                        writer.join(3)
+            self.assertEqual(failures, [])
+            self.assertFalse(reader.is_alive())
+            self.assertFalse(writer.is_alive())
+            self.assertEqual(memory_deadline, 200)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["until"], 200)
+
+    def test_pause_read_never_waits_for_the_http_or_process_publication_lock(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            pause = ApiPause(Path(temporary) / "pause.json", clock=lambda: 0)
+            writer_waiting, release_writer, reader_done = Event(), Event(), Event()
+            failures, values = [], []
+
+            @contextmanager
+            def waiting_publication(*args, **kwargs):
+                writer_waiting.set()
+                if not release_writer.wait(3):
+                    raise AssertionError("publication lock was not released")
+                yield
+
+            def writer_action():
+                try:
+                    pause.defer(30, 429)
+                except BaseException as error:
+                    failures.append(error)
+
+            def reader_action():
+                values.append(pause.remaining())
+                reader_done.set()
+
+            writer = Thread(target=writer_action)
+            reader = Thread(target=reader_action)
+            with patch("liarte_core.comex_api._process_lock", waiting_publication):
+                try:
+                    writer.start()
+                    self.assertTrue(writer_waiting.wait(2))
+                    reader.start()
+                    self.assertTrue(reader_done.wait(1), "UI waited for the worker's locks")
+                finally:
+                    release_writer.set()
+                    writer.join(3)
+                    if reader.ident is not None:
+                        reader.join(3)
+            self.assertEqual(failures, [])
+            self.assertEqual(values, [30])
 
     def test_constructor_rejects_legacy_modes_or_unbounded_retry_counts(self):
         for options in (
