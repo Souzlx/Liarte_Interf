@@ -16,9 +16,9 @@ Use os guias abaixo para instalar, atualizar e consultar a LIARTE. Para descreve
 - **Instalação:** feche a LIARTE e execute o novo Setup na mesma conta Windows. Abra pelo atalho criado pelo instalador e confira a versão em **Ajuda**.
 - **Pacote portátil:** extraia todo o ZIP em uma pasta nova e mantenha `_internal` junto de `LIARTE_Desktop.exe`. O ZIP de fontes do GitHub é outra distribuição. Setup e portátil incluem Python.
 - **Consulta pausada:** se o Comex Stat solicitar uma pausa, aguarde o intervalo informado pelo aplicativo antes de consultar novamente.
-
-Nos fontes em desenvolvimento após a 5.3.1, uma consulta incompleta pode oferecer **Retomar consulta** para continuar sua etapa pendente, dentro da validade indicada. **Reiniciar consulta** refaz a operação e também respeita a pausa. O [guia de pausas e retomada](docs/CORRECAO_PAUSAS_COMEX.md) explica a diferença entre HTTP 429, recuperação local e indisponibilidade do serviço. Essa melhoria ainda depende de uma entrega posterior para aparecer nos pacotes publicados.
 - **Indicadores diferentes:** confira período, unidade, filtros, data da base e fonte do indicador. As bases geral e municipal do Comex têm escopos e valores CIF/FOB diferentes; giro da fonte e cobertura estimada também têm definições próprias.
+
+Nos fontes em desenvolvimento após a 5.3.1, uma consulta incompleta pode oferecer **Retomar consulta** para continuar sua etapa pendente, enquanto a operação ainda for válida. **Reiniciar consulta** refaz a operação e também respeita a pausa. O [guia de pausas e retomada](docs/CORRECAO_PAUSAS_COMEX.md) explica a diferença entre HTTP 429, recuperação local e indisponibilidade do serviço. Essa melhoria ainda depende de uma entrega posterior para aparecer nos pacotes publicados.
 
 ## Relatar um problema
 

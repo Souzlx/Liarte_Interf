@@ -194,6 +194,7 @@ class ComexProvider:
             for k in ("general", "municipal")
         }
         self._lock = Lock()
+        self._operation_generation = 0
         self._incomplete_api = None
         self._incomplete_expired = False
         self._incomplete_unavailable = False
@@ -236,10 +237,16 @@ class ComexProvider:
 
     def _discard_incomplete(self, *, preserve_expired=False):
         with self._lock:
-            self._incomplete_api = None
-            if not preserve_expired:
-                self._incomplete_expired = False
-                self._incomplete_unavailable = False
+            self._discard_incomplete_locked(preserve_expired=preserve_expired)
+
+    def _discard_incomplete_locked(self, *, preserve_expired=False):
+        # Invalidate in-flight work even when there is no retained response yet
+        # or the replacement connection has exactly the same identity.
+        self._operation_generation += 1
+        self._incomplete_api = None
+        if not preserve_expired:
+            self._incomplete_expired = False
+            self._incomplete_unavailable = False
 
     def _operation_identity(self, period):
         availability = self._availability
@@ -254,9 +261,9 @@ class ComexProvider:
             pending = self._incomplete_api
             if pending is not None:
                 if pending.identity != self._operation_identity(pending.identity[0]):
-                    self._incomplete_api = None
+                    self._discard_incomplete_locked()
                 elif self._operation_clock() >= pending.expires_clock:
-                    self._incomplete_api = None
+                    self._discard_incomplete_locked()
                     self._incomplete_expired = True
             return self._incomplete_api
 
@@ -555,11 +562,14 @@ class ComexProvider:
         def report_general(fraction, message):
             progress(5 + int(42 * (fraction or 0)), message)
 
-        operation = self._operation_identity(period)
-        incomplete = self._pending_operation()
-        if refresh or incomplete is not None and incomplete.identity != operation:
-            self._discard_incomplete()
-            incomplete = None
+        self._pending_operation()
+        with self._lock:
+            operation = self._operation_identity(period)
+            incomplete = self._incomplete_api
+            if refresh or incomplete is not None and incomplete.identity != operation:
+                self._discard_incomplete_locked()
+                incomplete = None
+            generation = self._operation_generation
         completed_stages = dict(incomplete.completed_stages) if incomplete else {}
         previous_requests = incomplete.api_requests if incomplete is not None else 0
         started_at = incomplete.started_at if incomplete else datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -571,13 +581,15 @@ class ComexProvider:
 
         def stage_completed(stage):
             nonlocal received_clock, received_at, municipal_received_at
-            checkpoint(cancel)
-            if incomplete is not None and self._operation_clock() >= incomplete.expires_clock:
-                with self._lock:
+            with self._lock:
+                checkpoint(cancel)
+                if generation != self._operation_generation:
+                    raise ComexError("A consulta foi reiniciada ou cancelada. Consulte novamente para atualizar as duas bases.")
+                if incomplete is not None and self._operation_clock() >= incomplete.expires_clock:
                     self._incomplete_expired = True
-                raise ComexError("A consulta incompleta expirou. Consulte novamente para atualizar as duas bases.")
-            if operation != self._operation_identity(period):
-                raise ComexError("A origem da consulta mudou. Consulte novamente para atualizar as duas bases.")
+                    raise ComexError("A consulta incompleta expirou. Consulte novamente para atualizar as duas bases.")
+                if operation != self._operation_identity(period):
+                    raise ComexError("A origem da consulta mudou. Consulte novamente para atualizar as duas bases.")
             if received_clock is None:
                 received_clock = self._operation_clock()
             timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -693,6 +705,8 @@ class ComexProvider:
                 # again at the publication boundary, rather than accepting a
                 # response that expired or was cancelled while being prepared.
                 checkpoint(cancel)
+                if generation != self._operation_generation:
+                    raise ComexError("A consulta foi reiniciada ou cancelada. Consulte novamente para atualizar as duas bases.")
                 if incomplete is not None and self._operation_clock() >= incomplete.expires_clock:
                     self._incomplete_expired = True
                     raise ComexError("A consulta incompleta expirou. Consulte novamente para atualizar as duas bases.")
@@ -702,10 +716,10 @@ class ComexProvider:
                 self._options = options
                 self._incomplete_expired = False
                 self._incomplete_unavailable = False
-            self._general._rows = snapshot.general_records
-            self._municipal._rows = snapshot.municipal_records
-            self._refresh_next = False
-            self._revalidate_next = False
+                self._general._rows = snapshot.general_records
+                self._municipal._rows = snapshot.municipal_records
+                self._refresh_next = False
+                self._revalidate_next = False
             return snapshot
         except engine.ComexStatError as exc:
             if (
@@ -717,24 +731,34 @@ class ComexProvider:
                 # must not replay a successful base/year and consume the origin's
                 # next permitted request before the pending stage can run.
                 remaining_stages = max(1, len(planned_stages) - len(completed_stages))
-                expires = incomplete.expires_clock if incomplete else self._operation_clock() + max(
-                    self._incomplete_idle_seconds,
-                    remaining_stages * self._api_pause.remaining() + self._incomplete_grace,
-                )
-                resume_allowed = self._operation_clock() + self._api_pause.remaining() < received_clock + _MAX_INCOMPLETE_LIFETIME
-                expires = min(expires, received_clock + _MAX_INCOMPLETE_LIFETIME)
-                if self._operation_clock() < expires and resume_allowed:
-                    with self._lock:
-                        self._incomplete_api = _IncompleteQuery(
-                            operation, completed_stages,
-                            previous_requests + getattr(client, "network_requests", 0),
-                            started_at, received_at, municipal_received_at, received_clock, expires,
+                pause_seconds = self._api_pause.remaining()
+                with self._lock:
+                    # Cancellation, a source change, or TTL expiry can arrive
+                    # while this worker waits to publish the unfinished work.
+                    # A discard must never be undone by the older worker.
+                    if (
+                        not cancel.is_set()
+                        and generation == self._operation_generation
+                        and operation == self._operation_identity(period)
+                    ):
+                        now = self._operation_clock()
+                        expires = incomplete.expires_clock if incomplete else now + max(
+                            self._incomplete_idle_seconds,
+                            remaining_stages * pause_seconds + self._incomplete_grace,
                         )
-                    keep_incomplete = True
-                else:
-                    with self._lock:
-                        self._incomplete_expired = self._operation_clock() >= expires
-                        self._incomplete_unavailable = not resume_allowed
+                        hard_deadline = received_clock + _MAX_INCOMPLETE_LIFETIME
+                        resume_allowed = now + pause_seconds < hard_deadline
+                        expires = min(expires, hard_deadline)
+                        if now < expires and resume_allowed:
+                            self._incomplete_api = _IncompleteQuery(
+                                operation, completed_stages,
+                                previous_requests + getattr(client, "network_requests", 0),
+                                started_at, received_at, municipal_received_at, received_clock, expires,
+                            )
+                            keep_incomplete = True
+                        else:
+                            self._incomplete_expired = now >= expires
+                            self._incomplete_unavailable = not resume_allowed
             raise ComexError(
                 "Consulta oficial não concluída: " + str(exc)[:500]
             ) from exc

@@ -25,6 +25,24 @@ def refusal(request, status=429, seconds=180):
     )
 
 
+class LockBoundary:
+    """Schedule an invalidation just before the worker acquires its lock."""
+
+    def __init__(self, lock):
+        self.lock = lock
+        self.before_acquire = None
+
+    def __enter__(self):
+        callback, self.before_acquire = self.before_acquire, None
+        if callback is not None:
+            callback()
+        self.lock.acquire()
+        return self
+
+    def __exit__(self, *args):
+        self.lock.release()
+
+
 class ComexPauseFlowTests(unittest.TestCase):
     setUp = api_tests.NativeApiTests.setUp
     tearDown = api_tests.NativeApiTests.tearDown
@@ -218,6 +236,99 @@ class ComexPauseFlowTests(unittest.TestCase):
             with self.assertRaises(ComexError):
                 self.load()
         self.assertEqual(self.provider._incomplete_api.expires_clock, expiry)
+
+    def reject_at_retention_boundary(self, action, *, cancel=None):
+        boundary = LockBoundary(self.provider._lock)
+        invoked = []
+
+        def invalidate():
+            invoked.append(True)
+            action()
+
+        def denied(request, **kwargs):
+            if urlsplit(request.full_url).path == "/cities":
+                boundary.before_acquire = invalidate
+                raise refusal(request)
+            return self.transport(request, **kwargs)
+
+        self.provider.revalidate_next()
+        with (
+            patch.object(self.provider, "_lock", boundary),
+            patch.object(ApiClient, "_open", side_effect=denied),
+            self.assertRaises(ComexError),
+        ):
+            self.provider.load(self.period, cancel or Event(), lambda *_: None)
+        self.assertEqual(invoked, [True])
+
+    def test_cancellation_at_retention_boundary_cannot_restore_the_discarded_operation(self):
+        previous = self.load()
+        cancel = Event()
+
+        def cancellation():
+            cancel.set()
+            self.provider.cancel_pending_options()
+
+        self.reject_at_retention_boundary(cancellation, cancel=cancel)
+        self.assertTrue(cancel.is_set())
+        self.assertIs(self.provider.snapshot, previous)
+        self.assertFalse(self.provider.access_status()["resume_pending"])
+
+    def test_same_identity_discard_at_retention_boundary_invalidates_the_older_worker(self):
+        previous = self.load()
+        clock = Clock()
+        self.provider._api_pause.clock = self.provider._operation_clock = clock
+        for method in ("cancel_pending_options", "force_refresh", "connection_changed", "close"):
+            with self.subTest(method=method):
+                clock.wait(self.provider._api_pause.remaining() + 1)
+                identity = self.provider._operation_identity(self.period)
+                self.reject_at_retention_boundary(getattr(self.provider, method))
+                self.assertEqual(self.provider._operation_identity(self.period), identity)
+                self.assertIs(self.provider.snapshot, previous)
+                self.assertFalse(self.provider.access_status()["resume_pending"])
+
+    def test_source_change_at_retention_boundary_cannot_keep_an_obsolete_stage(self):
+        previous = self.load()
+
+        def source_change():
+            self.provider.codes = ("29161220", "29161310")
+
+        self.reject_at_retention_boundary(source_change)
+        self.assertIs(self.provider.snapshot, previous)
+        self.assertFalse(self.provider.access_status()["resume_pending"])
+
+    def test_expiration_at_retention_boundary_cannot_restore_an_expired_operation(self):
+        previous = self.load()
+        clock, _ = self.pending()
+        expiry = self.provider._incomplete_api.expires_clock
+        clock.wait(self.provider._api_pause.remaining() + 1)
+        self.reject_at_retention_boundary(lambda: clock.wait(expiry - clock() + 1))
+        self.assertIs(self.provider.snapshot, previous)
+        state = self.provider.access_status()
+        self.assertFalse(state["resume_pending"])
+        self.assertTrue(state["resume_expired"])
+
+    def test_same_identity_discard_at_publication_boundary_preserves_the_complete_snapshot(self):
+        previous = self.load()
+        original = ApiClient.query_municipal_imports
+        for method in ("cancel_pending_options", "force_refresh", "connection_changed", "close"):
+            with self.subTest(method=method):
+                boundary = LockBoundary(self.provider._lock)
+                identity = self.provider._operation_identity(self.period)
+
+                def arm_publication(client, *args, **kwargs):
+                    rows = original(client, *args, **kwargs)
+                    boundary.before_acquire = getattr(self.provider, method)
+                    return rows
+
+                with (
+                    patch.object(self.provider, "_lock", boundary),
+                    patch.object(ApiClient, "query_municipal_imports", new=arm_publication),
+                    self.assertRaisesRegex(ComexError, "reiniciada ou cancelada"),
+                ):
+                    self.load()
+                self.assertEqual(self.provider._operation_identity(self.period), identity)
+                self.assertIs(self.provider.snapshot, previous)
+                self.assertFalse(self.provider.access_status()["resume_pending"])
 
     def test_a_response_arriving_after_partial_expiration_is_not_published(self):
         clock, _ = self.pending()

@@ -10,6 +10,8 @@ A correção conserva em memória cada etapa já validada da mesma operação in
 
 Uma consulta concluída não serve de cache para a próxima consulta explícita. Cancelamento, troca de período ou fonte, reinício solicitado e falhas que invalidam a operação descartam as partes incompletas. Nenhuma resposta parcial é restaurada do disco ou exibida como consulta concluída.
 
+Cada descarte invalida também o trabalho em andamento, mesmo quando período e origem continuam iguais. A retenção de etapas e a publicação do resultado verificam novamente essa validade sob a mesma trava; uma resposta atrasada não pode restaurar a operação descartada.
+
 ## Validade e reinício
 
 A operação conserva seus horários de início e recebimento. A validade da retomada é limitada e considera a primeira pausa ativa; novas recusas não renovam indefinidamente essa validade. A expiração descarta somente os dados incompletos e sinaliza a necessidade de reiniciar. O prazo exigido pela API permanece integral.
@@ -48,3 +50,24 @@ Em 7 de novembro de 2026, outra sondagem mínima pela nuvem recebeu respostas v�
 Os testes usam respostas sintéticas e relógios controlados para conferir retomada, expiração, reinício, preservação do resultado anterior, cancelamento, concorrência de prazos e as mensagens da interface. Os testes de rede não são necessários para reproduzir o ciclo corrigido.
 
 A disponibilidade e os limites reais do Comex Stat continuam sujeitos à origem. As correções não removem HTTP 429, não reduzem `Retry-After`, não trocam silenciosamente para arquivos ou respostas antigas e não garantem sucesso quando a API continua recusando os pedidos.
+
+## Conferência visual dos fontes
+
+O Qt real foi conferido em Linux/offscreen, com fonte e relógio sintéticos, nas janelas 1380 × 900 e 500 × 600. Os controles de retomada e reinício permaneceram visíveis, a mensagem se ajustou à largura compacta e não houve avisos QML. Durante a pausa, Tab ignora as duas ações desabilitadas. Após a liberação, Tab e Shift+Tab alcançam as ações com foco visível; Espaço retoma somente a etapa pendente ou reinicia ambas, conforme o controle escolhido.
+
+| Estado sintético | Captura |
+| --- | --- |
+| Pausa com operação retomável | [Janela ampla](images/comex-pausa-retomavel-sintetica.png) |
+| Pausa em janela compacta | [500 × 600](images/comex-pausa-compacta-sintetica.png) |
+| Pausa encerrada e navegação por teclado | [Retomar e reiniciar](images/comex-retomada-compacta-teclado-sintetica.png) |
+
+Essa conferência dos fontes não equivale à homologação manual do executável no Windows ou da rede do usuário.
+
+## Conferir o pacote de teste no Windows
+
+1. Extraia o ZIP portátil completo em uma pasta nova, mantendo `_internal` junto de `LIARTE_Desktop.exe`.
+2. Faça uma consulta em um período publicado e confira o período aplicado no resultado.
+3. Altere o período e consulte novamente. Se a fonte pausar, aguarde o contador; quando disponível, **Retomar consulta** continua o período pendente. O resultado anterior permanece até a conclusão do novo.
+4. Para descartar o progresso, use **Reiniciar consulta** quando a pausa permitir. Confira também cancelamento e navegação entre Estoque e Importações.
+
+Se a API continuar recusando a primeira etapa, ainda não haverá progresso para retomar. O diagnóstico HTTP dessa tentativa é necessário para diferenciar essa recusa da repetição de etapas corrigida aqui.
