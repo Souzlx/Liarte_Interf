@@ -41,9 +41,9 @@ Os workflows [Linux 40906447193](https://github.com/Souzlx/Liarte_Interf/actions
 
 Nos fontes em desenvolvimento, **Produtos → Indicadores** acrescenta recortes quantitativos de cobertura, variação de vendas, saldo com venda líquida zero e estoque a custo no fechamento. A investigação preserva o recorte e a exportação registra valores, critérios e períodos. Hipóteses comerciais e sugestões prontas foram retiradas do desempenho e dos recortes por produto, inclusive no Excel. Essa melhoria é posterior à 5.3.1 publicada e não modifica seus pacotes; veja os [critérios quantitativos](PRIORIDADES_PRODUTOS.md).
 
-O desktop consulta diretamente a API do Comex Stat quando uma consulta é solicitada. Navegar, filtrar e ordenar os resultados aceitos usa os dados já carregados. Pausas HTTP 429 são respeitadas e apresentadas na interface; a disponibilidade do serviço externo não é garantida pelo aplicativo.
+Nos fontes com histórico persistente em desenvolvimento, Importações utiliza a versão aceita da base local e verifica atualizações em segundo plano. A carga inicial percorre o histórico NCM dos produtos acompanhados, até o último mês coberto pelas duas bases. Depois da primeira publicação integral, consultas locais continuam disponíveis durante indisponibilidade ou pausas da API. A extração mantém as regras de HTTP 429; veja o [histórico local e seus limites](HISTORICO_LOCAL_COMEX.md).
 
-Os fontes posteriores à 5.3.1 corrigem a retomada de uma operação incompleta após HTTP 429, evitando repetir uma etapa já validada e preservando o último resultado completo. O estado distingue limite da origem, recuperação local e indisponibilidade HTTP, com proteção de concorrência dos prazos. Veja o [escopo e os testes da correção](CORRECAO_PAUSAS_COMEX.md).
+O [cliente direto e sua correção de retomada](CORRECAO_PAUSAS_COMEX.md) permanecem disponíveis para ferramentas e regressões. O histórico local acrescenta retomada persistente e reconferência de alterações e exclusões antigas. A 5.3.1 publicada usa o fluxo de consultas com que foi distribuída; os novos fontes não alteram seus pacotes.
 
 O Estoque utiliza PBIX ou snapshots `.liarte`, sem executar conexões ou expressões do PBIX. O pacote inclui uma base datada de **21/10/2026**; a última base válida importada localmente pelo usuário tem preferência. Não há conexão ao vivo com o ERP.
 

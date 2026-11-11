@@ -50,6 +50,7 @@ from .jobs import MetadataWorker, ExportWorker
 from .analytics import empty_analysis, present as present_procurement
 from .table_model import HEADERS, MUNICIPAL_HEADERS, ImportTableModel, cells, port_label
 from .preferences import ApplicationPreferences
+from .comex_history import HistorySyncOwner
 
 LOGGER = logging.getLogger("liarte.desktop")
 
@@ -123,9 +124,9 @@ class DesktopController(QObject):
         super().__init__(parent)
         self.table = ImportTableModel(self)
         if provider is None:
-            from liarte_core.comex import ComexProvider
+            from liarte_core.comex_historical import HistoricalComexProvider
 
-            provider = ComexProvider(
+            provider = HistoricalComexProvider(
                 profile.data_dir if profile is not None else (
                     Path(
                         QStandardPaths.writableLocation(
@@ -143,6 +144,9 @@ class DesktopController(QObject):
             else ApplicationPreferences(settings, self)
         )
         self._is_demo = getattr(self._provider, "is_demo", False)
+        self._is_historical = bool(getattr(self._provider, "is_historical", False))
+        self._history_requested = False
+        self._draft_period_touched = False
         today = date.today()
         candidate = period_value(today.year * 12 + today.month - 2)
         self._limits = DEMO_PERIOD if self._is_demo else Period("1997-01", candidate)
@@ -160,6 +164,8 @@ class DesktopController(QObject):
                 self._selection, period=Period(candidate[:4] + "-01", candidate)
             )
         self._result: QueryResult | None = None
+        self._accepted_snapshot = None
+        self._accepted_options = None
         self._procurement_source = None
         self._procurement_view = empty_analysis()
         self._thread: QThread | None = None
@@ -169,6 +175,7 @@ class DesktopController(QObject):
         self._pending_source_query = False
         self._running_source_query = False
         self._closing = False
+        self._ready_close_emitted = False
         self._started = 0.0
 
         def preference(key, default=False):
@@ -178,6 +185,7 @@ class DesktopController(QObject):
             "busy": False,
             "localBusy": False,
             "demo": self._is_demo,
+            "historicalMode": self._is_historical,
             "metadataBusy": False,
             "metadataError": "",
             "sourcePauseSeconds": 0,
@@ -259,6 +267,59 @@ class DesktopController(QObject):
         self._access_timer.timeout.connect(self._sync_access_status)
         if not self._is_demo:
             self._access_timer.start()
+        self._history_owner = HistorySyncOwner(self._provider, self)
+        self._history_owner.updated.connect(self._history_updated)
+        self._history_owner.readyToClose.connect(self._try_close)
+        self._sync_history_limits()
+
+    @Property(QObject, constant=True)
+    def history(self):
+        return self._history_owner
+
+    @Slot()
+    def _history_updated(self):
+        if not self._is_historical or self._closing:
+            return
+        self._sync_history_limits()
+        if not self._history_requested:
+            return
+        selection = self._selection
+        if not self._provider.has_local_period(selection.period.start, selection.period.end):
+            return
+        revision = self._provider.local_period_revision(selection.period.start, selection.period.end)
+        snapshot = self._accepted_snapshot
+        if snapshot is not None and snapshot.period == selection.period and getattr(snapshot, "local_revision", "") == revision:
+            return
+        self._provider.revalidate_next()
+        self._queue(selection, source_query=True)
+
+    def _sync_history_limits(self):
+        if not self._is_historical:
+            return
+        try:
+            publication = self._provider.history_status().get("publication", {})
+            latest = publication.get("latest", "")
+            municipal_latest = publication.get("municipal_latest", latest)
+            if not latest or not municipal_latest:
+                return
+            limits = Period("1997-01", min(latest, municipal_latest))
+        except Exception:
+            LOGGER.exception("Não foi possível ler a cobertura da base local")
+            return
+        if limits == self._limits:
+            return
+        self._limits = limits
+        if not self._draft_period_touched and self._result is None:
+            end = limits.end
+            start = max(limits.start, end[:4] + "-01")
+            self._selection = replace(self._selection, period=Period(start, end), page=1)
+            self._update(defaultStart=start, defaultEnd=end)
+        self.periodsChanged.emit()
+
+    def _available_options(self, kind):
+        if self._accepted_options is not None:
+            return self._accepted_options[kind]
+        return {"countries": [], "states": [], "ports": [], "cities": [], "headings": [], "products": []}
 
     @Slot()
     def _sync_access_status(self):
@@ -334,14 +395,39 @@ class DesktopController(QObject):
 
     @Property("QVariantList", notify=periodsChanged)
     def periods(self):
-        return [{"label": period_label(m), "value": m} for m in self._limits.months]
+        months = set(self._limits.months)
+        if self._is_historical and self._draft_period_touched:
+            for value in (self._state["defaultStart"], self._state["defaultEnd"]):
+                try:
+                    Period(value, value)
+                except ValueError:
+                    continue
+                months.add(value)
+        return [
+            {
+                "label": period_label(month) + (
+                    " · fora da base local"
+                    if not self._limits.start <= month <= self._limits.end else ""
+                ),
+                "value": month,
+            }
+            for month in sorted(months)
+        ]
 
     @Property("QVariantList", notify=filtersChanged)
     def products(self):
         if not self._is_demo and self._selection.kind == "municipal":
             return [{"label": "Todos os SH4", "value": ""}] + [
                 {"label": f"{code} · {label}", "value": code}
-                for code, label in self._provider.options("municipal")["headings"]
+                for code, label in self._available_options("municipal")["headings"]
+            ]
+        if self._is_historical:
+            names = {item["ncm"]: item["name"] for item in catalog()}
+            for code, label in self._available_options("general").get("products", ()):
+                names.setdefault(code, label)
+            return [{"label": "Todos os produtos", "value": ""}] + [
+                {"label": f"{names[code]} · {code}" if names.get(code) else code, "value": code}
+                for code in sorted(self._provider.codes, key=lambda code: (search_key(names.get(code, code)), code))
             ]
         return [{"label": "Todos os produtos", "value": ""}] + [
             {"label": f"{v['name']} · {v['ncm']}", "value": v["ncm"]}
@@ -355,7 +441,7 @@ class DesktopController(QObject):
         values = (
             sorted(COUNTRIES)
             if self._is_demo
-            else self._provider.options(self._selection.kind)["countries"]
+            else self._available_options(self._selection.kind)["countries"]
         )
         return self._option_items(
             values, selected_values(self._selection, "country"), "Todos os países"
@@ -366,7 +452,7 @@ class DesktopController(QObject):
         values = (
             sorted(STATES)
             if self._is_demo
-            else self._provider.options(self._selection.kind)["states"]
+            else self._available_options(self._selection.kind)["states"]
         )
         return self._option_items(
             values, selected_values(self._selection, "state"), "Todas as UFs"
@@ -377,7 +463,7 @@ class DesktopController(QObject):
         values = (
             sorted(PORTS)
             if self._is_demo
-            else self._provider.options(self._selection.kind)["ports"]
+            else self._available_options(self._selection.kind)["ports"]
         )
         options = self._option_items(
             values, selected_values(self._selection, "port"), "Todos os portos"
@@ -386,7 +472,7 @@ class DesktopController(QObject):
 
     @Property("QVariantList", notify=filtersChanged)
     def cities(self):
-        values = [] if self._is_demo else self._provider.options("municipal")["cities"]
+        values = [] if self._is_demo else self._available_options("municipal")["cities"]
         return self._option_items(
             values, selected_values(self._selection, "city"), "Todos os municípios"
         )
@@ -425,6 +511,9 @@ class DesktopController(QObject):
 
     @Slot()
     def refreshAvailability(self):
+        if self._is_historical:
+            self._history_owner.check()
+            return
         if (
             self._is_demo
             or self._metadata_thread is not None
@@ -541,6 +630,7 @@ class DesktopController(QObject):
     def setDraftPeriod(self, edge, value):
         if value in {item["value"] for item in self.periods}:
             if edge in ("start", "end"):
+                self._draft_period_touched = True
                 self._update(
                     **{"defaultStart" if edge == "start" else "defaultEnd": value}
                 )
@@ -555,6 +645,7 @@ class DesktopController(QObject):
         ):
             return
         available = self._limits.months
+        self._draft_period_touched = True
         self._update(
             defaultStart=available[max(0, len(available) - months)],
             defaultEnd=available[-1],
@@ -599,7 +690,7 @@ class DesktopController(QObject):
         if not url.isLocalFile():
             self._update(exportError="Escolha um arquivo local.")
             return
-        snapshot = self._provider.snapshot
+        snapshot = self._accepted_snapshot
         if snapshot is None or snapshot.period != self._result.selection.period:
             self._update(
                 exportError="O período carregado mudou. Consulte novamente antes de exportar."
@@ -681,10 +772,11 @@ class DesktopController(QObject):
             )
 
     def _try_close(self):
-        if self._closing and all(
+        if self._closing and not self._ready_close_emitted and all(
             t is None
             for t in (self._thread, self._metadata_thread, self._export_thread)
-        ):
+        ) and not self._history_owner.running:
+            self._ready_close_emitted = True
             self.readyToClose.emit()
 
     def _can_export(self):
@@ -748,7 +840,7 @@ class DesktopController(QObject):
     def _query_period(self, start: str, end: str, *, restart=False):
         try:
             self._sync_access_status()
-            if self._state["sourcePauseSeconds"]:
+            if self._state["sourcePauseSeconds"] and not self._is_historical:
                 raise ValueError(
                     "O Comex Stat solicitou uma pausa. Aguarde o prazo indicado."
                 )
@@ -764,6 +856,11 @@ class DesktopController(QObject):
             if restart:
                 self._provider.cancel_pending_options()
             self._provider.revalidate_next()
+        if self._is_historical:
+            if (start, end) != (self._state["defaultStart"], self._state["defaultEnd"]):
+                self._draft_period_touched = True
+            self._history_requested = True
+            self._history_owner.request_check()
         self._selection = replace(self._selection, period=period, page=1)
         self._update(defaultStart=start, defaultEnd=end)
         self._debounce.stop()
@@ -796,7 +893,7 @@ class DesktopController(QObject):
                 ):
                     raise ValueError("Filtro indisponível na demonstração.")
             elif key in ("country", "state", "port", "city") and value:
-                available = self._provider.options(selection.kind)[
+                available = self._available_options(selection.kind)[
                     {
                         "country": "countries",
                         "state": "states",
@@ -967,6 +1064,8 @@ class DesktopController(QObject):
             progress=0,
             stage="Preparando a demonstração"
             if self._is_demo
+            else "Consultando a base local de importações"
+            if self._is_historical
             else "Preparando a consulta ao Comex Stat",
             error="",
             copyMessage="",
@@ -1118,11 +1217,16 @@ class DesktopController(QObject):
             else "Todos os produtos e origens",
             elapsed=number(Decimal(str(time.perf_counter() - self._started)), 2) + " s",
         )
-        self.table.replace(result.rows, result.selection.kind)
-        self._result = result
-        self._selection = replace(self._selection, page=result.page)
+        snapshot = None
+        options = None
         if not self._is_demo:
             snapshot = self._provider.snapshot
+            if snapshot is None or snapshot.period != result.selection.period:
+                raise ValueError("A referência da consulta mudou antes da apresentação.")
+            options = {
+                kind: self._provider.options(kind)
+                for kind in ("general", "municipal")
+            }
             changes["cacheStatus"] = (
                 f"{snapshot.api_requests} consultas à API oficial"
                 if getattr(self._provider, "direct_api", False)
@@ -1147,9 +1251,18 @@ class DesktopController(QObject):
                 if snapshot.availability.cached
                 else ""
             )
+            if self._is_historical:
+                changes["cacheStatus"] = "Consulta à base local persistente"
+                changes["sourceStatus"] = "Base local · Comex Stat"
+                changes["sourceNotice"] = ""
+        self.table.replace(result.rows, result.selection.kind)
+        self._result = result
+        self._accepted_snapshot = snapshot
+        self._accepted_options = options
+        self._selection = replace(self._selection, page=result.page)
         self._update(**changes)
         revision = (
-            (id(self._provider.snapshot), result.selection.kind)
+            (id(self._accepted_snapshot), result.selection.kind)
             if not self._is_demo
             else None
         )
@@ -1195,6 +1308,7 @@ class DesktopController(QObject):
 
     @Slot()
     def cancel(self):
+        self._history_requested = False
         had_work = self._thread is not None or self._debounce.isActive()
         self._debounce.stop()
         self._pending = None
@@ -1223,6 +1337,7 @@ class DesktopController(QObject):
         self.cancel()
         self._metadata_cancel.set()
         self._export_cancel.set()
+        self._history_owner.request_close()
         self._try_close()
 
     def shutdown(self):
@@ -1233,6 +1348,7 @@ class DesktopController(QObject):
         self._cancel.set()
         self._metadata_cancel.set()
         self._export_cancel.set()
+        self._history_owner.shutdown()
         for thread_name, worker_name in (
             ("_thread", "_worker"),
             ("_metadata_thread", "_metadata_worker"),

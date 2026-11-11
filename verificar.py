@@ -9,25 +9,7 @@ import sys
 import unittest
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--headless",
-        action="store_true",
-        help="Qt offscreen para automação; não equivale à homologação Windows.",
-    )
-    parser.add_argument(
-        "--volume", action="store_true", help="Inclui o ensaio com 100 mil registros."
-    )
-    args = parser.parse_args()
-    if args.headless:
-        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-        os.environ.setdefault("QT_QUICK_BACKEND", "software")
-    root = Path(__file__).resolve().parent
-    sys.path.insert(0, str(root / "src"))
-    from liarte_desktop.qt_runtime import configure_windows_qt
-
-    configure_windows_qt()
+def registered_cases(include_volume=False):
     from tests.test_core import CoreTests
     from tests.test_runtime_profile import RuntimeProfileTests, RuntimeProfileUiTests
     from tests.test_qt import QtTests, VolumeTests
@@ -74,6 +56,13 @@ def main():
     from tests.test_comex_direct import DirectApiTests, DirectApiUiTests
     from tests.test_comex_api import NativeApiTests, ApiProtocolTests, NativeApiQtTests
     from tests.test_comex_pause_flow import ComexPauseFlowTests, ComexPauseFlowQtTests
+    from tests.test_comex_history import HistoryStoreTests, HistoryStoreConcurrencyTests
+    from tests.test_comex_sync import ComexSyncTests, ComexSyncApiIntegrationTests
+    from tests.test_comex_historical import HistoricalComexProviderTests
+    from tests.test_comex_history_ui import ComexHistoryUiTests, ComexHistoryCompositionTests
+    from tests.test_comex_history_qml import ComexHistoryQmlTests, ComexHistoryWorkspaceQmlTests
+    from tests.test_comex_history_export import HistoricalComexExportTests
+    from tests.test_comex_history_sqlite_ui import ComexHistorySqliteDesktopTests
     from tests.test_audit_build import BuildAuditTests
     from tests.test_audit_stock_core import AuditStockCoreTests
     from tests.test_audit_network import ProcessPauseTests, EndpointStatusTests
@@ -131,9 +120,10 @@ def main():
     from tests.test_inventory_reconciliation import InventoryReconciliationTests
     from tests.test_inventory_reconciliation_export import InventoryReconciliationExportTests
     from tests.test_inventory_reconciliation_cli import InventoryReconciliationCliTests
+    from tests.test_verification_runner import VerificationRunnerTests
 
-    suite = unittest.TestSuite()
-    for case in (
+    return (
+        VerificationRunnerTests,
         InventoryReferenceTests,
         InventoryReconciliationTests,
         InventoryReconciliationExportTests,
@@ -195,6 +185,17 @@ def main():
         NativeApiQtTests,
         ComexPauseFlowTests,
         ComexPauseFlowQtTests,
+        HistoryStoreTests,
+        HistoryStoreConcurrencyTests,
+        ComexSyncTests,
+        ComexSyncApiIntegrationTests,
+        HistoricalComexProviderTests,
+        ComexHistoryUiTests,
+        ComexHistoryCompositionTests,
+        ComexHistoryQmlTests,
+        ComexHistoryWorkspaceQmlTests,
+        HistoricalComexExportTests,
+        ComexHistorySqliteDesktopTests,
         DirectApiTests,
         DirectApiUiTests,
         SecureHttpTests,
@@ -253,8 +254,48 @@ def main():
         NavigationQtTests,
         NavigationComexTests,
         NavigationMunicipalTests,
-        *((VolumeTests,) if args.volume else ()),
-    ):
+        *((VolumeTests,) if include_volume else ()),
+    )
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="Qt offscreen para automação; não equivale à homologação Windows.",
+    )
+    parser.add_argument(
+        "--volume", action="store_true", help="Inclui o ensaio com 100 mil registros."
+    )
+    parser.add_argument(
+        "--isolate", action=argparse.BooleanOptionalAction,
+        default=sys.platform == "win32",
+        help="Um processo por módulo de teste, padrão no Windows; sem repetição automática.",
+    )
+    parser.add_argument("--case", action="append", default=[], help=argparse.SUPPRESS)
+    parser.add_argument("--result-json", type=Path, help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    if bool(args.case) != (args.result_json is not None):
+        parser.error("--case e --result-json devem acompanhar um ao outro.")
+    if args.headless:
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        os.environ.setdefault("QT_QUICK_BACKEND", "software")
+    root = Path(__file__).resolve().parent
+    sys.path.insert(0, str(root / "src"))
+    from liarte_desktop.qt_runtime import configure_windows_qt
+
+    configure_windows_qt()
+    from tools.verification_runner import run_case_names, run_isolated
+
+    if args.case:
+        return run_case_names(args.case, args.result_json)
+    cases = registered_cases(args.volume)
+    if args.isolate:
+        result = run_isolated(cases, root, headless=args.headless)
+        return 0 if result["successful"] else 1
+    suite = unittest.TestSuite()
+    for case in cases:
         suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(case))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     return 0 if result.wasSuccessful() else 1

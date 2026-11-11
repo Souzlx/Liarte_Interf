@@ -83,3 +83,5 @@ class DistributionTests(unittest.TestCase):
             self.assertEqual(payload["qml_warnings"], [])
             self.assertEqual(payload["rows_in_page"], 50)
             self.assertIn("policy", payload["https_transport"])
+            self.assertEqual(payload["document_resources"]["comex_history"], "ok")
+            self.assertTrue(payload["document_resources"]["comex_history_offline_query"])

@@ -175,9 +175,9 @@ def main():
         [sys.executable, str(ROOT / "verificar.py"), "--headless", "--volume"],
         cwd=ROOT,
         check=True,
-        # The full suite includes real Qt, local servers and subprocesses. On
-        # Windows/Python 3.14 reached test 581 of 587 at 297 s on the hosted runner.
-        timeout=600,
+        # Fresh interpreter/Qt processes isolate the registered modules on
+        # Windows. Budget their cold starts as well as the complete suite.
+        timeout=1200,
     )
     with tempfile.TemporaryDirectory(prefix=".desktop-build-", dir=ROOT) as temp:
         stage = Path(temp)
