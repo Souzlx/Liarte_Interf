@@ -9,6 +9,8 @@ Item {
     property string mode: "line"
     property bool showValues: false
     property bool movingAverage: true
+    property color lineColor: Theme.chartBlue
+    property color referenceColor: Theme.chartReference
     property int precision: 2
     property int hoverIndex: -1
     property int selectedIndex: -1
@@ -160,6 +162,8 @@ Item {
     }
     onModeChanged: repaint()
     onMovingAverageChanged: repaint()
+    onLineColorChanged: repaint()
+    onReferenceColorChanged: repaint()
     onAxisChanged: repaint()
     onVisibleChanged: if (!visible) {
         revealMotion.stop();
@@ -259,10 +263,57 @@ Item {
                     c.reset();
                     const count = chart.points.length;
                     const barWidth = Math.min(40, plot.width / Math.max(1, count) * 0.6);
+                    // Monotone cubic tangents retain every observed value and
+                    // never interpolate through a missing month.
+                    function tangent(index, field) {
+                        const value = chart.points[index][field];
+                        const before = index > 0 ? chart.points[index - 1][field] : null;
+                        const after = index + 1 < count ? chart.points[index + 1][field] : null;
+                        const left = chart.valid(before) ? chart.py(value) - chart.py(before) : null;
+                        const right = chart.valid(after) ? chart.py(after) - chart.py(value) : null;
+                        if (left === null)
+                            return right === null ? 0 : right;
+                        if (right === null)
+                            return left;
+                        return left * right <= 0 ? 0 : 2 * left * right / (left + right);
+                    }
+                    function connect(index, field) {
+                        const left = index - 1, third = (chart.px(index) - chart.px(left)) / 3;
+                        c.bezierCurveTo(chart.px(left) + third, chart.py(chart.points[left][field]) + tangent(left, field) / 3,
+                            chart.px(index) - third, chart.py(chart.points[index][field]) - tangent(index, field) / 3,
+                            chart.px(index), chart.py(chart.points[index][field]));
+                    }
+                    if (chart.mode === "line" && chart.axis.low === 0) {
+                        const gradient = c.createLinearGradient(0, 0, 0, height);
+                        gradient.addColorStop(0, Qt.rgba(chart.lineColor.r, chart.lineColor.g, chart.lineColor.b, 0.17));
+                        gradient.addColorStop(1, Qt.rgba(chart.lineColor.r, chart.lineColor.g, chart.lineColor.b, 0.015));
+                        c.fillStyle = gradient;
+                        let first = 0;
+                        while (first < count) {
+                            if (!chart.valid(chart.points[first].value)) {
+                                first++;
+                                continue;
+                            }
+                            let last = first;
+                            while (last + 1 < count && chart.valid(chart.points[last + 1].value))
+                                last++;
+                            if (last > first) {
+                                c.beginPath();
+                                c.moveTo(chart.px(first), chart.py(0));
+                                c.lineTo(chart.px(first), chart.py(chart.points[first].value));
+                                for (let i = first + 1; i <= last; i++)
+                                    connect(i, "value");
+                                c.lineTo(chart.px(last), chart.py(0));
+                                c.closePath();
+                                c.fill();
+                            }
+                            first = last + 1;
+                        }
+                    }
                     function series(field, dashed) {
-                        c.strokeStyle = dashed ? Theme.muted : Theme.accent;
-                        c.fillStyle = dashed ? Theme.muted : Theme.accent;
-                        c.lineWidth = dashed ? 1.5 : 2.4;
+                        c.strokeStyle = dashed ? chart.referenceColor : chart.lineColor;
+                        c.fillStyle = dashed ? chart.referenceColor : chart.lineColor;
+                        c.lineWidth = dashed ? 1.7 : 2.7;
                         c.lineJoin = "round";
                         c.lineCap = "round";
                         if (chart.mode === "column" && !dashed) {
@@ -284,7 +335,7 @@ Item {
                                 continue;
                             }
                             if (connected)
-                                c.lineTo(chart.px(i), chart.py(value));
+                                connect(i, field);
                             else
                                 c.moveTo(chart.px(i), chart.py(value));
                             connected = true;
@@ -299,7 +350,9 @@ Item {
                             if ((!dashed && count <= 24) || isolated) {
                                 c.beginPath();
                                 c.arc(chart.px(i), chart.py(value), dashed ? 2 : 3, 0, Math.PI * 2);
+                                c.fillStyle = dashed ? chart.referenceColor : Theme.surface;
                                 c.fill();
+                                c.stroke();
                             }
                         }
                     }
@@ -330,7 +383,7 @@ Item {
             x: chart.px(chart.activeIndex)
             width: 1
             height: parent.height
-            color: Theme.accent
+            color: chart.lineColor
             opacity: 0.3
         }
         Rectangle {
@@ -342,7 +395,7 @@ Item {
             radius: 5
             color: Theme.surface
             border.width: 2
-            border.color: Theme.accent
+            border.color: chart.lineColor
         }
         MouseArea {
             anchors.fill: parent

@@ -1,0 +1,402 @@
+{
+  "schema": 1,
+  "status": "ok",
+  "date": "2026-11-11",
+  "baseline_commit": "02c17351d8cc4ea1befb97ad93b776f242653de0",
+  "code_commit": "a3ddf7d894c45ff7f4bc0b0512adc4b5404e01ec",
+  "execution": {
+    "platform": "linux",
+    "python": "3.12.14",
+    "qt": "6.10.3",
+    "qt_platform": "offscreen",
+    "rendering": "software",
+    "data": "synthetic test fixtures only"
+  },
+  "verification": {
+    "command": "python verificar.py --headless --volume --isolate",
+    "tests": 1379,
+    "modules": 87,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 209.783,
+    "log_sha256": "bef3ce5e91c7f5e2fc2bf09f4b6e989c32e8cee90132574ee4f9caa7e7bbd19e"
+  },
+  "repository_tests": {
+    "tests": 18,
+    "failures": 0,
+    "errors": 0
+  },
+  "lint": {
+    "modified_python_files": "ok",
+    "git_diff_check": "ok",
+    "repository_links_and_file_policy": "ok"
+  },
+  "volume": {
+    "records": 100000,
+    "seconds": 1.028,
+    "qt_events": 67
+  },
+  "source_smoke": {
+    "status": "ok",
+    "version": "5.3.1",
+    "qt": "6.10.3",
+    "window_title": "Liarte Importações",
+    "window_icon_checked": true,
+    "frozen": false,
+    "platform": "linux",
+    "synthetic": true,
+    "document_resources": {
+      "excel": "ok",
+      "pdf": "ok",
+      "pdf_logo": true,
+      "powerbi": "ok",
+      "powerbi_pages": 6,
+      "powerbi_visuals": 85,
+      "comex_history": "ok",
+      "comex_history_offline_query": true,
+      "synthetic": true,
+      "temporary": true,
+      "inventory_backups": "ok"
+    },
+    "https_transport": {
+      "policy": "system-openssl-v1"
+    },
+    "save_dialog_checked": true,
+    "api_network_test": false,
+    "rows_in_page": 50,
+    "qml_warnings": [],
+    "error": "",
+    "themes_checked": [
+      "light",
+      "dark"
+    ]
+  },
+  "production_python_changes": [],
+  "visual": {
+    "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+    "png_count": 86,
+    "final_png_count": 72,
+    "baseline_png_count": 14,
+    "configurations": [
+      {
+        "configuration": "baseline/empty-1600x900",
+        "qml_sha256": "d5d71565bf97c7dd4675eb2a64a3a3645d9481ecbf81b93c6c0578ba0c86fb1e",
+        "screenshots": 3,
+        "viewport": [
+          1600,
+          900
+        ],
+        "scale": "1",
+        "empty": true,
+        "dark": false,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {}
+      },
+      {
+        "configuration": "baseline/synthetic-1600x900",
+        "qml_sha256": "d5d71565bf97c7dd4675eb2a64a3a3645d9481ecbf81b93c6c0578ba0c86fb1e",
+        "screenshots": 11,
+        "viewport": [
+          1600,
+          900
+        ],
+        "scale": "1",
+        "empty": false,
+        "dark": false,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "Ctrl+2": "imports",
+          "Ctrl+3": "inventory",
+          "Ctrl+F/imports": "searchBox",
+          "Ctrl+F/inventory": "stockSearch"
+        }
+      },
+      {
+        "configuration": "final/empty-1600x900",
+        "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+        "screenshots": 3,
+        "viewport": [
+          1600,
+          900
+        ],
+        "scale": "1",
+        "empty": true,
+        "dark": false,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "focus/home": {
+            "item": "moduleCard_imports",
+            "visible_in_window": true
+          },
+          "Ctrl+2": "imports",
+          "focus/imports": {
+            "item": "queryButton",
+            "visible_in_window": true
+          },
+          "Ctrl+3": "inventory",
+          "focus/inventory": {
+            "item": "openStockBase",
+            "visible_in_window": true
+          }
+        }
+      },
+      {
+        "configuration": "final/empty-500x400",
+        "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+        "screenshots": 3,
+        "viewport": [
+          500,
+          400
+        ],
+        "scale": "1",
+        "empty": true,
+        "dark": false,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "focus/home": {
+            "item": "moduleCard_imports",
+            "visible_in_window": true
+          },
+          "Ctrl+2": "imports",
+          "focus/imports": {
+            "item": "queryButton",
+            "visible_in_window": true
+          },
+          "Ctrl+3": "inventory",
+          "focus/inventory": {
+            "item": "openStockBase",
+            "visible_in_window": true
+          }
+        }
+      },
+      {
+        "configuration": "final/synthetic-1366x768",
+        "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+        "screenshots": 11,
+        "viewport": [
+          1366,
+          768
+        ],
+        "scale": "1",
+        "empty": false,
+        "dark": false,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "focus/home": {
+            "item": "homeSummaryOpen_imports",
+            "visible_in_window": true
+          },
+          "Ctrl+2": "imports",
+          "focus/imports": {
+            "item": "importsNav",
+            "visible_in_window": true
+          },
+          "Ctrl+3": "inventory",
+          "focus/inventory": {
+            "item": "stockProductsView_priorities",
+            "visible_in_window": true
+          },
+          "Ctrl+F/imports": "searchBox",
+          "Ctrl+F/inventory": "stockSearch"
+        }
+      },
+      {
+        "configuration": "final/synthetic-1600x900",
+        "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+        "screenshots": 11,
+        "viewport": [
+          1600,
+          900
+        ],
+        "scale": "1",
+        "empty": false,
+        "dark": false,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "focus/home": {
+            "item": "homeSummaryOpen_imports",
+            "visible_in_window": true
+          },
+          "Ctrl+2": "imports",
+          "focus/imports": {
+            "item": "importsNav",
+            "visible_in_window": true
+          },
+          "Ctrl+3": "inventory",
+          "focus/inventory": {
+            "item": "stockProductsView_priorities",
+            "visible_in_window": true
+          },
+          "Ctrl+F/imports": "searchBox",
+          "Ctrl+F/inventory": "stockSearch"
+        }
+      },
+      {
+        "configuration": "final/synthetic-1600x900-dark-scale150",
+        "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+        "screenshots": 11,
+        "viewport": [
+          1600,
+          900
+        ],
+        "scale": "1.5",
+        "empty": false,
+        "dark": true,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "focus/home": {
+            "item": "homeSummaryOpen_imports",
+            "visible_in_window": true
+          },
+          "Ctrl+2": "imports",
+          "focus/imports": {
+            "item": "importsNav",
+            "visible_in_window": true
+          },
+          "Ctrl+3": "inventory",
+          "focus/inventory": {
+            "item": "stockProductsView_priorities",
+            "visible_in_window": true
+          },
+          "Ctrl+F/imports": "searchBox",
+          "Ctrl+F/inventory": "stockSearch"
+        }
+      },
+      {
+        "configuration": "final/synthetic-1600x900-scale125",
+        "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+        "screenshots": 11,
+        "viewport": [
+          1600,
+          900
+        ],
+        "scale": "1.25",
+        "empty": false,
+        "dark": false,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "focus/home": {
+            "item": "homeSummaryOpen_imports",
+            "visible_in_window": true
+          },
+          "Ctrl+2": "imports",
+          "focus/imports": {
+            "item": "importsNav",
+            "visible_in_window": true
+          },
+          "Ctrl+3": "inventory",
+          "focus/inventory": {
+            "item": "stockProductsView_priorities",
+            "visible_in_window": true
+          },
+          "Ctrl+F/imports": "searchBox",
+          "Ctrl+F/inventory": "stockSearch"
+        }
+      },
+      {
+        "configuration": "final/synthetic-1920x1080",
+        "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+        "screenshots": 11,
+        "viewport": [
+          1920,
+          1080
+        ],
+        "scale": "1",
+        "empty": false,
+        "dark": false,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "focus/home": {
+            "item": "homeSummaryOpen_imports",
+            "visible_in_window": true
+          },
+          "Ctrl+2": "imports",
+          "focus/imports": {
+            "item": "importsNav",
+            "visible_in_window": true
+          },
+          "Ctrl+3": "inventory",
+          "focus/inventory": {
+            "item": "stockProductsView_priorities",
+            "visible_in_window": true
+          },
+          "Ctrl+F/imports": "searchBox",
+          "Ctrl+F/inventory": "stockSearch"
+        }
+      },
+      {
+        "configuration": "final/synthetic-500x400-dark",
+        "qml_sha256": "b7d2892a91f2c46224944a0b0fcc44c99cf33af5f5a62182e34ac8f413ff948c",
+        "screenshots": 11,
+        "viewport": [
+          500,
+          400
+        ],
+        "scale": "1",
+        "empty": false,
+        "dark": true,
+        "qml_warnings": [],
+        "horizontal_bounds": "ok",
+        "keyboard": {
+          "Ctrl+1": "home",
+          "focus/home": {
+            "item": "homeSummaryOpen_imports",
+            "visible_in_window": true
+          },
+          "Ctrl+2": "imports",
+          "focus/imports": {
+            "item": "importsNav",
+            "visible_in_window": true
+          },
+          "Ctrl+3": "inventory",
+          "focus/inventory": {
+            "item": "stockProductsView_priorities",
+            "visible_in_window": true
+          },
+          "Ctrl+F/imports": "searchBox",
+          "Ctrl+F/inventory": "stockSearch"
+        }
+      }
+    ],
+    "curated_images_sha256": {
+      "docs/images/redesign-v6/antes-home-sintetico.png": "79ce7d484dee473845938aeb949bd59d316f688ad4e07a980202cb8af4b688fe",
+      "docs/images/redesign-v6/antes-imports-general-sintetico.png": "53bac245f4b6f6378915c17458db07536454bb3b4189424ab7748767ab0176aa",
+      "docs/images/redesign-v6/antes-monthly-sintetico.png": "bdaa8fd1da5d98e5230ee4ce2b9d77ccfbbdfd85dd8e06cc327ea3d6a6b766c2",
+      "docs/images/redesign-v6/antes-stock-sintetico.png": "c4bde8b329c1b733b46bde290ee531fa619991bf1c1b7f491bc662238a1a6d7e",
+      "docs/images/redesign-v6/v6-home-sintetico.png": "25b6ab48ac6a2358eb17a7f7c546b358f9a01b53f5f61682e3ee003a26a17a65",
+      "docs/images/redesign-v6/v6-home-vazia.png": "628a525641feafe60e744753dd2ca351b32b3c154952dd70776ee97adc6cb71f",
+      "docs/images/redesign-v6/v6-imports-general-chart-sintetico.png": "da37e5fd2d6edb00139bfe080a6e74dbef48162b29b19ae704fa71e9f6687902",
+      "docs/images/redesign-v6/v6-imports-general-sintetico.png": "f68bc8a7768522ea6d073ec2b1bc6a2e775d3162dae9018a661856ac6a452af0",
+      "docs/images/redesign-v6/v6-imports-origins-sintetico.png": "16866236ca72c085864e4d17814a64f6c623dbbceb6f358c9c4fb0734e5c9cec",
+      "docs/images/redesign-v6/v6-mensal-compacto-escuro-sintetico.png": "d037b4c5da95fb1f4c8f74a0da8eac2e73b31c4f1837370763edc920a3f197b6",
+      "docs/images/redesign-v6/v6-monthly-chart-sintetico.png": "6a9229467cd08b96a781801cb07032f1698a9f069f071c0a3b176e812050223a",
+      "docs/images/redesign-v6/v6-monthly-sintetico.png": "4733e9424dda3039b6e0ed0b2a93359b959029ce65bf0a686b82174cd9e1cfa6",
+      "docs/images/redesign-v6/v6-stock-chart-sintetico.png": "13b71def67914fe38c496a29a4cc0dcbf3c4362118a723e6454b24bbc8a2d3b1",
+      "docs/images/redesign-v6/v6-stock-sintetico.png": "eea360f02e1a89123db79e0667d4acf64345556f24ba7bcc240364b5c625d1d1"
+    },
+    "bundle_sha256": "c22ddc3d456d392e511bfb02c7efbe85a7d1a6cc3b42162f3836becf7a722f92"
+  },
+  "limits": [
+    "Linux source/offscreen validation; no new frozen Windows build or installer declared.",
+    "Qt scale factors 1.25 and 1.5 are not native Windows DPI validation.",
+    "No full real Comex history extraction or SQL Server connection performed for the redesign."
+  ]
+}

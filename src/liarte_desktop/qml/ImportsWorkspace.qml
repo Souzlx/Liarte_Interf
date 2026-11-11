@@ -10,7 +10,12 @@ FocusScope {
     required property var hostWindow
     required property Item exportAnchor
     property bool globalModalOpen: false
+    property var activeExportAnchor: exportAnchor
     function openExportMenu() {
+        openExportAt(exportAnchor);
+    }
+    function openExportAt(anchor) {
+        activeExportAnchor = anchor || exportAnchor;
         quickExportMenu.open();
     }
     property string activeSection: "summary"
@@ -307,10 +312,62 @@ FocusScope {
         }
         ColumnLayout {
             id: body
-            x: window.hostWindow.width < 720 ? 18 : 28
-            y: 18
-            width: contentScroll.width - (window.hostWindow.width < 720 ? 36 : 56)
-            spacing: 16
+            x: (contentScroll.width - width) / 2
+            y: window.hostWindow.width < 720 ? 20 : 28
+            width: Math.min(1280, contentScroll.width - (window.hostWindow.width < 720 ? 36 : 64))
+            spacing: 12
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 9
+                Text {
+                    text: "OPERAÇÕES / IMPORTAÇÕES"
+                    textFormat: Text.PlainText
+                    color: Ui.Theme.muted
+                    font.pixelSize: 10
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 1.2
+                }
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: width >= 640 ? 2 : 1
+                    columnSpacing: 20
+                    rowSpacing: 12
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        spacing: 6
+                        Text {
+                            objectName: "importPageTitle"
+                            Layout.fillWidth: true
+                            text: "Inteligência de importações"
+                            textFormat: Text.PlainText
+                            color: Ui.Theme.text
+                            font.pixelSize: 26
+                            font.weight: Font.DemiBold
+                            wrapMode: Text.WordWrap
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Valores, volumes e origens no período e nos filtros selecionados."
+                            textFormat: Text.PlainText
+                            color: Ui.Theme.muted
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+                    Ui.ActionButton {
+                        id: pageExportButton
+                        objectName: "importPageExport"
+                        text: "Exportar relatório"
+                        iconName: "download"
+                        enabled: window.viewState.canExport && !window.draftPeriod && !window.viewState.exportBusy
+                        Layout.alignment: Qt.AlignLeft | Qt.AlignBottom
+                        onClicked: window.openExportAt(pageExportButton)
+                        onActiveFocusChanged: if (activeFocus)
+                            window.reveal(pageExportButton)
+                    }
+                }
+            }
             Rectangle {
                 visible: window.viewState.demo || window.viewState.sourceNotice.length > 0
                 Layout.fillWidth: true
@@ -489,28 +546,39 @@ FocusScope {
                     }
                 }
             }
-            RowLayout {
+            Rectangle {
                 visible: window.viewState.loaded && window.activeSection === "summary"
                 Layout.fillWidth: true
-                spacing: 8
-                Ui.ActionButton {
-                    objectName: "importVisualTrend"
-                    text: "Evolução mensal"
-                    iconName: "chart"
-                    primary: window.primaryVisual === "trend"
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: 0
-                    onClicked: window.primaryVisual = "trend"
-                }
-                Ui.ActionButton {
-                    id: visualOrigins
-                    objectName: "importVisualOrigins"
-                    text: "Origens"
-                    iconName: "grid"
-                    primary: window.primaryVisual === "origins"
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: 0
-                    onClicked: window.primaryVisual = "origins"
+                Layout.preferredHeight: 44
+                radius: Ui.Theme.controlRadius
+                color: Ui.Theme.subtle
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    spacing: 4
+                    Ui.ActionButton {
+                        objectName: "importVisualTrend"
+                        text: "Evolução mensal"
+                        iconName: "chart"
+                        primary: window.primaryVisual === "trend"
+                        subtle: window.primaryVisual !== "trend"
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        implicitHeight: 36
+                        onClicked: window.primaryVisual = "trend"
+                    }
+                    Ui.ActionButton {
+                        id: visualOrigins
+                        objectName: "importVisualOrigins"
+                        text: "Origens"
+                        iconName: "grid"
+                        primary: window.primaryVisual === "origins"
+                        subtle: window.primaryVisual !== "origins"
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        implicitHeight: 36
+                        onClicked: window.primaryVisual = "origins"
+                    }
                 }
             }
             GridLayout {
@@ -617,8 +685,8 @@ FocusScope {
         objectName: "quickExportMenu"
         parent: Overlay.overlay
         width: Math.min(310, window.hostWindow.width - 24)
-        x: Math.max(12, Math.min(window.hostWindow.width - width - 12, window.exportAnchor.mapToItem(Overlay.overlay, 0, 0).x))
-        y: window.exportAnchor.mapToItem(Overlay.overlay, 0, window.exportAnchor.height).y + 6
+        x: Math.max(12, Math.min(window.hostWindow.width - width - 12, window.activeExportAnchor.mapToItem(Overlay.overlay, 0, 0).x))
+        y: Math.min(window.hostWindow.height - height - 12, window.activeExportAnchor.mapToItem(Overlay.overlay, 0, window.activeExportAnchor.height).y + 6)
         background: Rectangle {
             color: Ui.Theme.surface
             border.color: Ui.Theme.line

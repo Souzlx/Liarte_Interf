@@ -39,9 +39,9 @@ ComboBox {
         color: Theme.muted
     }
     background: Rectangle {
-        radius: 7
+        radius: Theme.controlRadius
         color: Theme.surface
-        border.color: box.activeFocus ? Theme.accent : Theme.line
+        border.color: box.activeFocus ? Theme.focus : Theme.line
         border.width: box.activeFocus ? 2 : 1
     }
     delegate: ItemDelegate {
@@ -100,7 +100,7 @@ ComboBox {
         background: Rectangle {
             color: Theme.surface
             border.color: Theme.line
-            radius: 5
+            radius: Theme.controlRadius
         }
     }
 }

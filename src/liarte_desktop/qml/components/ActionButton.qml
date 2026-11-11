@@ -13,7 +13,7 @@ Button {
             return Theme.subtle;
         if (primary) {
             if (down)
-                return "#0f2c48";
+                return Theme.primaryPressed;
             return hovered ? Theme.primaryHover : Theme.primary;
         }
         if (down)
@@ -58,9 +58,9 @@ Button {
         }
     }
     background: Rectangle {
-        radius: 7
+        radius: Theme.controlRadius
         color: button.fillColor
-        border.color: button.visualFocus ? Theme.accent : button.primary ? Theme.primary : Theme.line
+        border.color: button.visualFocus ? Theme.focus : button.primary ? Theme.primary : Theme.line
 
         border.width: button.visualFocus ? 2 : button.subtle ? 0 : 1
         Behavior on color {

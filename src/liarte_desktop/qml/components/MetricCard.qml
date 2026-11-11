@@ -12,14 +12,16 @@ Rectangle {
         })
     property bool emphasized: false
     property string iconName: "chart"
+    property color iconColor: Theme.iconColor
+    property color iconBackground: Theme.iconTint
     readonly property var displayMetric: Object.assign({label: "", value: "—", detail: "", full: ""}, metric || {})
     readonly property string completeText: [displayMetric.label + ": " + displayMetric.value, displayMetric.detail, displayMetric.full, issue].filter(Boolean).join("\n")
     readonly property bool informationVisible: (hover.hovered || activeFocus) && visible
     activeFocusOnTab: true
-    implicitHeight: 118
+    implicitHeight: Math.max(126, content.implicitHeight + 36)
     radius: Theme.radius
     color: emphasized ? Theme.hero : Theme.surface
-    border.color: activeFocus ? Theme.accent : emphasized ? Theme.hero : Theme.softLine
+    border.color: activeFocus ? Theme.focus : emphasized ? Theme.hero : Theme.line
     border.width: activeFocus ? 2 : 1
     Accessible.role: Accessible.StaticText
     Accessible.name: displayMetric.label + ": " + displayMetric.value + ". " + displayMetric.detail
@@ -38,9 +40,10 @@ Rectangle {
         }
     }
     ColumnLayout {
+        id: content
         anchors.fill: parent
-        anchors.margins: 17
-        spacing: 6
+        anchors.margins: 18
+        spacing: 8
         RowLayout {
             Layout.fillWidth: true
             Text {
@@ -51,12 +54,19 @@ Rectangle {
                 font.pixelSize: 12
                 elide: Text.ElideRight
             }
-            Icon {
-                objectName: card.objectName + "Issue"
-                name: card.issue.length ? "info" : card.iconName
-                color: card.emphasized ? Theme.heroMuted : Theme.muted
-                Layout.preferredWidth: 17
-                Layout.preferredHeight: 17
+            Rectangle {
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
+                radius: Theme.controlRadius
+                color: card.emphasized ? Qt.rgba(1, 1, 1, 0.12) : card.iconBackground
+                Icon {
+                    objectName: card.objectName + "Issue"
+                    anchors.centerIn: parent
+                    name: card.issue.length ? "info" : card.iconName
+                    color: card.emphasized ? Theme.heroMuted : card.iconColor
+                    width: 17
+                    height: 17
+                }
             }
         }
         Text {
@@ -66,7 +76,7 @@ Rectangle {
             Layout.fillWidth: true
             text: card.displayMetric.value
             color: card.emphasized ? "#ffffff" : Theme.text
-            font.pixelSize: 28
+            font.pixelSize: 26
             minimumPixelSize: 17
             fontSizeMode: Text.HorizontalFit
             font.weight: Font.DemiBold

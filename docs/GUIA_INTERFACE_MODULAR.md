@@ -16,7 +16,7 @@ Nos fontes em desenvolvimento, **Produtos** passa a oferecer **Indicadores** e *
 | Análise mensal / Mês a mês | Consultar um fechamento, escolher o indicador do gráfico, comparar meses e explorar produtos do mês |
 | Produtos | Consultar indicadores e critérios quantitativos, ordenar posições de estoque e investigar o desempenho de um produto |
 
-O Panorama mostra três indicadores principais. Alertas e capital por última venda ficam acessíveis sob demanda. O giro apresentado como mediana da fonte não é uma soma de giros nem um giro consolidado da empresa.
+Nos fontes com o [redesign V6](REDESIGN_VISUAL_V6.md), o Panorama mostra quatro indicadores: estoque a custo, produtos com saldo, mediana do giro da fonte e quantidade por unidade. A distribuição do capital por última venda aparece junto ao gráfico em janelas amplas e pode ser recolhida. Alertas continuam acessíveis sob demanda. O giro apresentado como mediana da fonte não é uma soma de giros nem um giro consolidado da empresa.
 
 A busca de produto e a filial permanecem próximas do recorte aplicado. Para escolher período, unidade, armazém, grupo, tipo, curva ABC, última venda e sinal do saldo, abra **Refinar recorte**. Faça as escolhas e pressione **Aplicar recorte**: o conjunto é validado antes de uma atualização da análise. **Cancelar** ou fechar o diálogo descarta as escolhas provisórias.
 

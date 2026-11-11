@@ -54,6 +54,7 @@ Os documentos da série 5.2.0 sobre central, acesso automático e clientes anter
 | Preparar o clone, editar e abrir a aplicação | [Desenvolvimento local no Windows](DESENVOLVIMENTO_LOCAL_WINDOWS.md) |
 | Enviar uma alteração e explicar sua validação | [Contribuir](../CONTRIBUTING.md) |
 | Entender componentes, dados e tarefas | [Arquitetura](ARQUITETURA.md) |
+| Conferir a implementação visual em desenvolvimento | [Redesign nativo V6](REDESIGN_VISUAL_V6.md) — fontes posteriores à 5.3.1 |
 | Conferir a versão e o estado da entrega | [Estado do projeto](STATUS.md) |
 | Retomar o contexto de desenvolvimento | [Continuidade](CONTINUIDADE_LOCAL.md) |
 | Testar, compilar e publicar o instalador | [Fluxo da entrega estável](INSTALACAO_531.md#validação-da-distribuição) |

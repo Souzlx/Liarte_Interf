@@ -267,7 +267,7 @@ class PaletteTests(unittest.TestCase):
                 r'property color (\w+): dark \? "(#[0-9a-f]{6})" : "(#[0-9a-f]{6})"', source
             ):
                 colors[name] = (dark, light)[index]
-            for foreground in ("text", "muted", "danger"):
+            for foreground in ("text", "muted", "danger", "accent"):
                 for background in ("surface", "canvas"):
                     self.assertGreaterEqual(
                         contrast(colors[foreground], colors[background]),
