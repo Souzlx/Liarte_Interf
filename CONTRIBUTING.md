@@ -40,6 +40,8 @@ Durante uma mudança de código, execute os testes relacionados ao comportamento
 
 A suíte exercita domínio, documentos e interface Qt com dados sintéticos, incluindo o ensaio de volume. Novas classes de teste devem ser registradas em `verificar.py`. Informe os resultados e os testes ignorados, com seus motivos; execução sem testes não demonstra validação.
 
+No Windows, o verificador executa cada módulo registrado em um processo separado para isolar o estado global do Qt. A contagem de cada processo deve corresponder ao registro; falhas nativas, relatórios ausentes ou contagens divergentes reprovam a execução. Não há repetição automática de testes. Use `--isolate` para conferir o mesmo modo no Linux e `--no-isolate` somente quando precisar diagnosticar a execução em um processo único.
+
 Mudanças de interface também precisam de conferência visual, teclado e janela compacta. Os testes headless não substituem a observação da janela no Windows. Para alterações somente de documentação, confira links, exemplos e consistência com a versão descrita.
 
 Depois de revisar e adicionar os arquivos da alteração ao índice Git, confira a estrutura e os links locais:

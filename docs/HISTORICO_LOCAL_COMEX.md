@@ -64,6 +64,8 @@ As verificações incluem extração retomada com limites globais de 180 e 900 s
 
 O autoteste do pacote também cria um histórico temporário sintético e consulta as bases geral e municipal pelo provedor local, sem rede. Isso verifica o SQLite e o caminho de consulta dentro do executável compilado, além dos testes dos fontes.
 
+A validação Windows usa processos separados por módulo para evitar compartilhar o estado global do Qt entre testes. Todas as classes registradas continuam obrigatórias; a execução verifica as contagens e reprova processos interrompidos. Esse isolamento do verificador não altera o processo normal do aplicativo.
+
 | Estado sintético | Captura da interface Qt |
 | --- | --- |
 | Consulta local com atualização em pausa | [Janela ampla](images/comex-historico-local-sintetico.png) |
