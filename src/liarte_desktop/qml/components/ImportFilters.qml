@@ -19,14 +19,14 @@ Rectangle {
     objectName: "filterPanel"
     visible: filterPanel.workspace.viewState.loaded
     Layout.fillWidth: true
-    Layout.preferredHeight: filterBody.implicitHeight + 24
+    Layout.preferredHeight: filterBody.implicitHeight + 16
     color: Theme.surface
     radius: Theme.radius
     border.color: Theme.softLine
     ColumnLayout {
         id: filterBody
         anchors.fill: parent
-        anchors.margins: 12
+        anchors.margins: 8
         spacing: 8
         GridLayout {
             id: filterActions
@@ -53,9 +53,9 @@ Rectangle {
             ActionButton {
                 id: clearFilters
                 objectName: "clearFilters"
-                text: "Limpar"
+                text: "Limpar filtros"
                 implicitHeight: 28
-                implicitWidth: Math.max(80, naturalWidth)
+                implicitWidth: Math.max(104, naturalWidth)
                 Layout.minimumWidth: implicitWidth
                 subtle: true
                 enabled: filterPanel.workspace.viewState.filterCount > 0 || filterPanel.workspace.viewState.search.length > 0

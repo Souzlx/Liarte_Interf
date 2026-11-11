@@ -4,8 +4,8 @@ from threading import Event
 import unittest
 from unittest.mock import patch
 
-from PySide6.QtCore import QPointF, QUrl
-from PySide6.QtTest import QSignalSpy
+from PySide6.QtCore import QPointF, Qt, QUrl
+from PySide6.QtTest import QSignalSpy, QTest
 
 from liarte_core.inventory_io import write_snapshot
 from tests import test_platform
@@ -83,7 +83,13 @@ class HomeIndicatorsTests(unittest.TestCase):
 
         self.load_inventory()
         before = self.inventory.analysis["metrics"]
+        before_plot = self.inventory.analysis["plotTrend"]
+        before_activity = self.inventory.analysis["activityChart"]
         home = self.item("homePage")
+        plot = self.item("homeStockTrend")
+        self.assertTrue(any(point["value"] is None for point in before_plot))
+        self.assertEqual(variant(plot.property("points")), before_plot)
+        self.assertEqual(variant(home.property("activityRows")), before_activity)
         summary = variant(home.property("summaryCards"))[0]
         self.assertEqual(summary["metrics"], [before[0], before[1]])
         self.assertIn(self.inventory.state["asOf"], summary["period"])
@@ -103,6 +109,8 @@ class HomeIndicatorsTests(unittest.TestCase):
                 self.assertIn("último resultado", self.item("homeSummaryStatus_inventory").property("text"))
                 self.assertEqual(variant(home.property("summaryCards"))[0]["metrics"],
                                  [before[0], before[1]])
+                self.assertEqual(variant(plot.property("points")), before_plot)
+                self.assertEqual(variant(home.property("activityRows")), before_activity)
                 release.set()
                 self.inventory_idle()
         finally:
@@ -111,6 +119,11 @@ class HomeIndicatorsTests(unittest.TestCase):
         after = self.inventory.analysis["metrics"]
         self.assertEqual(summary["metrics"], [after[0], after[1]])
         self.assertNotEqual(after[0]["value"], before[0]["value"])
+        self.assertEqual(variant(plot.property("points")), self.inventory.analysis["plotTrend"])
+        self.assertEqual(variant(home.property("activityRows")),
+                         self.inventory.analysis["activityChart"])
+        self.assertNotEqual(variant(plot.property("points")), before_plot)
+        self.assertNotEqual(variant(home.property("activityRows")), before_activity)
         self.assertEqual(self.transport.calls, [])
         self.assertEqual(self.bundle.messages, [])
 
@@ -140,4 +153,27 @@ class HomeIndicatorsTests(unittest.TestCase):
         self.assertEqual(self.platform.activeModule, "imports")
         self.assertIs(self.controller._result, result)
         self.assertEqual(self.transport.calls, calls)
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_home_chart_keyboard_readout_preserves_gaps_and_is_visible_when_compact(self):
+        self.load_inventory()
+        self.window.resize(500, 400)
+        self.render()
+        plot = self.item("homeStockTrend")
+        readout = self.item("homeStockTrendReadout")
+        points = self.inventory.analysis["plotTrend"]
+        plot.forceActiveFocus(Qt.FocusReason.TabFocusReason)
+        QTest.keyClick(self.window, Qt.Key.Key_Home)
+        self.render()
+        self.assertEqual(readout.property("text"), plot.property("readout"))
+        self.assertIn(points[0]["display"], readout.property("text"))
+        QTest.keyClick(self.window, Qt.Key.Key_Right)
+        self.render()
+        self.assertIsNone(points[1]["value"])
+        self.assertIn(points[1]["display"], readout.property("text"))
+        self.assertEqual(readout.property("text"), plot.property("readout"))
+        top = readout.mapToItem(self.item("homePage"), QPointF()).y()
+        self.assertGreaterEqual(top, 0)
+        self.assertLessEqual(top + readout.height(), self.item("homePage").height() + 1)
+        self.assertEqual(self.transport.calls, [])
         self.assertEqual(self.bundle.messages, [])

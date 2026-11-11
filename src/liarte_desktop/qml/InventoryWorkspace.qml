@@ -354,9 +354,9 @@ FocusScope {
         }
         ColumnLayout {
             id: content
-            x: page.width < 600 ? 16 : 28
-            y: 22
-            width: scroll.width - 2 * x
+            x: (scroll.width - width) / 2
+            y: 26
+            width: Math.min(1440, scroll.width - (page.width < 600 ? 32 : 64))
             spacing: 18
             GridLayout {
                 id: stockPageHeader
@@ -365,14 +365,25 @@ FocusScope {
                 rowSpacing: 12
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 4
+                    spacing: 7
                     Text {
+                        objectName: "stockBreadcrumb"
                         Layout.fillWidth: true
-                        text: page.state.loaded ? page.activeSection === "monthly" ? "Estoque · mês a mês" : page.activeSection === "products" ? "Estoque · produtos" : "Panorama do estoque" : "Estoque e rotatividade"
+                        text: "OPERAÇÕES / ESTOQUE" + (page.activeSection === "monthly" ? " / ANÁLISE MENSAL" : page.activeSection === "products" ? " / PRODUTOS" : "")
+                        color: Ui.Theme.muted
+                        font.pixelSize: 10
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.2
+                        wrapMode: Text.WordWrap
+                    }
+                    Text {
+                        objectName: "stockPageTitle"
+                        Layout.fillWidth: true
+                        text: page.state.loaded ? page.activeSection === "monthly" ? "Análise mensal do estoque" : page.activeSection === "products" ? "Produtos e posições" : "Inteligência de estoque" : "Inteligência de estoque"
                         textFormat: Text.PlainText
                         color: Ui.Theme.text
-                        font.pixelSize: page.width < 600 ? 21 : 25
-                        font.weight: Font.DemiBold
+                        font.pixelSize: page.width < 600 ? 23 : 28
+                        font.weight: Font.Bold
                         wrapMode: Text.WordWrap
                     }
                     Text {
@@ -397,7 +408,7 @@ FocusScope {
                     Ui.ActionButton {
                         id: openBase
                         objectName: "openStockBase"
-                        text: page.width < 720 ? "Base" : page.state.loaded ? "Atualizar base" : "Abrir base"
+                        text: page.width < 720 ? "Base" : page.state.loaded ? "Atualizar base" : "Importar base"
                         Accessible.name: page.state.loaded ? "Atualizar base de estoque" : "Abrir base de estoque"
                         iconName: "folder"
                         primary: !page.state.loaded
@@ -410,7 +421,7 @@ FocusScope {
                         id: exportStock
                         objectName: "stockExportButton"
                         visible: page.state.loaded
-                        text: page.width < 720 ? "Excel" : "Baixar Excel"
+                        text: page.width < 720 ? "Excel" : "Exportar relatório"
                         Accessible.name: "Baixar Excel do estoque"
                         iconName: "download"
                         Layout.fillWidth: stockHeaderActions.columns === 2
@@ -507,7 +518,7 @@ FocusScope {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: "Decisões de estoque, em um só lugar."
+                        text: "Seu estoque, com dados da empresa."
                         textFormat: Text.PlainText
                         color: Ui.Theme.text
                         font.pixelSize: 20
@@ -630,7 +641,7 @@ FocusScope {
                             Layout.fillWidth: true
                             Layout.minimumWidth: 0
                             Layout.alignment: Qt.AlignBottom
-                            text: "Refinar recorte" + (page.advancedFilterCount ? " (" + page.advancedFilterCount + ")" : "")
+                            text: "Refinar filtros" + (page.advancedFilterCount ? " (" + page.advancedFilterCount + ")" : "")
                             iconName: "filter"
                             Accessible.name: "Refinar filtros e período do estoque"
                             onClicked: stockFilters.open()

@@ -73,86 +73,111 @@ ColumnLayout {
     onMonthlyChanged: Qt.callLater(syncPlotMonth)
     onSeriesChanged: Qt.callLater(syncPlotMonth)
 
-    GridLayout {
+    Rectangle {
+        objectName: "stockMonthlyPeriodBar"
         Layout.fillWidth: true
         Layout.minimumWidth: 0
-        columns: width >= 760 ? 3 : 1
-        columnSpacing: 12
-        rowSpacing: 12
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.minimumWidth: 0
-            spacing: 4
-            Text {
-                Layout.fillWidth: true
-                text: "Análise mensal"
-                color: Theme.text
-                font.pixelSize: 19
-                font.weight: Font.DemiBold
-                wrapMode: Text.WordWrap
-            }
-            Text {
-                Layout.fillWidth: true
-                text: "Fechamentos, vendas e contribuições dos produtos nas variações."
-                color: Theme.muted
-                font.pixelSize: 12
-                wrapMode: Text.WordWrap
-            }
-        }
-        ColumnLayout {
-            Layout.fillWidth: parent.columns === 1
-            Layout.preferredWidth: parent.columns === 1 ? -1 : 180
-            Layout.minimumWidth: 0
-            Layout.alignment: Qt.AlignBottom
-            spacing: 5
-            Text {
-                objectName: "stockMonthlyMonthLabel"
+        implicitHeight: monthlyPeriodControls.implicitHeight + 32
+        color: Theme.surface
+        radius: Theme.radius
+        border.color: Theme.softLine
+        GridLayout {
+            id: monthlyPeriodControls
+            x: 16
+            y: 16
+            width: parent.width - 32
+            columns: width >= 760 ? 3 : 1
+            columnSpacing: 12
+            rowSpacing: 12
+            ColumnLayout {
+                id: monthlyContext
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                text: "Mês em análise"
-                color: Theme.muted
-                font.pixelSize: 11
-                font.weight: Font.DemiBold
-                wrapMode: Text.Wrap
+                spacing: 5
+                Text {
+                    objectName: "stockMonthlyScope"
+                    Layout.fillWidth: true
+                    text: (section.monthly.label || "") + (section.monthly.previousLabel ? " · Comparação com " + section.monthly.previousLabel : "")
+                    textFormat: Text.PlainText
+                    color: Theme.text
+                    font.pixelSize: 12
+                    font.weight: Font.DemiBold
+                    wrapMode: Text.WordWrap
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: [section.monthly.scope, section.monthly.salesScope].filter(Boolean).join("\n")
+                    textFormat: Text.PlainText
+                    color: Theme.muted
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
+                Text {
+                    objectName: "stockMonthlyNotice"
+                    visible: text.length > 0
+                    Layout.fillWidth: true
+                    text: section.monthly.notice || ""
+                    textFormat: Text.PlainText
+                    color: Theme.muted
+                    font.pixelSize: 11
+                    wrapMode: Text.WordWrap
+                }
             }
-            AppCombo {
-                id: monthCombo
-                objectName: "stockMonthlyMonth"
-                Layout.fillWidth: true
+            ColumnLayout {
+                Layout.fillWidth: parent.columns === 1
+                Layout.preferredWidth: parent.columns === 1 ? -1 : 180
                 Layout.minimumWidth: 0
-                model: section.monthly.months || []
-                currentIndex: section.optionIndex(model, section.monthly.period || "")
-                enabled: section.controlsEnabled && count > 0
-                Accessible.name: "Mês da análise de estoque"
-                onActivated: index => section.monthSelected(model[index].value)
+                Layout.alignment: Qt.AlignBottom
+                spacing: 5
+                Text {
+                    objectName: "stockMonthlyMonthLabel"
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    text: "Mês em análise"
+                    color: Theme.muted
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                    wrapMode: Text.Wrap
+                }
+                AppCombo {
+                    id: monthCombo
+                    objectName: "stockMonthlyMonth"
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    model: section.monthly.months || []
+                    currentIndex: section.optionIndex(model, section.monthly.period || "")
+                    enabled: section.controlsEnabled && count > 0
+                    Accessible.name: "Mês da análise de estoque"
+                    onActivated: index => section.monthSelected(model[index].value)
+                }
             }
-        }
-        ColumnLayout {
-            Layout.fillWidth: parent.columns === 1
-            Layout.preferredWidth: parent.columns === 1 ? -1 : 154
-            Layout.minimumWidth: 0
-            Layout.alignment: Qt.AlignBottom
-            spacing: 5
-            Text {
-                objectName: "stockMonthlyUnitLabel"
-                Layout.fillWidth: true
+            ColumnLayout {
+                Layout.fillWidth: parent.columns === 1
+                Layout.preferredWidth: parent.columns === 1 ? -1 : 154
                 Layout.minimumWidth: 0
-                text: "Unidade das quantidades"
-                color: Theme.muted
-                font.pixelSize: 11
-                font.weight: Font.DemiBold
-                wrapMode: Text.Wrap
-            }
-            AppCombo {
-                id: unitCombo
-                objectName: "stockMonthlyUnit"
-                Layout.fillWidth: true
-                Layout.minimumWidth: 0
-                model: section.monthly.units || []
-                currentIndex: section.optionIndex(model, section.monthly.unit || "")
-                enabled: section.controlsEnabled && count > 0
-                Accessible.name: "Unidade das quantidades na análise mensal"
-                onActivated: index => section.unitSelected(model[index].value)
+                Layout.alignment: Qt.AlignBottom
+                spacing: 5
+                Text {
+                    objectName: "stockMonthlyUnitLabel"
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    text: "Unidade das quantidades"
+                    color: Theme.muted
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                    wrapMode: Text.Wrap
+                }
+                AppCombo {
+                    id: unitCombo
+                    objectName: "stockMonthlyUnit"
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    model: section.monthly.units || []
+                    currentIndex: section.optionIndex(model, section.monthly.unit || "")
+                    enabled: section.controlsEnabled && count > 0
+                    Accessible.name: "Unidade das quantidades na análise mensal"
+                    onActivated: index => section.unitSelected(model[index].value)
+                }
             }
         }
     }
@@ -183,47 +208,6 @@ ColumnLayout {
             onClicked: section.productSelected("")
         }
     }
-    Rectangle {
-        Layout.fillWidth: true
-        implicitHeight: monthlyContext.implicitHeight + 24
-        radius: 8
-        color: Theme.subtle
-        ColumnLayout {
-            id: monthlyContext
-            x: 12
-            y: 12
-            width: parent.width - 24
-            spacing: 5
-            Text {
-                objectName: "stockMonthlyScope"
-                Layout.fillWidth: true
-                text: (section.monthly.label || "") + (section.monthly.previousLabel ? " · Comparação com " + section.monthly.previousLabel : "")
-                textFormat: Text.PlainText
-                color: Theme.text
-                font.pixelSize: 12
-                font.weight: Font.DemiBold
-                wrapMode: Text.WordWrap
-            }
-            Text {
-                Layout.fillWidth: true
-                text: [section.monthly.scope, section.monthly.salesScope].filter(Boolean).join("\n")
-                textFormat: Text.PlainText
-                color: Theme.muted
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
-            }
-            Text {
-                objectName: "stockMonthlyNotice"
-                visible: text.length > 0
-                Layout.fillWidth: true
-                text: section.monthly.notice || ""
-                textFormat: Text.PlainText
-                color: Theme.muted
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
-            }
-        }
-    }
     Text {
         objectName: "stockMonthlyEmpty"
         visible: text.length > 0
@@ -236,79 +220,21 @@ ColumnLayout {
     }
     GridLayout {
         Layout.fillWidth: true
-        columns: width >= 980 ? 4 : width >= 500 ? 2 : 1
+        columns: width >= 940 ? 4 : width >= 500 ? 2 : 1
         columnSpacing: 12
         rowSpacing: 12
         Repeater {
             model: section.monthly.metrics || []
-            Rectangle {
-                id: metricCard
+            MetricCard {
                 required property var modelData
                 required property int index
                 objectName: "stockMonthlyMetric" + index
                 Layout.fillWidth: true
-                Layout.fillHeight: true
                 Layout.minimumWidth: 0
-                implicitHeight: metricContent.implicitHeight + 32
-                radius: Theme.radius
-                color: Theme.surface
-                border.color: Theme.softLine
-                Accessible.role: Accessible.StaticText
-                Accessible.name: modelData.label + ": " + modelData.value + ". " + (modelData.detail || "")
-                Accessible.description: modelData.full || ""
-                ToolTip.visible: metricHover.hovered && Boolean(modelData.full)
-                ToolTip.text: modelData.full || ""
-                ToolTip.delay: 450
-                HoverHandler {
-                    id: metricHover
-                }
-                ColumnLayout {
-                    id: metricContent
-                    x: 16
-                    y: 16
-                    width: parent.width - 32
-                    spacing: 7
-                    Text {
-                        Layout.fillWidth: true
-                        text: metricCard.modelData.label
-                        textFormat: Text.PlainText
-                        color: Theme.muted
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                    }
-                    Text {
-                        objectName: metricCard.objectName + "Value"
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        text: metricCard.modelData.value
-                        textFormat: Text.PlainText
-                        color: Theme.text
-                        font.pixelSize: 25
-                        minimumPixelSize: 17
-                        fontSizeMode: Text.HorizontalFit
-                        wrapMode: Text.WrapAnywhere
-                        font.weight: Font.DemiBold
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: metricCard.modelData.detail || ""
-                        textFormat: Text.PlainText
-                        color: Theme.muted
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                    }
-                }
+                metric: modelData
+                iconName: index === 0 ? "price" : index === 3 ? "chart" : "box"
             }
         }
-    }
-    StockComparison {
-        Layout.fillWidth: true
-        Layout.minimumWidth: 0
-        comparison: section.comparison
-        comparisonState: section.comparisonState
-        controlsEnabled: section.comparisonEnabled
-        onComparisonRequested: (base, target) => section.comparisonRequested(base, target)
-        onComparisonFocusRequested: (dimension, key) => section.comparisonFocusRequested(dimension, key)
     }
     Rectangle {
         objectName: "stockMonthlyChartCard"
@@ -370,7 +296,7 @@ ColumnLayout {
                 objectName: "stockMonthlyPlot"
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                Layout.preferredHeight: Math.min(330, Math.max(220, width * 0.37))
+                Layout.preferredHeight: Math.min(360, Math.max(240, width * 0.34))
                 points: section.series.points || []
                 unit: section.series.unit || "R$"
                 seriesName: section.series.title || "Evolução mensal"
@@ -418,6 +344,15 @@ ColumnLayout {
                 onClicked: section.monthSelected(section.series.points[monthlyPlot.activeIndex].period)
             }
         }
+    }
+    StockComparison {
+        Layout.fillWidth: true
+        Layout.minimumWidth: 0
+        comparison: section.comparison
+        comparisonState: section.comparisonState
+        controlsEnabled: section.comparisonEnabled
+        onComparisonRequested: (base, target) => section.comparisonRequested(base, target)
+        onComparisonFocusRequested: (dimension, key) => section.comparisonFocusRequested(dimension, key)
     }
     ActionButton {
         objectName: "stockMonthlyRankingToggle"

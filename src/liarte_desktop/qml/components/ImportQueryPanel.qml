@@ -21,47 +21,84 @@ Rectangle {
     }
     objectName: "queryPanel"
     Layout.fillWidth: true
-    Layout.preferredHeight: queryBody.implicitHeight + 24
+    Layout.preferredHeight: queryBody.implicitHeight + 32
     color: Theme.surface
     radius: Theme.radius
     border.color: Theme.softLine
     ColumnLayout {
         id: queryBody
         anchors.fill: parent
-        anchors.margins: 12
+        anchors.margins: 16
         spacing: 12
         GridLayout {
-            visible: queryPanel.workspace.viewState.loaded
             Layout.fillWidth: true
             Layout.minimumWidth: 0
             columns: width >= 520 ? 2 : 1
             columnSpacing: 12
             rowSpacing: 8
-            Text {
-                objectName: "importAppliedPeriod"
+            RowLayout {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
-                text: queryPanel.workspace.viewState.periodLabel + " · " + (queryPanel.workspace.viewState.appliedKind === "municipal" ? "SH4 / FOB" : "NCM / CIF")
-                textFormat: Text.PlainText
-                font.pixelSize: 12
-                color: Theme.text
-                wrapMode: Text.WordWrap
+                spacing: 12
+                Rectangle {
+                    Layout.preferredWidth: 34
+                    Layout.preferredHeight: 34
+                    radius: Theme.controlRadius
+                    color: Theme.selected
+                    Icon {
+                        anchors.centerIn: parent
+                        width: 17
+                        height: 17
+                        name: "grid"
+                        color: Theme.accent
+                    }
+                }
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    spacing: 4
+                    Text {
+                        text: "PERÍODO ANALISADO"
+                        textFormat: Text.PlainText
+                        color: Theme.muted
+                        font.pixelSize: 9
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 0.9
+                    }
+                    Text {
+                        objectName: "importAppliedPeriod"
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        text: queryPanel.workspace.viewState.loaded
+                            ? queryPanel.workspace.viewState.periodLabel + " · " + (queryPanel.workspace.viewState.appliedKind === "municipal" ? "SH4 / FOB" : "NCM / CIF")
+                            : "Selecione os meses da consulta"
+                        textFormat: Text.PlainText
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        color: Theme.text
+                        wrapMode: Text.WordWrap
+                    }
+                }
             }
             ActionButton {
                 objectName: "editImportPeriod"
+                visible: queryPanel.workspace.viewState.loaded
                 text: queryPanel.fieldsVisible ? "Recolher" : "Período"
                 Layout.fillWidth: parent.columns === 1
                 Layout.minimumWidth: 0
                 implicitHeight: 34
                 subtle: true
                 Accessible.name: queryPanel.fieldsVisible ? "Recolher período" : "Alterar período da consulta"
+                ToolTip.visible: hovered
+                ToolTip.text: Accessible.name
+                ToolTip.delay: 500
                 onClicked: queryPanel.workspace.periodExpanded = !queryPanel.workspace.periodExpanded
             }
         }
         GridLayout {
             visible: queryPanel.fieldsVisible
             Layout.fillWidth: true
-            Layout.maximumWidth: 740
+            Layout.maximumWidth: 900
             columns: queryPanel.width > 650 ? 3 : queryPanel.width > 470 ? 2 : 1
             columnSpacing: 12
             rowSpacing: 12
