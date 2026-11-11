@@ -263,11 +263,32 @@ Item {
                         return;
                     const px = i => count === 1 ? width / 2 : i * width / (count - 1);
                     const py = value => chart.yValue(value, height);
+                    // Shape-preserving interpolation: observations stay exact,
+                    // slopes cannot overshoot adjacent values, gaps stay open.
+                    function tangent(index, field) {
+                        const value = chart.points[index][field];
+                        const before = index > 0 ? chart.points[index - 1][field] : null;
+                        const after = index + 1 < count ? chart.points[index + 1][field] : null;
+                        const left = chart.valid(before) ? py(value) - py(before) : null;
+                        const right = chart.valid(after) ? py(after) - py(value) : null;
+                        if (left === null)
+                            return right === null ? 0 : right;
+                        if (right === null)
+                            return left;
+                        return left * right <= 0 ? 0 : 2 * left * right / (left + right);
+                    }
+                    function connect(index, field) {
+                        const left = index - 1, third = (px(index) - px(left)) / 3;
+                        c.bezierCurveTo(px(left) + third, py(chart.points[left][field]) + tangent(left, field) / 3,
+                            px(index) - third, py(chart.points[index][field]) - tangent(index, field) / 3,
+                            px(index), py(chart.points[index][field]));
+                    }
                     if (!chart.allowNegative && !chart.croppedAxis && count > 1 && chart.points.every(p => chart.valid(p.value))) {
                         c.beginPath();
                         c.moveTo(px(0), height);
-                        for (let i = 0; i < count; i++)
-                            c.lineTo(px(i), py(chart.points[i].value));
+                        c.lineTo(px(0), py(chart.points[0].value));
+                        for (let i = 1; i < count; i++)
+                            connect(i, "value");
                         c.lineTo(px(count - 1), height);
                         c.closePath();
                         const gradient = c.createLinearGradient(0, 0, 0, height);
@@ -279,7 +300,7 @@ Item {
                     function draw(field, color, dashed) {
                         c.strokeStyle = color;
                         c.fillStyle = color;
-                        c.lineWidth = dashed ? 1.6 : 2.5;
+                        c.lineWidth = dashed ? 1.7 : 2.7;
                         c.lineJoin = "round";
                         c.lineCap = "round";
                         c.setLineDash(dashed ? [5, 4] : []);
@@ -292,7 +313,7 @@ Item {
                                 continue;
                             }
                             if (connected)
-                                c.lineTo(px(i), py(value));
+                                connect(i, field);
                             else
                                 c.moveTo(px(i), py(value));
                             connected = true;
@@ -306,12 +327,14 @@ Item {
                             if (chart.valid(value) && ((!dashed && count <= 12) || ((i === 0 || !chart.valid(chart.points[i - 1][field])) && (i === count - 1 || !chart.valid(chart.points[i + 1][field]))))) {
                                 c.beginPath();
                                 c.arc(px(i), py(value), dashed ? 2.5 : 3.5, 0, Math.PI * 2);
+                                c.fillStyle = dashed ? color : Theme.surface;
                                 c.fill();
+                                c.stroke();
                             }
                         }
                     }
                     draw("value", Theme.accent, false);
-                    draw("movingValue", Theme.muted, true);
+                    draw("movingValue", Theme.chartReference, true);
                 }
             }
         }

@@ -16,10 +16,10 @@ Button {
     ToolTip.delay: 450
     onClicked: removed()
     background: Rectangle {
-        color: chip.hovered ? Theme.selected : Theme.subtle
+        color: chip.hovered ? Theme.subtle : Theme.selected
         radius: 6
         border.width: chip.activeFocus ? 2 : 0
-        border.color: Theme.accent
+        border.color: Theme.focus
     }
     contentItem: Item {
         Text {
@@ -31,7 +31,7 @@ Button {
             verticalAlignment: Text.AlignVCenter
             text: chip.caption
             font.pixelSize: 11
-            color: Theme.text
+            color: Theme.dark ? Theme.text : Theme.primary
             elide: Text.ElideRight
         }
         Icon {

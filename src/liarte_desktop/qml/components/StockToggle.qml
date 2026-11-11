@@ -15,12 +15,13 @@ CheckBox {
         radius: 3
         color: control.checked ? Theme.accent : Theme.surface
         border.color: control.activeFocus ? Theme.accent : Theme.line
-        Text {
+        Icon {
             anchors.centerIn: parent
-            text: control.checked ? "✓" : ""
+            visible: control.checked
+            width: 11
+            height: 11
+            name: "check"
             color: "white"
-            font.pixelSize: 11
-            font.weight: Font.Bold
         }
     }
     contentItem: Text {

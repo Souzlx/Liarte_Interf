@@ -13,6 +13,7 @@ ApplicationWindow {
     visible: false
     title: platform.windowTitle
     color: Ui.Theme.canvas
+    font.family: Ui.Theme.fontFamily
     readonly property var platformController: platform
     readonly property var viewState: controller.presentation
     readonly property bool collapsed: width < 1120
@@ -154,257 +155,97 @@ ApplicationWindow {
         enabled: !window.modalOpen
         onActivated: platform.openModule("inventory")
     }
-    RowLayout {
+    component NavigationButton: Ui.ActionButton {
+        id: navigationButton
+        property bool selected: false
+        readonly property color foreground: selected ? Ui.Theme.navActiveText : Ui.Theme.sidebarText
+        implicitHeight: 42
+        leftPadding: 12
+        rightPadding: 12
+        font.pixelSize: 12
+        font.weight: selected ? Font.DemiBold : Font.Medium
+        contentItem: RowLayout {
+            spacing: 10
+            Ui.Icon {
+                name: navigationButton.iconName
+                color: navigationButton.foreground
+                Layout.preferredWidth: 18
+                Layout.preferredHeight: 18
+                Layout.alignment: Qt.AlignVCenter
+            }
+            Text {
+                visible: navigationButton.text.length > 0
+                Layout.fillWidth: true
+                textFormat: Text.PlainText
+                text: navigationButton.text
+                font: navigationButton.font
+                color: navigationButton.foreground
+                elide: Text.ElideRight
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
+        background: Rectangle {
+            radius: Ui.Theme.controlRadius
+            color: navigationButton.selected ? Ui.Theme.navActive : navigationButton.hovered ? Ui.Theme.sidebarHover : "transparent"
+            border.width: navigationButton.visualFocus ? 2 : 0
+            border.color: Ui.Theme.navActiveText
+            Behavior on color {
+                enabled: Ui.Theme.motionEnabled && navigationButton.visible
+                ColorAnimation {
+                    duration: Ui.Theme.fast
+                }
+            }
+        }
+    }
+    ColumnLayout {
         anchors.fill: parent
         spacing: 0
         Rectangle {
-            id: sidebar
-            objectName: "sidebar"
-            Layout.fillHeight: true
-            Layout.preferredWidth: window.collapsed ? 64 : 190
-            color: Ui.Theme.surface
-            Rectangle {
-                anchors.right: parent.right
-                width: 1
-                height: parent.height
-                color: Ui.Theme.line
-            }
-            ColumnLayout {
+            objectName: "topbar"
+            Layout.fillWidth: true
+            Layout.preferredHeight: Ui.Theme.topbarHeight
+            color: Ui.Theme.topbar
+            RowLayout {
                 anchors.fill: parent
-                anchors.margins: window.collapsed ? 10 : 18
-                spacing: 8
+                spacing: 0
                 Item {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: window.collapsed ? 82 : 96
+                    Layout.preferredWidth: window.collapsed ? 64 : Ui.Theme.sidebarWidth
+                    Layout.fillHeight: true
                     Ui.BrandLogo {
-                        width: 146
+                        anchors.centerIn: parent
+                        width: 130
                         height: width * 725 / 2167
-                        anchors.top: parent.top
-                        anchors.topMargin: 19
                         visible: !window.collapsed
                     }
                     Image {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        y: 17
-                        width: 32
-                        height: 32
+                        anchors.centerIn: parent
+                        width: 30
+                        height: 30
                         fillMode: Image.PreserveAspectFit
                         source: "../assets/liarte-simbolo.png"
                         visible: window.collapsed
                     }
                 }
-                ScrollView {
-                    id: moduleNavigation
-                    objectName: "moduleNavigation"
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.minimumHeight: 0
-                    clip: true
-                    contentWidth: availableWidth
-                    contentHeight: navigationColumn.implicitHeight
-                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                    ScrollBar.vertical.policy: ScrollBar.AsNeeded
-                    ColumnLayout {
-                        id: navigationColumn
-                        width: moduleNavigation.availableWidth
-                        spacing: 8
-                        Ui.ActionButton {
-                            objectName: "homeNav"
-                            Layout.fillWidth: true
-                            text: window.collapsed ? "" : "Início"
-                            iconName: "home"
-                            Accessible.name: "Início"
-                            font.weight: platform.activeModule === "home" ? Font.DemiBold : Font.Medium
-                            onActiveFocusChanged: if (activeFocus)
-                                window.revealNavigation(this)
-                            onClicked: platform.openModule("home")
-                            background: Rectangle {
-                                radius: 7
-                                color: platform.activeModule === "home" ? Ui.Theme.selected : parent.hovered ? Ui.Theme.hover : "transparent"
-                                border.color: parent.visualFocus ? Ui.Theme.accent : "transparent"
-                                border.width: 2
-                            }
-                            ToolTip.visible: hovered && window.collapsed
-                            ToolTip.text: "Início"
-                        }
-                        Ui.ActionButton {
-                            id: importsNavButton
-                            objectName: "importsNav"
-                            Layout.fillWidth: true
-                            text: window.collapsed ? "" : "Importações"
-                            iconName: "chart"
-                            Accessible.name: "Importações"
-                            font.weight: platform.activeModule === "imports" ? Font.DemiBold : Font.Medium
-                            background: Rectangle {
-                                radius: 7
-                                color: platform.activeModule === "imports" ? Ui.Theme.selected : parent.hovered ? Ui.Theme.hover : "transparent"
-                                border.color: parent.visualFocus ? Ui.Theme.accent : "transparent"
-                                border.width: 2
-                            }
-                            onActiveFocusChanged: if (activeFocus)
-                                window.revealNavigation(this)
-                            onClicked: platform.openModule("imports")
-                            ToolTip.visible: hovered && window.collapsed
-                            ToolTip.text: "Importações"
-                        }
-                        Ui.ActionButton {
-                            objectName: "inventoryNav"
-                            Layout.fillWidth: true
-                            text: window.collapsed ? "" : "Estoque"
-                            iconName: "box"
-                            Accessible.name: "Estoque"
-                            font.weight: platform.activeModule === "inventory" ? Font.DemiBold : Font.Medium
-                            onActiveFocusChanged: if (activeFocus)
-                                window.revealNavigation(this)
-                            onClicked: platform.openModule("inventory")
-                            background: Rectangle {
-                                radius: 7
-                                color: platform.activeModule === "inventory" ? Ui.Theme.selected : parent.hovered ? Ui.Theme.hover : "transparent"
-                                border.color: parent.visualFocus ? Ui.Theme.accent : "transparent"
-                                border.width: 2
-                            }
-                            ToolTip.visible: hovered && window.collapsed
-                            ToolTip.text: "Estoque"
-                        }
-                        Repeater {
-                            model: platform.activeModule === "inventory" && inventory.presentation.loaded ? [
-                                {
-                                    key: "overview",
-                                    label: "Panorama",
-                                    icon: "chart"
-                                },
-                                {
-                                    key: "monthly",
-                                    label: "Análise mensal",
-                                    icon: "chart"
-                                },
-                                {
-                                    key: "products",
-                                    label: "Produtos",
-                                    icon: "grid"
-                                }
-                            ] : []
-                            Ui.ActionButton {
-                                required property var modelData
-                                objectName: "stockJump_" + modelData.key
-                                Layout.fillWidth: true
-                                implicitHeight: 36
-                                text: window.collapsed ? "" : modelData.label
-                                iconName: modelData.icon
-                                subtle: true
-                                Accessible.name: "Ir para " + modelData.label
-                                onClicked: inventoryWorkspace.navigate(modelData.key)
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.revealNavigation(this)
-                                background: Rectangle {
-                                    radius: 6
-                                    color: inventoryWorkspace.activeSection === parent.modelData.key ? Ui.Theme.selected : parent.hovered ? Ui.Theme.hover : "transparent"
-                                    border.color: parent.visualFocus ? Ui.Theme.accent : "transparent"
-                                }
-                                ToolTip.visible: hovered && window.collapsed
-                                ToolTip.text: modelData.label
-                            }
-                        }
-                        Repeater {
-                            model: platform.activeModule === "imports" && window.viewState.loaded ? [
-                                {
-                                    key: "summary",
-                                    label: "Resumo",
-                                    icon: "chart"
-                                },
-                                {
-                                    key: "buying",
-                                    label: "Compras",
-                                    icon: "price"
-                                },
-                                {
-                                    key: "records",
-                                    label: "Registros",
-                                    icon: "grid"
-                                }
-                            ] : []
-                            Ui.ActionButton {
-                                required property var modelData
-                                objectName: "jump_" + modelData.key
-                                Layout.fillWidth: true
-                                implicitHeight: 36
-                                text: window.collapsed ? "" : modelData.label
-                                iconName: modelData.icon
-                                subtle: true
-                                Accessible.name: "Ir para " + modelData.label
-                                onActiveFocusChanged: if (activeFocus)
-                                    window.revealNavigation(this)
-                                onClicked: window.navigate(modelData.key)
-                                Accessible.description: window.activeSection === modelData.key ? "Seção atual" : ""
-                                background: Rectangle {
-                                    radius: 6
-                                    color: window.activeSection === parent.modelData.key ? Ui.Theme.selected : parent.hovered ? Ui.Theme.hover : "transparent"
-                                    border.color: parent.visualFocus ? Ui.Theme.accent : "transparent"
-                                    border.width: 2
-                                    Rectangle {
-                                        visible: window.activeSection === parent.parent.modelData.key
-                                        width: 3
-                                        height: parent.height - 16
-                                        anchors.left: parent.left
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        radius: 1
-                                        color: Ui.Theme.accent
-                                    }
-                                }
-                                ToolTip.visible: hovered && window.collapsed
-                                ToolTip.text: modelData.label
-                            }
-                        }
-                    }
-                }
-                Ui.ActionButton {
-                    objectName: "projectNav"
-                    Layout.fillWidth: true
-                    subtle: true
-                    text: window.collapsed ? "" : "Ajuda"
-                    iconName: "info"
-                    Accessible.name: "Ajuda e informações"
-                    onClicked: projectDialog.open()
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Ajuda e informações"
-                }
-            }
-        }
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: 0
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 64
-                color: Ui.Theme.surface
-                Rectangle {
-                    y: parent.height - 1
-                    width: parent.width
-                    height: 1
-                    color: Ui.Theme.line
-                }
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: window.width < 720 ? 18 : 28
-                    anchors.rightMargin: window.width < 720 ? 18 : 28
-                    spacing: 10
+                    Layout.leftMargin: window.width < 720 ? 12 : 24
+                    Layout.rightMargin: window.width < 720 ? 12 : 24
+                    spacing: 8
                     Text {
-                        textFormat: Text.PlainText
-                        text: platform.activeTitle
-                        font.pixelSize: window.width < 720 ? 21 : 24
-                        font.weight: Font.DemiBold
-                        font.letterSpacing: -0.4
-                        color: Ui.Theme.text
-                    }
-                    Item {
                         Layout.fillWidth: true
+                        textFormat: Text.PlainText
+                        text: platform.activeModule === "home" ? "Painel de gestão" : platform.activeTitle
+                        font.pixelSize: 12
+                        font.weight: Font.Medium
+                        color: Ui.Theme.muted
+                        elide: Text.ElideRight
                     }
                     Ui.ActionButton {
                         id: quickExportButton
                         objectName: "quickExportButton"
                         visible: platform.activeModule === "imports" && !window.viewState.demo && window.viewState.loaded
-                        text: window.width >= 1000 ? (window.viewState.exportBusy ? window.viewState.exportProgress + "%" : "Baixar") : ""
+                        text: window.width >= 1000 ? (window.viewState.exportBusy ? window.viewState.exportProgress + "%" : "Exportar") : ""
                         iconName: window.viewState.exportBusy ? "file" : "download"
                         implicitWidth: window.width >= 1000 ? Math.max(108, naturalWidth) : 40
                         Layout.minimumWidth: implicitWidth
@@ -417,6 +258,16 @@ ApplicationWindow {
                         ToolTip.visible: hovered
                         ToolTip.text: window.viewState.exportBusy ? "Documento em preparação. Acompanhar ou cancelar." : "Baixar Excel, Power BI ou PDF"
                         ToolTip.delay: 400
+                    }
+                    Ui.ActionButton {
+                        objectName: "topbarHelp"
+                        visible: window.width >= 900
+                        text: "Ajuda"
+                        iconName: "info"
+                        subtle: true
+                        implicitWidth: Math.max(80, naturalWidth)
+                        Accessible.name: "Abrir ajuda e informações"
+                        onClicked: projectDialog.open()
                     }
                     Ui.ActionButton {
                         objectName: "themeButton"
@@ -445,6 +296,218 @@ ApplicationWindow {
                         ToolTip.visible: hovered && window.width < 680
                         ToolTip.text: "Preferências"
                         ToolTip.delay: 400
+                    }
+                }
+            }
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: Ui.Theme.line
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: 0
+            Rectangle {
+                id: sidebar
+                objectName: "sidebar"
+                Layout.fillHeight: true
+                Layout.preferredWidth: window.collapsed ? 64 : Ui.Theme.sidebarWidth
+                color: Ui.Theme.sidebar
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    anchors.topMargin: 20
+                    anchors.bottomMargin: 14
+                    spacing: 14
+                    Text {
+                        visible: !window.collapsed
+                        Layout.leftMargin: 10
+                        text: "WORKSPACE"
+                        font.pixelSize: 9
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.5
+                        color: Ui.Theme.sidebarMuted
+                    }
+                    ScrollView {
+                        id: moduleNavigation
+                        objectName: "moduleNavigation"
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.minimumHeight: 0
+                        clip: true
+                        contentWidth: availableWidth
+                        contentHeight: navigationColumn.implicitHeight
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                        ColumnLayout {
+                            id: navigationColumn
+                            width: moduleNavigation.availableWidth
+                            spacing: 6
+                            NavigationButton {
+                                objectName: "homeNav"
+                                selected: platform.activeModule === "home"
+                                Layout.fillWidth: true
+                                text: window.collapsed ? "" : "Visão geral"
+                                iconName: "home"
+                                Accessible.name: "Início"
+                                font.weight: platform.activeModule === "home" ? Font.DemiBold : Font.Medium
+                                onActiveFocusChanged: if (activeFocus)
+                                    window.revealNavigation(this)
+                                onClicked: platform.openModule("home")
+                                ToolTip.visible: hovered && window.collapsed
+                                ToolTip.text: "Início"
+                            }
+                            NavigationButton {
+                                id: importsNavButton
+                                objectName: "importsNav"
+                                selected: platform.activeModule === "imports"
+                                Layout.fillWidth: true
+                                text: window.collapsed ? "" : "Importações"
+                                iconName: "chart"
+                                Accessible.name: "Importações"
+                                font.weight: platform.activeModule === "imports" ? Font.DemiBold : Font.Medium
+                                onActiveFocusChanged: if (activeFocus)
+                                    window.revealNavigation(this)
+                                onClicked: platform.openModule("imports")
+                                ToolTip.visible: hovered && window.collapsed
+                                ToolTip.text: "Importações"
+                            }
+                            NavigationButton {
+                                objectName: "inventoryNav"
+                                selected: platform.activeModule === "inventory"
+                                Layout.fillWidth: true
+                                text: window.collapsed ? "" : "Estoque"
+                                iconName: "box"
+                                Accessible.name: "Estoque"
+                                font.weight: platform.activeModule === "inventory" ? Font.DemiBold : Font.Medium
+                                onActiveFocusChanged: if (activeFocus)
+                                    window.revealNavigation(this)
+                                onClicked: platform.openModule("inventory")
+                                ToolTip.visible: hovered && window.collapsed
+                                ToolTip.text: "Estoque"
+                            }
+                            Repeater {
+                                model: platform.activeModule === "inventory" && inventory.presentation.loaded ? [
+                                    {
+                                        key: "overview",
+                                        label: "Panorama",
+                                        icon: "chart"
+                                    },
+                                    {
+                                        key: "monthly",
+                                        label: "Análise mensal",
+                                        icon: "chart"
+                                    },
+                                    {
+                                        key: "products",
+                                        label: "Produtos",
+                                        icon: "grid"
+                                    }
+                                ] : []
+                                NavigationButton {
+                                    required property var modelData
+                                    objectName: "stockJump_" + modelData.key
+                                    selected: inventoryWorkspace.activeSection === modelData.key
+                                    Layout.fillWidth: true
+                                    implicitHeight: 36
+                                    text: window.collapsed ? "" : modelData.label
+                                    iconName: modelData.icon
+                                    subtle: true
+                                    Accessible.name: "Ir para " + modelData.label
+                                    onClicked: inventoryWorkspace.navigate(modelData.key)
+                                    onActiveFocusChanged: if (activeFocus)
+                                        window.revealNavigation(this)
+                                    ToolTip.visible: hovered && window.collapsed
+                                    ToolTip.text: modelData.label
+                                }
+                            }
+                            Repeater {
+                                model: platform.activeModule === "imports" && window.viewState.loaded ? [
+                                    {
+                                        key: "summary",
+                                        label: "Resumo",
+                                        icon: "chart"
+                                    },
+                                    {
+                                        key: "buying",
+                                        label: "Compras",
+                                        icon: "price"
+                                    },
+                                    {
+                                        key: "records",
+                                        label: "Registros",
+                                        icon: "grid"
+                                    }
+                                ] : []
+                                NavigationButton {
+                                    required property var modelData
+                                    objectName: "jump_" + modelData.key
+                                    selected: window.activeSection === modelData.key
+                                    Layout.fillWidth: true
+                                    implicitHeight: 36
+                                    text: window.collapsed ? "" : modelData.label
+                                    iconName: modelData.icon
+                                    subtle: true
+                                    Accessible.name: "Ir para " + modelData.label
+                                    onActiveFocusChanged: if (activeFocus)
+                                        window.revealNavigation(this)
+                                    onClicked: window.navigate(modelData.key)
+                                    Accessible.description: window.activeSection === modelData.key ? "Seção atual" : ""
+                                    ToolTip.visible: hovered && window.collapsed
+                                    ToolTip.text: modelData.label
+                                }
+                            }
+                        }
+                    }
+                    Rectangle {
+                        visible: !window.collapsed && sidebar.height > 540
+                        Layout.fillWidth: true
+                        implicitHeight: guidance.implicitHeight + 26
+                        radius: Ui.Theme.radius
+                        color: Ui.Theme.sidebarHover
+                        border.color: Ui.Theme.sidebarLine
+                        ColumnLayout {
+                            id: guidance
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.margins: 13
+                            spacing: 8
+                            Ui.Icon {
+                                name: "info"
+                                color: Ui.Theme.sidebarText
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: "Central de orientação"
+                                font.pixelSize: 11
+                                font.weight: Font.DemiBold
+                                color: Ui.Theme.navActiveText
+                                wrapMode: Text.WordWrap
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: "Fontes, indicadores e atalhos disponíveis na ajuda."
+                                font.pixelSize: 10
+                                lineHeight: 1.25
+                                color: Ui.Theme.sidebarText
+                                wrapMode: Text.WordWrap
+                            }
+                        }
+                    }
+                    NavigationButton {
+                        objectName: "projectNav"
+                        Layout.fillWidth: true
+                        text: window.collapsed ? "" : "Ajuda e informações"
+                        iconName: "info"
+                        Accessible.name: "Ajuda e informações"
+                        onClicked: projectDialog.open()
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Ajuda e informações"
                     }
                 }
             }
