@@ -155,7 +155,7 @@ FocusScope {
     readonly property string valueBasis: viewState.appliedKind === "municipal" ? "FOB" : "CIF"
     readonly property int pauseSeconds: viewState.sourcePauseSeconds || 0
     readonly property string pauseLabel: Math.floor(pauseSeconds / 60) + ":" + String(pauseSeconds % 60).padStart(2, "0")
-    readonly property bool resumingQuery: Boolean(viewState.sourceResumeStart)
+    readonly property bool resumingQuery: !viewState.historicalMode && Boolean(viewState.sourceResumeStart)
         && queryPanel.startValue === viewState.sourceResumeStart
         && queryPanel.endValue === viewState.sourceResumeEnd
     function pauseMessage() {
@@ -245,7 +245,7 @@ FocusScope {
     }
     Shortcut {
         sequence: "F5"
-        enabled: window.visible && !window.viewState.busy && !window.viewState.metadataBusy && window.pauseSeconds === 0 && !window.modalOpen
+        enabled: window.visible && !window.viewState.busy && !window.viewState.metadataBusy && (window.viewState.historicalMode || window.pauseSeconds === 0) && !window.modalOpen
         onActivated: controller.queryPeriod(queryPanel.startValue, queryPanel.endValue)
     }
 
@@ -333,6 +333,10 @@ FocusScope {
                 workspace: window
                 backend: controller
             }
+            Ui.ComexHistoryStatus {
+                owner: controller.history
+                workspace: window
+            }
             Rectangle {
                 objectName: "emptyState"
                 visible: !window.viewState.loaded && !window.viewState.busy
@@ -353,18 +357,23 @@ FocusScope {
                         color: Ui.Theme.accent
                     }
                     Text {
+                        objectName: "importEmptyTitle"
                         textFormat: Text.PlainText
                         width: parent.width
-                        text: "Comece pelo período"
+                        text: window.viewState.historicalMode && !controller.history.state.coverageStart
+                            ? "Histórico ainda não disponível" : "Comece pelo período"
                         color: Ui.Theme.text
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
                         horizontalAlignment: Text.AlignHCenter
                     }
                     Text {
+                        objectName: "importEmptyDescription"
                         textFormat: Text.PlainText
                         width: parent.width
-                        text: "Selecione os meses para consultar as importações."
+                        text: window.viewState.historicalMode && !controller.history.state.coverageStart
+                            ? "A primeira carga ocorre em segundo plano. Acompanhe o estado da atualização acima."
+                            : "Selecione os meses para consultar as importações."
                         color: Ui.Theme.muted
                         font.pixelSize: 12
                         horizontalAlignment: Text.AlignHCenter

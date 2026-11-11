@@ -123,7 +123,7 @@ Rectangle {
                 Layout.preferredWidth: 155
                 Layout.minimumWidth: naturalWidth
                 Layout.alignment: Qt.AlignBottom
-                enabled: !queryPanel.workspace.viewState.busy && !queryPanel.workspace.viewState.metadataBusy && queryPanel.workspace.pauseSeconds === 0
+                enabled: !queryPanel.workspace.viewState.busy && !queryPanel.workspace.viewState.metadataBusy && (queryPanel.workspace.viewState.historicalMode || queryPanel.workspace.pauseSeconds === 0)
                 onClicked: queryPanel.backend.queryPeriod(startPeriod.currentValue, endPeriod.currentValue)
             }
         }
@@ -226,9 +226,9 @@ Rectangle {
             objectName: "queryError"
             textFormat: Text.PlainText
             Layout.fillWidth: true
-            visible: queryPanel.workspace.pauseSeconds > 0 || queryPanel.workspace.viewState.error.length > 0 || queryPanel.workspace.viewState.metadataError.length > 0
-            text: queryPanel.workspace.pauseSeconds > 0 ? queryPanel.workspace.pauseMessage() : queryPanel.workspace.userError(queryPanel.workspace.viewState.error || queryPanel.workspace.viewState.metadataError)
-            color: queryPanel.workspace.pauseSeconds > 0 || queryPanel.workspace.sourcePauseError(queryPanel.workspace.viewState.error || queryPanel.workspace.viewState.metadataError) ? Theme.muted : Theme.danger
+            visible: (!queryPanel.workspace.viewState.historicalMode && queryPanel.workspace.pauseSeconds > 0) || queryPanel.workspace.viewState.error.length > 0 || queryPanel.workspace.viewState.metadataError.length > 0
+            text: !queryPanel.workspace.viewState.historicalMode && queryPanel.workspace.pauseSeconds > 0 ? queryPanel.workspace.pauseMessage() : queryPanel.workspace.userError(queryPanel.workspace.viewState.error || queryPanel.workspace.viewState.metadataError)
+            color: (!queryPanel.workspace.viewState.historicalMode && queryPanel.workspace.pauseSeconds > 0) || queryPanel.workspace.sourcePauseError(queryPanel.workspace.viewState.error || queryPanel.workspace.viewState.metadataError) ? Theme.muted : Theme.danger
             font.pixelSize: 12
             wrapMode: Text.WordWrap
             Accessible.role: Accessible.AlertMessage

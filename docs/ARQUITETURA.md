@@ -27,18 +27,19 @@ flowchart LR
 ### Importações e mercado
 
 - `comex.py` adapta os dados reais para os contratos de `domain.py`; `comex_api.py` implementa o cliente direto e as pausas da fonte.
+- `comex_history.py`, `comex_sync.py` e `comex_historical.py` em `liarte_core` separam armazenamento histórico, aquisição e consultas da base local. `comex_history.py` em `liarte_desktop` coordena a sincronização independente da consulta.
 - `query.py` filtra, agrega, ordena e pagina o snapshot aceito. Busca, ordenação e paginação não fazem uma nova consulta à API.
 - `procurement.py` calcula referências de compra, médias ponderadas e comparações no mesmo recorte observado.
 - `exports.py` captura o escopo aceito e delega a geração dos documentos ao motor.
 - `controller.py`, `jobs.py` e `table_model.py` coordenam as tarefas e publicam apresentações limitadas para QML.
 
-O fluxo normal do desktop usa a API diretamente, sem iniciar servidor HTTP local, central automática ou downloads CSV alternativos. Implementações anteriores de central e acesso automático permanecem para compatibilidade, ferramentas explícitas e regressões; não definem o modo padrão da aplicação atual.
+Nos fontes com histórico persistente, o desktop consulta a versão aceita da base local. A API é utilizada pelo sincronizador em segundo plano, sem servidor HTTP local ou central automática. Implementações anteriores de central e acesso automático permanecem para compatibilidade, ferramentas explícitas e regressões; downloads CSV alternativos não são ativados silenciosamente. O [guia do histórico local](HISTORICO_LOCAL_COMEX.md) descreve primeira carga, cobertura, revisões e uso offline.
 
 As bases geral e municipal têm contratos separados. A geral identifica NCM e valores CIF; a municipal utiliza SH4 e FOB. Não se reconstrói NCM ou CIF a partir da base municipal. Valores monetários são tratados em unidades inteiras de centavo, preservando a precisão dos totais. Referências unitárias exigem peso válido e escopo comparável.
 
-Uma consulta explícita obtém e valida os dados da API antes de publicar o novo snapshot. Metadados e pausas podem ser persistidos; respostas de consultas anteriores em disco não substituem a API no cliente direto. Tentativas e esperas são limitadas, cooperam com o cancelamento e respeitam HTTP 429. O transporte Windows preserva a verificação HTTPS pelo sistema operacional.
+O adaptador direto continua obtendo e validando respostas da API, com tentativas limitadas, cancelamento e respeito a HTTP 429. O transporte Windows preserva a verificação HTTPS pelo sistema operacional. No modo histórico, a aquisição grava etapas em preparação e só ativa o manifesto integral depois da reconferência. Uma consulta local fixa a revisão e o intervalo que alimentam indicadores e exportações; uma pausa da aquisição não bloqueia essa leitura.
 
-Nos fontes posteriores à 5.3.1, uma operação interrompida por HTTP 429 pode retomar sua etapa pendente, conservando em memória a parte já validada dentro de um prazo limitado. O resultado continua sendo publicado somente após concluir as duas bases; uma consulta nova após o sucesso recarrega ambas. O [guia de pausas e retomada](CORRECAO_PAUSAS_COMEX.md) registra validade, descarte, diagnóstico e a distinção entre espera da origem e recuperação local.
+O [guia de pausas e retomada](CORRECAO_PAUSAS_COMEX.md) registra a etapa anterior de evolução do cliente direto, com retomada temporária em memória. O histórico persistente acrescenta retomada entre execuções, incluindo checkpoints de metadados, e uma rotina própria de atualização de revisões antigas. Os pacotes 5.3.1 publicados conservam o comportamento de sua entrega.
 
 ### Estoque e produtos
 

@@ -14,6 +14,10 @@ env/
 *.pbix
 *.pbit
 *.liarte
+historico_comex.sqlite3
+historico_comex.sqlite3-wal
+historico_comex.sqlite3-shm
+historico_comex.sqlite3.sync.lock
 !/src/liarte_core/data/*.liarte
 !/tests/fixtures/*.liarte
 .env

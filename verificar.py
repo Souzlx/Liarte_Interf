@@ -74,6 +74,13 @@ def main():
     from tests.test_comex_direct import DirectApiTests, DirectApiUiTests
     from tests.test_comex_api import NativeApiTests, ApiProtocolTests, NativeApiQtTests
     from tests.test_comex_pause_flow import ComexPauseFlowTests, ComexPauseFlowQtTests
+    from tests.test_comex_history import HistoryStoreTests, HistoryStoreConcurrencyTests
+    from tests.test_comex_sync import ComexSyncTests, ComexSyncApiIntegrationTests
+    from tests.test_comex_historical import HistoricalComexProviderTests
+    from tests.test_comex_history_ui import ComexHistoryUiTests, ComexHistoryCompositionTests
+    from tests.test_comex_history_qml import ComexHistoryQmlTests, ComexHistoryWorkspaceQmlTests
+    from tests.test_comex_history_export import HistoricalComexExportTests
+    from tests.test_comex_history_sqlite_ui import ComexHistorySqliteDesktopTests
     from tests.test_audit_build import BuildAuditTests
     from tests.test_audit_stock_core import AuditStockCoreTests
     from tests.test_audit_network import ProcessPauseTests, EndpointStatusTests
@@ -195,6 +202,17 @@ def main():
         NativeApiQtTests,
         ComexPauseFlowTests,
         ComexPauseFlowQtTests,
+        HistoryStoreTests,
+        HistoryStoreConcurrencyTests,
+        ComexSyncTests,
+        ComexSyncApiIntegrationTests,
+        HistoricalComexProviderTests,
+        ComexHistoryUiTests,
+        ComexHistoryCompositionTests,
+        ComexHistoryQmlTests,
+        ComexHistoryWorkspaceQmlTests,
+        HistoricalComexExportTests,
+        ComexHistorySqliteDesktopTests,
         DirectApiTests,
         DirectApiUiTests,
         SecureHttpTests,

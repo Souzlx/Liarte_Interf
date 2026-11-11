@@ -9,6 +9,7 @@ StockOverview 1.0 StockOverview.qml
 StockPositions 1.0 StockPositions.qml
 StockFiltersDialog 1.0 StockFiltersDialog.qml
 ImportQueryPanel 1.0 ImportQueryPanel.qml
+ComexHistoryStatus 1.0 ComexHistoryStatus.qml
 ImportFilters 1.0 ImportFilters.qml
 ImportTrendPanel 1.0 ImportTrendPanel.qml
 ImportBuyingPanel 1.0 ImportBuyingPanel.qml

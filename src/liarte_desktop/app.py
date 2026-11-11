@@ -90,9 +90,9 @@ def create_bundle(
         if size is not None:
             provider = DemoProvider(size)
         else:
-            from liarte_core.comex import ComexProvider
+            from liarte_core.comex_historical import HistoricalComexProvider
 
-            provider = ComexProvider(profile.data_dir)
+            provider = HistoricalComexProvider(profile.data_dir)
     services = QObject()
     preferences = ApplicationPreferences(settings, services)
     controller = DesktopController(
@@ -146,6 +146,14 @@ def create_bundle(
 
 def install_availability_refresh(bundle: ApplicationBundle):
     """Confirma a fonte uma vez ao entrar em Importações, sem consultar por Início/Estoque."""
+    if getattr(bundle.controller._provider, "is_historical", False):
+        def start_history():
+            if bundle.platform.activeModule == "imports":
+                bundle.controller.history.startAutomatic()
+
+        bundle.platform.navigationChanged.connect(start_history)
+        start_history()
+        return
     if getattr(bundle.controller._provider, "direct_api", False):
         # Abrir o módulo não precisa de acesso à rede. A ação Consultar vai
         # diretamente aos dados; Verificar fonte permanece disponível à parte.
@@ -432,10 +440,10 @@ def main(argv=None) -> int:
         settings = open_settings(profile, no_settings=args.no_settings or bool(args.smoke_test))
         provider = None
         if not args.demo and not args.smoke_test:
-            from liarte_core.comex import ComexProvider
+            from liarte_core.comex_historical import HistoricalComexProvider
 
             directory = args.data_dir if args.data_dir is not None else profile.data_dir
-            provider = ComexProvider(directory)
+            provider = HistoricalComexProvider(directory)
         if settings is not None and not profile.development and not settings.contains("dark"):
             previous = QSettings("LIARTE", "LIARTE Desktop F1")
             for key in ("dark", "compact", "reducedMotion"):

@@ -18,7 +18,7 @@ Use os guias abaixo para instalar, atualizar e consultar a LIARTE. Para descreve
 - **Consulta pausada:** se o Comex Stat solicitar uma pausa, aguarde o intervalo informado pelo aplicativo antes de consultar novamente.
 - **Indicadores diferentes:** confira período, unidade, filtros, data da base e fonte do indicador. As bases geral e municipal do Comex têm escopos e valores CIF/FOB diferentes; giro da fonte e cobertura estimada também têm definições próprias.
 
-Nos fontes em desenvolvimento após a 5.3.1, uma consulta incompleta pode oferecer **Retomar consulta** para continuar sua etapa pendente, enquanto a operação ainda for válida. **Reiniciar consulta** refaz a operação e também respeita a pausa. O [guia de pausas e retomada](docs/CORRECAO_PAUSAS_COMEX.md) explica a diferença entre HTTP 429, recuperação local e indisponibilidade do serviço. Essa melhoria ainda depende de uma entrega posterior para aparecer nos pacotes publicados.
+Nos fontes com [histórico local em desenvolvimento](docs/HISTORICO_LOCAL_COMEX.md), a pausa do Comex afeta a atualização. Consultas continuam usando a última base aceita, identificada por sua cobertura e referência. Antes da primeira carga integral, aguarde a conclusão indicada na área de atualização. O [guia do cliente direto](docs/CORRECAO_PAUSAS_COMEX.md) documenta a retomada temporária da etapa anterior. Essas melhorias dependem de uma entrega posterior para aparecer nos pacotes publicados.
 
 ## Relatar um problema
 
