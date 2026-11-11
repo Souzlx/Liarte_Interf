@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 import io
 import json
@@ -380,7 +380,7 @@ class ComexSyncTests(unittest.TestCase):
         self.synchronize()
         previous = self.read()
         self.store.put_checkpoint("metadata:initial", {"schema": "liarte.comex-metadata/1"})
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("UPDATE checkpoints SET digest='corrupt' WHERE key='metadata:initial'")
         count = len(self.source.attempts)
         result = self.synchronize(force=True)
@@ -405,7 +405,7 @@ class ComexSyncTests(unittest.TestCase):
         run = self.store.pending_run_info()["run_id"]
         final_key = "metadata:final:" + run
         self.assertIn("general", self.store.get_checkpoint(final_key))
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("UPDATE checkpoints SET digest='corrupt' WHERE key=?", (final_key,))
         self.source.hook = None
         count = len(self.source.attempts)
@@ -433,7 +433,7 @@ class ComexSyncTests(unittest.TestCase):
                     nonlocal corrupted_run
                     if percent == 97 and corrupted_run is None:
                         corrupted_run = self.store.pending_run_info()["run_id"]
-                        with sqlite3.connect(self.path) as db:
+                        with closing(sqlite3.connect(self.path)) as db, db:
                             if damage == "facts":
                                 db.execute(
                                     "DELETE FROM facts WHERE stage_id IN "
@@ -452,7 +452,7 @@ class ComexSyncTests(unittest.TestCase):
                 self.assertEqual(self.read(), previous)
                 self.assertIsNone(self.store.pending_run_info())
                 self.assertIsNone(self.store.get_checkpoint("metadata:final:" + corrupted_run))
-                with sqlite3.connect(self.path) as db:
+                with closing(sqlite3.connect(self.path)) as db, db:
                     status = db.execute("SELECT status FROM runs WHERE id=?", (corrupted_run,)).fetchone()[0]
                 self.assertEqual(status, "corrupt")
                 self.assertTrue(self.store.status()["reextract_required"])

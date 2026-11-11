@@ -62,6 +62,8 @@ A validação deve cobrir reinício offline, leitura durante atualização e pau
 
 As verificações incluem extração retomada com limites globais de 180 e 900 segundos, sem repetir endpoints de metadados já aceitos; exportação fixada na revisão apresentada; e recuperação de checkpoints opcionais inválidos. A abertura de um leitor não requer a trava de gravação de uma extração já em andamento.
 
+O autoteste do pacote também cria um histórico temporário sintético e consulta as bases geral e municipal pelo provedor local, sem rede. Isso verifica o SQLite e o caminho de consulta dentro do executável compilado, além dos testes dos fontes.
+
 | Estado sintético | Captura da interface Qt |
 | --- | --- |
 | Consulta local com atualização em pausa | [Janela ampla](images/comex-historico-local-sintetico.png) |

@@ -1,6 +1,6 @@
 """Durable, exact and transactional history with entirely synthetic records."""
 
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from copy import deepcopy
 from decimal import localcontext
 import multiprocessing
@@ -173,7 +173,7 @@ class HistoryStoreTests(_Fixture, unittest.TestCase):
         self.assertEqual(len(result.general), 1)
         self.assertEqual(len(result.municipal), 1)
         self.assertEqual(result.general[0]["monthNumber"], "01")
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             other = db.execute("SELECT stage_id,identity FROM facts WHERE month='2023-12' LIMIT 1").fetchone()
             db.execute("UPDATE facts SET payload='corrompido' WHERE stage_id=? AND identity=?", other)
         # Integrity checks are limited to the interval, never a scan of decades.
@@ -191,7 +191,7 @@ class HistoryStoreTests(_Fixture, unittest.TestCase):
         self.assertEqual(published_units(read["metricCIF"], places=2), (value + 11) * 100)
         self.assertEqual(published_units(read["metricKG"]), 10**70 + 7)
         self.assertIsInstance(read["metricCIF"], str)
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             self.assertEqual(db.execute("SELECT DISTINCT typeof(payload) FROM facts").fetchall(), [("text",)])
 
     def test_fractional_cents_and_large_scientific_notation_keep_exact_contract(self):
@@ -311,7 +311,7 @@ class HistoryStoreTests(_Fixture, unittest.TestCase):
     def test_corrupted_checkpoint_and_fact_are_rejected(self):
         self.store.put_checkpoint("metadata:initial", {"test": 1})
         self.accept()
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("UPDATE checkpoints SET payload='{}'")
             db.execute("UPDATE facts SET payload='{}' WHERE rowid=(SELECT MIN(rowid) FROM facts)")
         with self.assertRaises(HistoryCheckpointError):
@@ -321,7 +321,7 @@ class HistoryStoreTests(_Fixture, unittest.TestCase):
 
     def test_missing_partition_is_not_hidden_by_minimum_and_maximum_dates(self):
         self.accept()
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("DELETE FROM coverage WHERE month='2024-01' AND stage_id IN (SELECT id FROM stages WHERE municipal=1)")
         self.assertFalse(self.store.contains(Period("2024-01", "2024-02")))
         self.assertFalse(self.store.status()["complete"])
@@ -334,7 +334,7 @@ class HistoryStoreTests(_Fixture, unittest.TestCase):
         active = self.store.status()["local_revision"]
         run = self.store.begin_run(publication(), "2024-01", "2024-02")
         self.fill(run, "2024-01", "2024-02", rows=[general(fob=300)])
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("DELETE FROM facts WHERE stage_id IN (SELECT id FROM stages WHERE run_id=? AND municipal=0)", (run,))
         with self.assertRaises(HistoryError):
             self.store.publish_run(run)
@@ -377,18 +377,18 @@ class HistoryStoreTests(_Fixture, unittest.TestCase):
         self.assertTrue(self.store.status()["complete"])
 
     def test_unsupported_schema_preserves_original_database(self):
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("PRAGMA user_version=99")
         with self.assertRaises(HistoryError):
             HistoryStore(self.path, CODES)
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 99)
 
     def test_old_generations_are_bounded_without_deleting_other_catalogs(self):
         for value in (100, 200, 300, 400):
             self.accept(rows=[general(fob=value)])
             self.now += 1
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             self.assertEqual(db.execute("SELECT COUNT(*) FROM generations").fetchone()[0], 2)
             self.assertEqual(db.execute("SELECT COUNT(*) FROM runs").fetchone()[0], 2)
         self.assertEqual(published_units(self.store.read(Period("2024-01", "2024-01"), Event()).general[0]["metricFOB"], places=2), 40000)
@@ -399,7 +399,7 @@ class HistoryStoreConcurrencyTests(_Fixture, unittest.TestCase):
         self.accept()
         period = Period("2024-01", "2024-02")
         accepted = self.store.read(period, Event())
-        with sqlite3.connect(self.path) as writer:
+        with closing(sqlite3.connect(self.path)) as writer, writer:
             writer.execute("BEGIN IMMEDIATE")
             reopened = HistoryStore(self.path, CODES, clock=lambda: self.now)
             self.assertEqual(reopened.read(period, Event()), accepted)

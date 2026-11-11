@@ -120,15 +120,22 @@ class ComexHistorySqliteDesktopTests(unittest.TestCase):
                     network.assert_not_called()
                 finally:
                     if bundle is not None:
+                        provider = bundle.controller._provider
                         bundle.services.comex_access.shutdown()
                         bundle.controller.shutdown()
                         desktop._finish_inventory_shutdown(bundle.inventory)
-                        bundle.controller._provider.close()
                         for window in bundle.engine.rootObjects():
                             window.close()
+                            window.deleteLater()
+                        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+                        APP.processEvents()
                         bundle.engine.deleteLater()
                         QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
                         APP.processEvents()
+                        bundle.services.deleteLater()
+                        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+                        APP.processEvents()
+                        provider.close()
 
     def test_rate_retry_resumes_when_its_pause_expires_and_other_failures_keep_the_cooldown(self):
         # A controlled clock advances the real persisted ApiPause, including

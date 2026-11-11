@@ -14,7 +14,7 @@ from PySide6.QtTest import QSignalSpy
 
 from liarte_core.comex import Availability, ComexError, ComexProvider, Snapshot
 from liarte_core.query import Cancelled, checkpoint
-from liarte_desktop.app import create_bundle, install_availability_refresh
+from liarte_desktop.app import _finish_inventory_shutdown, create_bundle, install_availability_refresh
 from liarte_desktop.controller import DesktopController
 from tests.test_comex import Transport
 from tests.test_qt import APP, pump, settled
@@ -372,10 +372,18 @@ class ComexHistoryCompositionTests(unittest.TestCase):
                 self.assertEqual(bundle.messages, [])
                 self.assertIsNotNone(bundle.engine.rootObjects()[0].findChild(QObject, "comexHistoryStatus"))
             finally:
+                bundle.services.comex_access.shutdown()
                 bundle.controller.shutdown()
-                bundle.inventory.shutdown()
-                bundle.engine.rootObjects()[0].close()
+                _finish_inventory_shutdown(bundle.inventory)
+                for window in bundle.engine.rootObjects():
+                    window.close()
+                    window.deleteLater()
+                QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+                APP.processEvents()
                 bundle.engine.deleteLater()
+                QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+                APP.processEvents()
+                bundle.services.deleteLater()
                 QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
                 APP.processEvents()
                 provider.close()

@@ -11,9 +11,14 @@ from PySide6.QtCore import QCoreApplication, QEvent, QObject, Property, QUrl, Qt
 from PySide6.QtQml import QQmlComponent, QQmlEngine
 from PySide6.QtTest import QTest
 
-from liarte_desktop.app import PACKAGE, create_bundle
+from liarte_desktop.app import PACKAGE, _finish_inventory_shutdown, create_bundle
 from tests.test_qt import APP, click, pump, settled
 from tests.test_comex_history_ui import SyntheticHistoricalProvider
+
+
+def drain_deferred_deletes():
+    QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+    APP.processEvents()
 
 
 class SyntheticHistoryOwner(QObject):
@@ -57,6 +62,7 @@ class SyntheticHistoryOwner(QObject):
 
 class ComexHistoryQmlTests(unittest.TestCase):
     def setUp(self):
+        self._disposed = False
         self.owner = SyntheticHistoryOwner()
         self.engine = QQmlEngine()
         self.messages = []
@@ -95,11 +101,21 @@ ApplicationWindow {
         APP.processEvents()
 
     def tearDown(self):
+        if self._disposed:
+            return
+        self._disposed = True
+        # Keep the component, engine and context owner alive until the window
+        # has actually been destroyed; processEvents alone does not guarantee
+        # delivery of DeferredDelete events in a manually driven test loop.
         self.window.close()
         self.window.deleteLater()
-        APP.processEvents()
+        drain_deferred_deletes()
+        self.component.deleteLater()
+        drain_deferred_deletes()
         self.engine.deleteLater()
-        APP.processEvents()
+        drain_deferred_deletes()
+        self.owner.deleteLater()
+        drain_deferred_deletes()
 
     def item(self, name):
         found = self.window.findChild(QObject, name)
@@ -173,6 +189,19 @@ ApplicationWindow {
         self.assertFalse(self.item("comexHistoryStatus").property("visible"))
         self.assertEqual(self.messages, [])
 
+    def test_repeated_teardown_destroys_qml_objects_before_their_context_owner(self):
+        for iteration in range(3):
+            if iteration:
+                self.setUp()
+            destroyed = []
+            self.window.destroyed.connect(lambda *_: destroyed.append("window"))
+            self.component.destroyed.connect(lambda *_: destroyed.append("component"))
+            self.engine.destroyed.connect(lambda *_: destroyed.append("engine"))
+            self.owner.destroyed.connect(lambda *_: destroyed.append("owner"))
+            self.assertEqual(self.messages, [])
+            self.tearDown()
+            self.assertEqual(destroyed, ["window", "component", "engine", "owner"])
+
 
 class ComexHistoryWorkspaceQmlTests(unittest.TestCase):
     def setUp(self):
@@ -189,12 +218,16 @@ class ComexHistoryWorkspaceQmlTests(unittest.TestCase):
 
     def tearDown(self):
         self.provider.sync_release.set()
+        self.bundle.services.comex_access.shutdown()
         self.controller.shutdown()
-        self.bundle.inventory.shutdown()
+        _finish_inventory_shutdown(self.bundle.inventory)
         self.window.close()
+        self.window.deleteLater()
+        drain_deferred_deletes()
         self.bundle.engine.deleteLater()
-        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
-        APP.processEvents()
+        drain_deferred_deletes()
+        self.bundle.services.deleteLater()
+        drain_deferred_deletes()
         self.provider.close()
         self.temp.cleanup()
 
