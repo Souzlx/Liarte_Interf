@@ -20,7 +20,7 @@ Fontes `6b4c4d7`: **1.411 testes em 88 módulos**, sem falhas, erros ou skips no
 
 A revisão adicional reproduziu e corrigiu a preservação indevida de recibos de data inválidos durante uma auditoria idêntica. As duas regressões novas cobrem nove subcasos e a recuperação da consulta após a auditoria. Os [resultados, hashes e limites](EVIDENCIAS_REFINO_IMPORTACOES.json) identificam exatamente os fontes e as capturas.
 
-Os estados dos jobs e etapas Windows foram confirmados pela API. Os logs detalhados ficaram bloqueados no armazenamento do GitHub; não se declara aqui uma contagem nativa de aprovações ou skips sem esses logs.
+Os logs completos confirmam, em cada uma das quatro versões Windows, **177 testes de pré-validação aprovados** e **1.411 testes na suíte completa: 1.410 aprovados e um skip POSIX**, sem falhas ou erros. Os quatro executáveis passaram no autoteste compilado em Windows, incluindo histórico offline, documentos, backups, temas claro e escuro, ícone e diálogo, sem avisos QML. O skip do subprocesso POSIX não substitui a conferência nativa de locks após crash no Windows.
 
 As capturas abaixo são da aplicação Qt real, com dados sintéticos de teste, sem consultas à API pública ou dados da empresa.
 
@@ -34,7 +34,15 @@ As capturas abaixo são da aplicação Qt real, com dados sintéticos de teste, 
 
 [Baixar o portátil Windows Python 3.12](https://github.com/Souzlx/Liarte_Interf/actions/runs/43219478235/artifacts/13945053893). Se o link não abrir, entre na conta com acesso ao repositório e procure **Artifacts** na [execução](https://github.com/Souzlx/Liarte_Interf/actions/runs/43219478235). Artefatos do Actions têm retenção limitada.
 
-O GitHub informa 94.457.214 bytes e o digest `04181abcbf2efb6a7691702a67886dd9e35f421e237f17ff0c1ecbed18ff5123`. O ZIP e os logs desta execução foram direcionados a `productionresultssa17.blob.core.windows.net`, que recebeu HTTP 403 do proxy. A conferência independente do ZIP permanece pendente. Foi salvo um rascunho de permissão para `*.blob.core.windows.net`; isso requer revisão, salvamento e publicação do ambiente e não comprova liberação na sessão atual.
+O ZIP Python 3.12 foi baixado e verificado independentemente neste ambiente: **94.457.214 bytes**, CRC válido em todos os membros, caminhos sem duplicação e SHA-256 coincidente em cada um dos **1.410 arquivos** listados no manifesto. O digest do ZIP também corresponde ao informado pelo GitHub:
+
+```text
+04181abcbf2efb6a7691702a67886dd9e35f421e237f17ff0c1ecbed18ff5123
+```
+
+O `AUTOTESTE.json` incluído no pacote confirma execução compilada em `win32`, histórico offline e ausência de avisos QML. Os arquivos QML empacotados contêm o título, o período sucinto, o progresso percentual e a atualização separada nas Preferências. O executável foi testado no CI Windows; a inspeção local do ZIP no Linux não equivale a executar o binário Windows. Somente o ZIP Python 3.12 foi baixado e verificado independentemente aqui.
+
+A publicação da regra de rede `*.blob.core.windows.net` liberou o acesso ao armazenamento desta execução. Os quatro logs Windows e o log Linux também foram recuperados e conferidos; não há pendência de acesso para esta verificação.
 
 Entrega no [PR #16](https://github.com/Souzlx/Liarte_Interf/pull/16), com a [relação completa de arquivos alterados](https://github.com/Souzlx/Liarte_Interf/pull/16/files).
 
