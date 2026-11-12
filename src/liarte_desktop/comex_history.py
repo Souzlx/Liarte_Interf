@@ -19,6 +19,7 @@ class HistorySyncWorker(QObject):
     failed = Signal(str)
     cancelled = Signal()
     finished = Signal()
+    backupNotice = Signal(str)
 
     def __init__(self, provider, cancel, *, force=False):
         super().__init__()
@@ -52,7 +53,30 @@ class HistorySyncWorker(QObject):
             LOGGER.exception("Falha na atualização do histórico Comex")
             self.failed.emit("Não foi possível atualizar o histórico. A base local aceita foi preservada.")
         finally:
+            if not self.cancel.is_set():
+                self._backup()
             self.finished.emit()
+
+    def _backup(self):
+        from liarte_core.comex_history import HistoryStore
+        from liarte_core.comex_history_backup import create_backup
+
+        store = getattr(self.provider, "history", None)
+        if not isinstance(store, HistoryStore):
+            return
+        try:
+            status = store.status()
+            revision = status.get("local_revision")
+            if revision and status.get("complete"):
+                target = store.path.parent / "backups-comex" / (store.catalog_key[:16] + "-" + revision)
+                if not target.is_dir():
+                    create_backup(store, self.cancel)
+                self.backupNotice.emit("Cópia local do histórico disponível nesta instalação.")
+        except Cancelled:
+            pass
+        except Exception:
+            LOGGER.warning("Não foi possível criar a cópia local do histórico", exc_info=True)
+            self.backupNotice.emit("A base está preservada; não foi possível criar sua cópia de segurança.")
 
 
 class HistorySyncOwner(QObject):
@@ -80,6 +104,7 @@ class HistorySyncOwner(QObject):
         self._error = ""
         self._pause_status = 0
         self._state = {
+            "backupNotice": "",
             "enabled": self.enabled, "busy": False, "progress": 0,
             "message": "", "error": "", "coverageStart": "", "coverageEnd": "",
             "completeMonths": 0, "complete": False, "checkedAt": "", "baseUpdatedAt": "",
@@ -176,6 +201,7 @@ class HistorySyncOwner(QObject):
         self._update(busy=True, progress=0, error="", stopped=False, message=self._stage)
         thread.started.connect(worker.run)
         worker.progress.connect(self._progress)
+        worker.backupNotice.connect(self._backup_notice)
         worker.succeeded.connect(self._succeeded)
         worker.failed.connect(self._failed)
         worker.cancelled.connect(self._cancelled)
@@ -188,6 +214,11 @@ class HistorySyncOwner(QObject):
     @Slot()
     def check(self):
         self.request_check(force=True, resume=True)
+
+    @Slot(str)
+    def _backup_notice(self, message):
+        if not self._closing:
+            self._update(backupNotice=message)
 
     @Slot(int, str)
     def _progress(self, percent, stage):

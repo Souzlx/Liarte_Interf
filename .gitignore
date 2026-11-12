@@ -47,6 +47,10 @@ coverage.xml
 /preparacao-desktop.log
 
 # Estado local de editores e do sistema operacional
+**/ultima-consulta*.json
+**/ultima-consulta*.json.previous
+**/.ultima-consulta*
+**/backups-comex/
 /.idea/
 /.vscode/
 .DS_Store

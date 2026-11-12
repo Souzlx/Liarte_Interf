@@ -139,6 +139,10 @@ def create_bundle(
     window = engine.rootObjects()[0]
     window.setIcon(QIcon(str(PACKAGE / "assets" / "liarte.ico")))
     window.show()
+    if settings is not None and not isinstance(provider, DemoProvider):
+        QTimer.singleShot(0, controller.restoreLastQuery)
+        if inventory._session_writer is not None and inventory._session_writer.path.is_file():
+            QTimer.singleShot(0, inventory.ensureLoaded)
     return ApplicationBundle(
         engine, controller, messages, platform, preferences, services, inventory
     )

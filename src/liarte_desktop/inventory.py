@@ -7,7 +7,7 @@ import json
 import os
 import stat
 from collections import defaultdict
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from datetime import date, datetime
 from decimal import Decimal
 from itertools import chain
@@ -15,6 +15,7 @@ from pathlib import Path
 from threading import Event
 from types import MappingProxyType, SimpleNamespace
 from uuid import uuid4
+from liarte_core.query_session import SessionWriter, load_session
 
 from PySide6.QtCore import (
     Property,
@@ -661,6 +662,7 @@ class InventoryController(QObject):
         self._alerts = None
         self._alert_view = {"asOf": "", "period": "", "notice": "", "categories": []}
         self._cache = Path(cache_path) if cache_path else None
+        self._session_writer = SessionWriter(self._cache.with_name("ultima-consulta-estoque.json")) if settings is not None and self._cache else None
         self._data = None
         self._analysis = None
         self._selection = None
@@ -1162,6 +1164,13 @@ class InventoryController(QObject):
         )
         self.monthlyChanged.emit()
         self.comparisonChanged.emit()
+        self._save_query_session()
+
+    def _save_query_session(self):
+        if self._session_writer is not None and self._applied_selection is not None and self._data is not None:
+            self._session_writer.submit({"module": "inventory", "source_revision": self._data.source_hash,
+                "selection": asdict(self._applied_selection), "period": self._monthly_period,
+                "unit": self._monthly_unit, "sort": self._applied_sort})
 
     @Slot(str)
     def setMonthlyPeriod(self, period):
@@ -1332,6 +1341,8 @@ class InventoryController(QObject):
         alert_policy = self._alert_policy
 
         def action(cancel, progress):
+            load_column, load_descending = column, descending
+            load_options = None
             def read(candidate):
                 if self._bundled is not None and candidate.resolve() == self._bundled.resolve():
                     verify_bundled_inventory(candidate)
@@ -1359,6 +1370,24 @@ class InventoryController(QObject):
                     ),
                 )
             selected = self._default_selection(data, cancel)
+            saved = None
+            if self._session_writer is not None and self._cache is not None and path.resolve() == self._cache.resolve() and backup_id is None:
+                saved = load_session(self._session_writer.path)
+                if saved is not None and saved.get("module") == "inventory":
+                    try:
+                        candidate = StockSelection(**saved["selection"])
+                        load_options = tuple(self._build_options(data, cancel))
+                        choices = {o["key"]: {v["value"] for v in o["values"]} for o in load_options}
+                        if any(not isinstance(v, str) or len(v) > 250 or (k != "search" and v not in choices[k]) for k, v in asdict(candidate).items()):
+                            raise ValueError("Recorte salvo indisponível")
+                        if candidate.start > candidate.end or (candidate.search and candidate.product):
+                            raise ValueError("Recorte salvo inválido")
+                        selected = candidate
+                        ordering = saved.get("sort", ())
+                        if len(ordering) == 2 and type(ordering[0]) is int and ordering[0] in range(11) and type(ordering[1]) is bool:
+                            load_column, load_descending = ordering
+                    except (ValueError, TypeError, KeyError):
+                        saved = None
             analysis = analyze_inventory(data, selected, cancel=cancel)
             monthly = analyze_monthly_inventory(data, selected, analysis=analysis, cancel=cancel)
             # No QObjects/models here: all work proportional to the full source is
@@ -1371,7 +1400,7 @@ class InventoryController(QObject):
             )
             search.names = MappingProxyType(search.names)
             search.entries = tuple(search.entries)
-            options = tuple(self._build_options(data, cancel))
+            options = load_options if load_options is not None else tuple(self._build_options(data, cancel))
             option_values = MappingProxyType({
                 option["key"]: frozenset(
                     value["value"] for value in _checked(option["values"], cancel)
@@ -1405,10 +1434,10 @@ class InventoryController(QObject):
                 selected,
                 analysis,
                 monthly,
-                column,
-                descending,
-                "",
-                "",
+                load_column,
+                load_descending,
+                saved.get("period", "") if saved else "",
+                saved.get("unit", "") if saved else "",
                 search.names,
                 cancel,
                 load,
@@ -1635,6 +1664,7 @@ class InventoryController(QObject):
                 self._applied_sort = result[2]
                 self._page = 1
                 self._publish_rows(preserve_selection=True)
+                self._save_query_session()
             elif result[0] == "backups":
                 self._backup_entries, self._backup_error = result[1:]
                 self._prune_preserve_ids.clear()
@@ -1667,7 +1697,9 @@ class InventoryController(QObject):
                 if result.backup_id:
                     self._prune_preserve_ids.add(result.backup_id)
             self._data = result.data
-            self._selection = self._default = result.selected
+            self._sort, self._descending = result.sort
+            self._selection = result.selected
+            self._default = StockSelection(result.selected.start, result.selected.end)
             self._search = result.load.search
             self._options = result.load.options
             self._filter_values = result.load.option_values
@@ -1695,6 +1727,7 @@ class InventoryController(QObject):
             result.comparison, result.comparison_views, *result.comparison_pair
         )
         self._publish_rows()
+        self._save_query_session()
         self.monthlyChanged.emit()
         self.analysisChanged.emit()
         self.changed.emit()
@@ -1802,6 +1835,7 @@ class InventoryController(QObject):
             self._applied_sort = (column, descending)
             self._page = 1
             self._publish_rows(preserve_selection=True)
+            self._save_query_session()
         else:
 
             def action(cancel, progress):
@@ -2063,6 +2097,8 @@ class InventoryController(QObject):
             return
         self._discard_staged_cache()
         self._shutdown_complete = True
+        if self._session_writer is not None:
+            self._session_writer.close()
         self.backupChanged.emit()
         _SHUTTING_DOWN.discard(self)
         self.shutdownFinished.emit()

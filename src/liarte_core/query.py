@@ -93,6 +93,7 @@ class DatasetQuery:
 
     SCOPE_LIMIT = 4
     VIEW_LIMIT = 6
+    SEARCH_LIMIT = 4
     SORT_BATCH = 4096
 
     def __init__(self, rows=()):
@@ -102,6 +103,7 @@ class DatasetQuery:
         self._views = OrderedDict()
         self._search_rows = None
         self._search_texts = ()
+        self._search_cache = OrderedDict()
         self._statistics = dict(
             scope_builds=0, scope_hits=0, view_builds=0, view_hits=0, search_builds=0
         )
@@ -173,31 +175,12 @@ class DatasetQuery:
         if not terms:
             return rows
         if self._search_rows is not rows:
-            texts = []
-            for i, row in enumerate(rows):
-                if i % 1024 == 0:
-                    checkpoint(cancel)
-                    progress(81, "Preparando a busca na tabela")
-                texts.append(
-                    search_key(
-                        " ".join(
-                            (
-                                row.code,
-                                row.product,
-                                row.state,
-                                row.country,
-                                row.port,
-                                getattr(row, "city", ""),
-                                getattr(row, "official_description", ""),
-                                row.period,
-                                period_label(row.period),
-                            )
-                        )
-                    )
-                )
-            checkpoint(cancel)
-            self._search_rows, self._search_texts = rows, tuple(texts)
-            self._statistics["search_builds"] += 1
+            cached = self._search_cache.get(id(rows))
+            if cached is not None and cached[0] is rows:
+                self._search_rows, self._search_texts = cached
+                self._search_cache.move_to_end(id(rows))
+            else:
+                self._prepare_search(rows, cancel, progress)
         found = []
         for i, (row, text) in enumerate(zip(rows, self._search_texts, strict=True)):
             if i % 2048 == 0:
@@ -206,6 +189,34 @@ class DatasetQuery:
             if all(term in text for term in terms):
                 found.append(row)
         return found
+
+    def _prepare_search(self, rows, cancel, progress):
+        texts = []
+        for i, row in enumerate(rows):
+            if i % 1024 == 0:
+                checkpoint(cancel)
+                progress(81, "Preparando a busca na tabela")
+            texts.append(
+                search_key(
+                    " ".join(
+                        (
+                            row.code,
+                            row.product,
+                            row.state,
+                            row.country,
+                            row.port,
+                            getattr(row, "city", ""),
+                            getattr(row, "official_description", ""),
+                            row.period,
+                            period_label(row.period),
+                        )
+                    )
+                )
+            )
+        checkpoint(cancel)
+        self._search_rows, self._search_texts = rows, tuple(texts)
+        self._statistics["search_builds"] += 1
+        self._remember(self._search_cache, id(rows), (rows, self._search_texts), self.SEARCH_LIMIT)
 
     def _ordered(self, rows, selection, cancel, progress):
         columns = (
@@ -328,6 +339,7 @@ class DatasetQuery:
             self._scopes.clear()
             self._views.clear()
             self._search_rows, self._search_texts = None, ()
+            self._search_cache.clear()
             self._cache_source = source
         scope_key = self._scope_key(selection)
         scope = self._scope(source, selection, scope_key, cancel, progress)

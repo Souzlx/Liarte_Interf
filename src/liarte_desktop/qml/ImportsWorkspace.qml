@@ -316,6 +316,16 @@ FocusScope {
             y: window.hostWindow.width < 720 ? 20 : 28
             width: Math.min(1280, contentScroll.width - (window.hostWindow.width < 720 ? 36 : 64))
             spacing: 12
+            Text {
+                objectName: "importSessionNotice"
+                Layout.fillWidth: true
+                visible: text.length > 0
+                text: window.viewState.sessionNotice || ""
+                textFormat: Text.PlainText
+                color: Ui.Theme.muted
+                font.pixelSize: 11
+                wrapMode: Text.WordWrap
+            }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 9
