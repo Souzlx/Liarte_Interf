@@ -208,7 +208,7 @@ FocusScope {
             showProductPositions();
     }
     function restoreFocus() {
-        if (restoringViewport || !visible)
+        if (restoringViewport || !visible || modalOpen || hostWindow.globalModalOpen)
             return;
         const item = visibleControl(lastFocusedControl) ? lastFocusedControl : firstVisibleControl(content);
         if (item)
