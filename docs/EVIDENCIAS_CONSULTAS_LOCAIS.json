@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "status": "ok",
+  "date": "2026-11-12",
+  "baseline_commit": "a6d817a46c84750fdcbce3a4e5e82c03c411e061",
+  "code_commit": "181a1ae747b66fdb8f377dd18ea1335f4f5a64bc",
+  "execution": "Python3.12.14/Qt6.10.3/Linux/offscreen/software; synthetic data only; no real extraction",
+  "verification": {
+    "command": "python verificar.py --headless --volume --isolate",
+    "tests": 1398,
+    "modules": 88,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 196.62,
+    "log_sha256": "33362d5876174eee96d5ff8640c9e25d8a0bd8f2f70f16080c015b8a8b2baa98"
+  },
+  "volume": {
+    "records": 100000,
+    "seconds": 0.987,
+    "qt_events": 66
+  },
+  "repository_tests": {
+    "count": 18,
+    "failures": 0,
+    "errors": 0
+  },
+  "benchmark": {
+    "data": "synthetic 50000 general records +12 municipal records; large exact integers",
+    "repetitions": 3,
+    "execution": "sequential fresh processes; median seconds",
+    "exact_digest": "3d92191cf7b83442e998617dc3df21296e6453e991b498d8f35f53d26292646c",
+    "medians": {
+      "before": {
+        "write": 2.3814897400152404,
+        "validate_publish": 2.32958746800432,
+        "read_1month": 0.20248722401447594,
+        "read_12months": 2.4287351859966293,
+        "query_cold": 5.297070437023649,
+        "query_warm": 0.0010823250049725175,
+        "search_first": 0.381962224986637,
+        "period_other": 0.455809658014914,
+        "period_return": 5.337483569019241
+      },
+      "after": {
+        "write": 2.3019457159971353,
+        "validate_publish": 2.2852400520059746,
+        "read_1month": 0.19562296499498188,
+        "read_12months": 2.3395040490140673,
+        "query_cold": 5.004938002995914,
+        "query_warm": 0.0010433160059619695,
+        "search_first": 0.3656995859928429,
+        "period_other": 0.3872641749912873,
+        "period_return": 0.0008360079955309629
+      }
+    },
+    "period_return_improvement_percent": 99.98433703851785,
+    "scope": "provider.query only; not total GUI render time, not network acquisition"
+  },
+  "sql_selects_for_12_months": {
+    "before": 26,
+    "after": 3
+  },
+  "backup_wal_live": {
+    "scenario": "reader pins old generation while a new committed generation remains in WAL; backup recovers new exact facts",
+    "result": "ok",
+    "fob_exact": "1000000000000000000000007"
+  },
+  "visual_restore": {
+    "source_commit": "181a1ae747b66fdb8f377dd18ea1335f4f5a64bc",
+    "data": "synthetic",
+    "platform": "linux/offscreen/software",
+    "restored_query": true,
+    "before_cents": 10600,
+    "after_cents": 10600,
+    "api_requests": 0,
+    "draft_period": false,
+    "keyboard_focus_within_window": true,
+    "backup_notice": "Cópia local do histórico disponível nesta instalação.",
+    "qml_warnings": [],
+    "screenshots_sha256": {
+      "consulta-recuperada-compacta-sintetico.png": "85082053cb2bff9a36c107c7d5909ee3e73fbd03c060839c72623be7d99c16ac",
+      "consulta-recuperada-backup-sintetico.png": "9b0a9c0bb8098aff9fb7cd9498353e15d70add25ebb18c35eac49efcff905767",
+      "home-recuperada-sintetico.png": "aae877fe2716a7f0432bc32c9247e39c21dc1eeae6e252b6f6e9118cabeabe46"
+    }
+  },
+  "limits": [
+    "Windows build and installer not run for these changes.",
+    "Provider timings are not complete GUI-render timings.",
+    "Initial official historical extraction and SQLServer stock connection are separate."
+  ]
+}
