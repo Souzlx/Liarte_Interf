@@ -41,6 +41,7 @@ Saldo atual e fechamentos históricos têm datas e escopos diferentes. Giro da f
 | Consulta, período, filtros, origens e registros | [Guia da interface](GUIA_INTERFACE_MODULAR.md#importações-e-mercado) |
 | Base persistente, carga histórica e consultas offline | [Histórico local do Comex](HISTORICO_LOCAL_COMEX.md) — fontes em desenvolvimento |
 | Recuperar a última consulta e conferir backups locais | [Consultas locais e retomada](CONSULTAS_LOCAIS_E_RETOMADA.md) — fontes em desenvolvimento |
+| Interface sucinta e atualização automática em segundo plano | [Refino da análise de importações](REFINO_IMPORTACOES.md) — fontes em desenvolvimento |
 | Unidade, moeda, preço médio e leitura dos gráficos | [Indicadores e gráficos](GUIA_INTERFACE_MODULAR.md#ler-os-gráficos-e-indicadores) |
 | Excel, PDF e escopo das exportações | [Instruções do aplicativo](../LEIA_PRIMEIRO.txt) |
 | Abrir e conferir o projeto Power BI gerado | [Guia Power BI](POWERBI_USO_RC7.md) — mantém as notas da RC7 em que foi escrito |
