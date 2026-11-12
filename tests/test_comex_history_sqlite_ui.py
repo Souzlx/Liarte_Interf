@@ -1,6 +1,9 @@
 """Integração Qt, SQLite e aquisição oficial simulada; nenhuma rede pública."""
 
+from contextlib import closing
+from decimal import Decimal
 from pathlib import Path
+import sqlite3
 import tempfile
 from threading import Event
 import unittest
@@ -17,7 +20,7 @@ from liarte_desktop.runtime_profile import RuntimeProfile
 from tests.test_comex import Transport
 from tests.test_comex_access import Clock
 from tests.test_comex_pause_flow import refusal
-from tests.test_qt import APP, pump
+from tests.test_qt import APP, pump, settled
 
 
 class ComexHistorySqliteDesktopTests(unittest.TestCase):
@@ -63,6 +66,99 @@ class ComexHistorySqliteDesktopTests(unittest.TestCase):
                 self.assertEqual(controller.state["sourceStatus"], "Base local · Comex Stat")
                 self.assertFalse(controller.state["error"])
                 self.assertFalse(controller.history.state["error"])
+            finally:
+                self.dispose(controller, provider)
+
+    def test_repeated_queries_and_an_unchanged_automatic_check_do_not_redownload_or_publish(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            provider = self.provider(Path(temporary))
+            transport = Transport()
+            controller = DesktopController(provider)
+            owner = controller.history
+            clock = Clock()
+            owner.clock = clock
+            try:
+                with patch.object(ApiClient, "_open", side_effect=transport):
+                    controller.queryPeriod("2026-09", "2026-09")
+                    self.assertTrue(pump(lambda: controller.state["loaded"] and not controller.state["busy"] and not owner.running, 10))
+                    accepted = controller._accepted_snapshot
+                    with closing(sqlite3.connect(provider.history.path)) as db:
+                        generation = db.execute("SELECT generation_id FROM active").fetchone()[0]
+                    count = len(transport.calls)
+                    for _ in range(3):
+                        controller.queryPeriod("2026-09", "2026-09")
+                        self.assertTrue(pump(lambda: not controller.state["busy"] and not owner.running, 10))
+                    self.assertEqual(len(transport.calls), count)
+                    clock.wait(owner.check_interval + 1)
+                    owner._tick()
+                    self.assertTrue(pump(lambda: not owner.running, 10))
+                    self.assertEqual(transport.calls[count:], [
+                        ("GET", "/general/dates/updated"), ("GET", "/cities/dates/updated"),
+                    ])
+                self.assertIs(controller._accepted_snapshot, accepted)
+                self.assertFalse(controller.state["error"])
+                with closing(sqlite3.connect(provider.history.path)) as db:
+                    self.assertEqual(db.execute("SELECT generation_id FROM active").fetchone()[0], generation)
+                    self.assertEqual(db.execute("SELECT COUNT(*) FROM generations").fetchone()[0], 1)
+            finally:
+                self.dispose(controller, provider)
+
+    def test_automatic_new_publication_refreshes_the_accepted_analysis_and_keeps_filters(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            provider = self.provider(Path(temporary))
+            transport = Transport()
+            controller = DesktopController(provider)
+            clock = Clock()
+            owner = controller.history
+            owner.clock = clock
+            try:
+                with patch.object(ApiClient, "_open", side_effect=transport):
+                    controller.queryPeriod("2026-09", "2026-09")
+                    self.assertTrue(pump(lambda: controller.state["loaded"] and not controller.state["busy"] and not owner.running, 10))
+                    country = transport.general[0]["country"]
+                    controller.setFilter("country", country)
+                    settled(controller)
+                    before = controller._accepted_snapshot.local_revision
+                    cents = controller._result.totals.value_cents
+                    transport.updated = "2026-10-07"
+                    for metric in ("metricFOB", "metricCIF"):
+                        transport.general[0][metric] = str(Decimal(str(transport.general[0][metric])) + 1)
+                    clock.wait(owner.check_interval + 1)
+                    owner._tick()
+                    self.assertTrue(pump(
+                        lambda: not owner.running and not controller.state["busy"]
+                        and controller._accepted_snapshot.local_revision != before, 10,
+                    ), (controller.state, owner.state))
+                self.assertEqual(controller.state["countryFilter"], country)
+                self.assertEqual(controller._result.totals.value_cents, cents + 100)
+                self.assertFalse(controller.state["error"])
+            finally:
+                self.dispose(controller, provider)
+
+    def test_failed_automatic_check_keeps_the_analysis_and_following_queries_offline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            provider = self.provider(Path(temporary))
+            controller = DesktopController(provider)
+            clock = Clock()
+            owner = controller.history
+            owner.clock = clock
+            try:
+                with patch.object(ApiClient, "_open", side_effect=Transport()):
+                    controller.queryPeriod("2026-09", "2026-09")
+                    self.assertTrue(pump(lambda: controller.state["loaded"] and not controller.state["busy"] and not owner.running, 10))
+                accepted = controller._accepted_snapshot
+                cents = controller._result.totals.value_cents
+                clock.wait(owner.check_interval + 1)
+                with patch.object(ApiClient, "_open", side_effect=RuntimeError("Fonte sintética indisponível")):
+                    owner._tick()
+                    self.assertTrue(pump(lambda: not owner.running and bool(owner.state["error"]), 10))
+                with patch.object(ApiClient, "_open", side_effect=AssertionError("local query used network")) as network:
+                    controller.queryPeriod("2026-09", "2026-09")
+                    self.assertTrue(pump(lambda: not controller.state["busy"], 10))
+                    network.assert_not_called()
+                self.assertIs(controller._accepted_snapshot, accepted)
+                self.assertEqual(controller._result.totals.value_cents, cents)
+                self.assertFalse(controller.state["error"])
             finally:
                 self.dispose(controller, provider)
 

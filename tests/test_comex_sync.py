@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from contextlib import closing, contextmanager
 from datetime import datetime, timezone
+import hashlib
 import io
 import json
 from pathlib import Path
@@ -250,6 +251,40 @@ class ComexSyncTests(unittest.TestCase):
         result = self.synchronize(audit=True)
         self.assertTrue(result["changed"])
         self.assertEqual(len([kind for kind in self.source.attempts[count:] if kind[0] == "data"]), 4)
+
+    def test_periodic_identical_audit_does_not_replace_the_generation_or_backup(self):
+        from liarte_core.comex_history_backup import create_backup
+
+        self.synchronize()
+        before = self.read()
+        backup = create_backup(self.store)
+
+        def backup_files():
+            # WAL/SHM files can be touched by read-only SQLite verification;
+            # the published database and manifest must not be recreated.
+            return {name: ((backup / name).stat().st_mtime_ns,
+                           hashlib.sha256((backup / name).read_bytes()).hexdigest())
+                    for name in ("historico.sqlite3", "manifest.json")}
+
+        copied = backup_files()
+        with closing(sqlite3.connect(self.path)) as db:
+            generation = db.execute("SELECT generation_id FROM active").fetchone()[0]
+        self.clock.advance(86401)
+        count = len(self.source.attempts)
+        result = self.synchronize()
+        self.assertEqual(result["status"], "unchanged")
+        self.assertFalse(result["changed"])
+        self.assertEqual(self.read(), before)
+        self.assertEqual(self.store.status()["last_full_sync_epoch"], self.clock())
+        self.assertEqual(sum(call[0] == "data" for call in self.source.attempts[count:]), 4)
+        with closing(sqlite3.connect(self.path)) as db:
+            self.assertEqual(db.execute("SELECT generation_id FROM active").fetchone()[0], generation)
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM generations").fetchone()[0], 1)
+        self.assertEqual(create_backup(self.store), backup)
+        self.assertEqual(backup_files(), copied)
+        count = len(self.source.attempts)
+        self.assertEqual(self.synchronize()["status"], "throttled")
+        self.assertEqual(len(self.source.attempts), count)
 
     def test_changed_publication_reextracts_closed_years_and_extends_only_common_coverage(self):
         self.synchronize()

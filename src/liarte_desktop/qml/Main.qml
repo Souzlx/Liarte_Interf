@@ -20,7 +20,7 @@ ApplicationWindow {
     readonly property bool draftPeriod: importsWorkspace.draftPeriod
     readonly property string activeSection: importsWorkspace.activeSection
     readonly property bool methodologyExpanded: importsWorkspace.methodologyExpanded
-    readonly property bool globalModalOpen: settingsDialog.visible || projectDialog.visible || closeDialog.visible || comexConnectionDialog.visible || comexConnectionDialog.fileChoosing
+    readonly property bool globalModalOpen: settingsDialog.visible || importUpdatesDialog.visible || projectDialog.visible || closeDialog.visible || comexConnectionDialog.visible || comexConnectionDialog.fileChoosing
     property bool inventoryClosing: false
     readonly property bool modalOpen: globalModalOpen || importsWorkspace.modalOpen || inventoryWorkspace.modalOpen
 
@@ -549,6 +549,11 @@ ApplicationWindow {
         width: Math.min(460, window.width - 40)
         modal: true
         title: "Preferências"
+        property bool showImportUpdatesOnClose: false
+        onClosed: if (showImportUpdatesOnClose) {
+            showImportUpdatesOnClose = false;
+            Qt.callLater(() => importUpdatesDialog.open());
+        }
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 12
@@ -640,6 +645,18 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 columns: 2
                 Ui.ActionButton {
+                    objectName: "openImportUpdates"
+                    visible: platform.activeModule === "imports" && controller.history.state.enabled
+                    Layout.fillWidth: true
+                    Layout.columnSpan: 2
+                    text: "Atualizações de importações"
+                    iconName: "refresh"
+                    onClicked: {
+                        settingsDialog.showImportUpdatesOnClose = true;
+                        settingsDialog.close();
+                    }
+                }
+                Ui.ActionButton {
                     objectName: "configureComexAccess"
                     visible: platform.activeModule === "imports" && comexAccess.state.available
                     Layout.fillWidth: true
@@ -653,7 +670,7 @@ ApplicationWindow {
                 }
                 Ui.ActionButton {
                     objectName: "refreshAvailability"
-                    visible: platform.activeModule === "imports"
+                    visible: platform.activeModule === "imports" && !window.viewState.historicalMode
                     Layout.fillWidth: true
                     text: "Verificar fonte"
                     iconName: "refresh"
@@ -668,6 +685,28 @@ ApplicationWindow {
                     onClicked: controller.openDiagnostics()
                 }
             }
+        }
+    }
+    Ui.AppDialog {
+        id: importUpdatesDialog
+        objectName: "importUpdatesDialog"
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: Math.min(560, window.width - 40)
+        modal: true
+        focus: true
+        title: "Atualização de importações"
+        Label {
+            Layout.fillWidth: true
+            textFormat: Text.PlainText
+            text: "Novas publicações são verificadas automaticamente."
+            color: Ui.Theme.muted
+            font.pixelSize: 11
+            wrapMode: Text.WordWrap
+        }
+        Ui.ComexHistoryStatus {
+            owner: controller.history
+            workspace: importUpdatesDialog
         }
     }
     Ui.ComexConnectionDialog {

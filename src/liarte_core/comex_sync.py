@@ -294,9 +294,12 @@ class HistorySynchronizer:
                     )
                 self.store.record_check(publication)
                 check()
-                self.store.publish_run(run, check=check, guard=self.publication_guard)
-                self._completed_progress(progress, "Histórico local atualizado")
-                return self._unchanged(before, status="updated")
+                published = self.store.publish_run(run, check=check, guard=self.publication_guard)
+                self._completed_progress(
+                    progress,
+                    "Histórico local atualizado" if published else "Histórico conferido sem alterações",
+                )
+                return self._unchanged(before, status="updated" if published else "unchanged")
             except HistoryStagingError as exc:
                 # Reusing a corrupt completed stage would make every retry
                 # repeat only the final metadata checks and fail forever.

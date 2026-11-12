@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from PySide6.QtCore import QCoreApplication, QEvent, QObject, Property, QUrl, Qt, Signal, Slot
+from PySide6.QtCore import QCoreApplication, QEvent, QObject, QPointF, Property, QUrl, Qt, Signal, Slot
 from PySide6.QtQml import QQmlComponent, QQmlEngine
 from PySide6.QtTest import QTest
 
@@ -241,6 +241,34 @@ class ComexHistoryWorkspaceQmlTests(unittest.TestCase):
         settled(self.controller)
         self.assertTrue(self.controller.state["loaded"], self.controller.state["error"])
 
+    def open_updates(self):
+        click(self.window, self.item("settingsButton"))
+        self.assertTrue(pump(lambda: self.item("settingsDialog").property("opened")))
+        opening_action = self.item("openImportUpdates")
+        opening_action.forceActiveFocus(Qt.FocusReason.TabFocusReason)
+        APP.processEvents()
+        QTest.keyClick(self.window, Qt.Key.Key_Space)
+        self.assertTrue(pump(lambda: self.item("importUpdatesDialog").property("opened")))
+
+    def test_manual_update_and_technical_context_are_separate_from_the_dashboard(self):
+        self.assertFalse(self.item("comexHistoryStatus").property("visible"))
+        self.assertFalse(self.item("comexHistoryAction").property("visible"))
+        self.open_updates()
+        self.assertTrue(self.item("comexHistoryStatus").property("visible"))
+        self.assertTrue(self.item("comexHistoryAction").property("visible"))
+        self.assertEqual(self.item("comexHistoryAction").property("text"), "Verificar atualizações")
+        self.assertTrue(self.window.property("globalModalOpen"))
+        before = self.provider.query_count
+        QTest.keyClick(self.window, Qt.Key.Key_F5)
+        QTest.keyClick(self.window, Qt.Key.Key_1, Qt.KeyboardModifier.ControlModifier)
+        APP.processEvents()
+        self.assertEqual(self.provider.query_count, before)
+        self.assertEqual(self.bundle.platform.activeModule, "imports")
+        QTest.keyClick(self.window, Qt.Key.Key_Escape)
+        self.assertTrue(pump(lambda: not self.item("importUpdatesDialog").property("visible")))
+        self.assertFalse(self.window.property("globalModalOpen"))
+        self.assertEqual(self.bundle.messages, [])
+
     def test_real_query_button_and_f5_read_locally_while_api_update_is_paused(self):
         self.assertTrue(self.item("queryButton").property("enabled"))
         self.assertFalse(self.item("comexHistoryAction").property("enabled"))
@@ -279,7 +307,7 @@ class ComexHistoryWorkspaceQmlTests(unittest.TestCase):
         self.assertTrue(self.item("queryError").property("visible"))
         self.assertIn("não cobre", self.item("queryError").property("text"))
         self.assertIn("primeira carga ainda não foi concluída", self.item("comexHistoryMessage").property("text"))
-        self.assertEqual(self.item("importEmptyTitle").property("text"), "Histórico ainda não disponível")
+        self.assertEqual(self.item("importEmptyTitle").property("text"), "Importações indisponíveis")
         self.assertEqual(self.bundle.messages, [])
 
     def test_a_manual_draft_outside_the_accepted_publication_remains_visible_in_the_combo(self):
@@ -310,12 +338,24 @@ class ComexHistoryWorkspaceQmlTests(unittest.TestCase):
         self.load()
         original = self.provider.snapshot
         self.window.setWidth(500)
-        self.window.setHeight(660)
+        self.window.setHeight(400)
         self.provider.pause = 0
         self.provider.sync_release.clear()
         self.controller.history.refresh()
         self.window.requestActivate()
-        self.item("editImportPeriod").forceActiveFocus(Qt.FocusReason.TabFocusReason)
+        self.item("settingsButton").forceActiveFocus(Qt.FocusReason.TabFocusReason)
+        QTest.keyClick(self.window, Qt.Key.Key_Space)
+        self.assertTrue(pump(lambda: self.item("settingsDialog").property("opened")))
+        opening_action = self.item("openImportUpdates")
+        for _ in range(80):
+            if opening_action.hasActiveFocus():
+                break
+            QTest.keyClick(self.window, Qt.Key.Key_Tab)
+            APP.processEvents()
+        self.assertTrue(opening_action.hasActiveFocus())
+        QTest.keyClick(self.window, Qt.Key.Key_Space)
+        dialog = self.item("importUpdatesDialog")
+        self.assertTrue(pump(lambda: dialog.property("opened")))
         action = self.item("comexHistoryAction")
         for _ in range(80):
             if action.hasActiveFocus():
@@ -324,6 +364,9 @@ class ComexHistoryWorkspaceQmlTests(unittest.TestCase):
             APP.processEvents()
         self.assertTrue(action.hasActiveFocus())
         self.assertLessEqual(action.width(), self.item("comexHistoryStatus").width())
+        viewport = dialog.property("bodyViewport")
+        self.assertTrue(pump(lambda: action.mapToItem(viewport, QPointF(0, 0)).y() >= 0
+                             and action.mapToItem(viewport, QPointF(0, action.height())).y() <= viewport.height()))
         QTest.keyClick(self.window, Qt.Key.Key_Space)
         self.assertTrue(pump(self.provider.sync_started.is_set))
         self.assertEqual(action.property("text"), "Cancelar atualização")

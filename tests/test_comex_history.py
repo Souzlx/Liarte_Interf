@@ -3,6 +3,7 @@
 from contextlib import closing, contextmanager
 from copy import deepcopy
 from decimal import localcontext
+import json
 import multiprocessing
 import os
 from pathlib import Path
@@ -126,6 +127,54 @@ class HistoryStoreTests(_Fixture, unittest.TestCase):
         self.assertNotEqual(first, second)
         self.assertFalse(self.store.has_stage(second, False, "2024-01", "2024-02"))
         self.assertTrue(self.store.contains(Period("2024-01", "2024-02")))
+
+    def test_identical_verified_audit_preserves_the_accepted_generation_and_receipts(self):
+        self.accept()
+        before = self.store.read(Period("2024-01", "2024-02"), Event())
+        with closing(sqlite3.connect(self.path)) as db:
+            generation = db.execute("SELECT generation_id FROM active").fetchone()[0]
+            counts = [db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                      for table in ("generations", "runs", "stages", "facts", "manifest")]
+        self.now += 90000
+        run = self.store.begin_run(publication(), "2024-01", "2024-02")
+        self.fill(run, "2024-01", "2024-02")
+        self.store.record_check(publication())
+        self.assertFalse(self.store.publish_run(run))
+        self.assertEqual(self.store.read(Period("2024-01", "2024-02"), Event()), before)
+        self.assertEqual(self.store.status()["last_full_sync_epoch"], self.now)
+        self.assertIsNone(self.store.pending_run_info())
+        with closing(sqlite3.connect(self.path)) as db:
+            self.assertEqual(db.execute("SELECT generation_id FROM active").fetchone()[0], generation)
+            self.assertEqual([db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                              for table in ("generations", "runs", "stages", "facts", "manifest")], counts)
+
+    def test_identical_fresh_data_repairs_corrupt_accepted_content_or_provenance(self):
+        self.accept()
+        expected = self.store.read(Period("2024-01", "2024-02"), Event())
+        for damage in ("fact", "manifest", "plan", "publication"):
+            with self.subTest(damage=damage):
+                with closing(sqlite3.connect(self.path)) as db, db:
+                    generation = db.execute("SELECT generation_id FROM active").fetchone()[0]
+                    if damage == "fact":
+                        db.execute("UPDATE facts SET payload='damaged' WHERE stage_id IN (SELECT stage_id FROM manifest WHERE generation_id=?)", (generation,))
+                    elif damage == "manifest":
+                        db.execute("DELETE FROM manifest WHERE generation_id=? AND municipal=1 AND month='2024-02'", (generation,))
+                    elif damage == "plan":
+                        db.execute("UPDATE generations SET start='2023-12' WHERE id=?", (generation,))
+                    else:
+                        db.execute("UPDATE generations SET publication=? WHERE id=?", (json.dumps(publication(revision="2024-03-02")), generation))
+                self.now += 10
+                run = self.store.begin_run(publication(), "2024-01", "2024-02")
+                self.fill(run, "2024-01", "2024-02")
+                self.store.record_check(publication())
+                self.assertTrue(self.store.publish_run(run))
+                actual = self.store.read(Period("2024-01", "2024-02"), Event())
+                self.assertEqual((actual.general, actual.municipal), (expected.general, expected.municipal))
+                self.assertEqual(actual.local_revision, expected.local_revision)
+                self.assertEqual(actual.publication, expected.publication)
+                self.assertTrue(self.store.status()["complete"])
+                with closing(sqlite3.connect(self.path)) as db:
+                    self.assertNotEqual(db.execute("SELECT generation_id FROM active").fetchone()[0], generation)
 
     def test_new_publication_or_plan_abandons_incompatible_staging_only(self):
         old = self.accept()

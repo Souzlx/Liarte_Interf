@@ -63,7 +63,8 @@ class HomeIndicatorsTests(unittest.TestCase):
         home = self.item("homePage")
         summary = variant(home.property("summaryCards"))[0]
         self.assertEqual(summary["metrics"], self.controller.analysis["metrics"][:2])
-        self.assertIn("NCM / CIF", summary["basis"])
+        self.assertIn("CIF", summary["basis"])
+        self.assertIn("US$", summary["basis"])
         self.assertEqual(self.item("homeMetric_imports_0Value").property("text"),
                          self.controller.analysis["metrics"][0]["value"])
         self.controller.setDataset("municipal")
@@ -71,7 +72,8 @@ class HomeIndicatorsTests(unittest.TestCase):
         self.controller.setFilters("country", ["China"])
         settled(self.controller)
         summary = variant(home.property("summaryCards"))[0]
-        self.assertIn("SH4 / FOB", summary["basis"])
+        self.assertIn("Municipal", summary["basis"])
+        self.assertIn("FOB", summary["basis"])
         self.assertEqual(summary["scope"], self.controller.state["filterSummary"])
         self.assertEqual(summary["period"], self.controller.state["periodLabel"])
         self.assertEqual(summary["metrics"], self.controller.analysis["metrics"][:2])

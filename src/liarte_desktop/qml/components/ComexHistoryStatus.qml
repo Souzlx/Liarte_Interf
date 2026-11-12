@@ -78,7 +78,7 @@ Rectangle {
                 Layout.fillWidth: parent.columns === 1
                 Layout.minimumWidth: naturalWidth
                 implicitHeight: 34
-                text: panel.historyState.busy ? "Cancelar atualização" : "Atualizar base"
+                text: panel.historyState.busy ? "Cancelar atualização" : "Verificar atualizações"
                 enabled: Boolean(panel.historyState.busy) || panel.pauseSeconds === 0
                 onClicked: panel.historyState.busy ? panel.owner.cancel() : panel.owner.check()
                 onActiveFocusChanged: if (activeFocus)

@@ -18,7 +18,9 @@ Rectangle {
     readonly property string completeText: [displayMetric.label + ": " + displayMetric.value, displayMetric.detail, displayMetric.full, issue].filter(Boolean).join("\n")
     readonly property bool informationVisible: (hover.hovered || activeFocus) && visible
     activeFocusOnTab: true
-    implicitHeight: Math.max(126, content.implicitHeight + 36)
+    implicitHeight: Math.max(128, content.implicitHeight + 36)
+    Layout.minimumHeight: implicitHeight
+    Layout.minimumWidth: 0
     radius: Theme.radius
     color: emphasized ? Theme.hero : Theme.surface
     border.color: activeFocus ? Theme.focus : emphasized ? Theme.hero : Theme.line
@@ -41,8 +43,11 @@ Rectangle {
     }
     ColumnLayout {
         id: content
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
         anchors.margins: 18
+        height: implicitHeight
         spacing: 8
         RowLayout {
             Layout.fillWidth: true
@@ -53,6 +58,7 @@ Rectangle {
                 color: card.emphasized ? Theme.heroMuted : Theme.muted
                 font.pixelSize: 12
                 elide: Text.ElideRight
+                verticalAlignment: Text.AlignVCenter
             }
             Rectangle {
                 Layout.preferredWidth: 30
@@ -74,6 +80,7 @@ Rectangle {
             objectName: card.objectName + "Value"
             textFormat: Text.PlainText
             Layout.fillWidth: true
+            Layout.minimumHeight: 32
             text: card.displayMetric.value
             color: card.emphasized ? "#ffffff" : Theme.text
             font.pixelSize: 26
@@ -81,6 +88,7 @@ Rectangle {
             fontSizeMode: Text.HorizontalFit
             font.weight: Font.DemiBold
             elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
             onTextChanged: {
                 if (!Theme.motionEnabled || !card.visible)
                     opacity = 1;
@@ -99,10 +107,12 @@ Rectangle {
         Text {
             textFormat: Text.PlainText
             Layout.fillWidth: true
+            Layout.minimumHeight: 16
             text: card.displayMetric.detail
             color: card.emphasized ? Theme.heroMuted : Theme.muted
             font.pixelSize: 11
             elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
         }
     }
     Connections {
