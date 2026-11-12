@@ -3,22 +3,22 @@
   "status": "ok",
   "date": "2026-11-12",
   "baseline_commit": "a6d817a46c84750fdcbce3a4e5e82c03c411e061",
-  "code_commit": "181a1ae747b66fdb8f377dd18ea1335f4f5a64bc",
+  "code_commit": "0596fad3f0cd95e552823e9c4c9fc1bb9cf5991d",
   "execution": "Python3.12.14/Qt6.10.3/Linux/offscreen/software; synthetic data only; no real extraction",
   "verification": {
     "command": "python verificar.py --headless --volume --isolate",
-    "tests": 1398,
+    "tests": 1399,
     "modules": 88,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "seconds": 196.62,
-    "log_sha256": "33362d5876174eee96d5ff8640c9e25d8a0bd8f2f70f16080c015b8a8b2baa98"
+    "seconds": 199.519,
+    "log_sha256": "f0d9e3dc7c5c022ee3569d13508978e4ffe717c017a4cb81e714b13e4c5e0ee2"
   },
   "volume": {
     "records": 100000,
-    "seconds": 0.987,
-    "qt_events": 66
+    "seconds": 1.015,
+    "qt_events": 67
   },
   "repository_tests": {
     "count": 18,
@@ -55,7 +55,8 @@
       }
     },
     "period_return_improvement_percent": 99.98433703851785,
-    "scope": "provider.query only; not total GUI render time, not network acquisition"
+    "scope": "provider.query only; not total GUI render time, not network acquisition",
+    "source_commit": "181a1ae747b66fdb8f377dd18ea1335f4f5a64bc"
   },
   "sql_selects_for_12_months": {
     "before": 26,
@@ -85,8 +86,107 @@
     }
   },
   "limits": [
-    "Windows build and installer not run for these changes.",
+    "Windows CI build and executable self-test passed; manual Windows visual acceptance is pending.",
+    "Artifact digest is reported by GitHub; ZIP download and independent hash verification were blocked by the environment proxy.",
     "Provider timings are not complete GUI-render timings.",
-    "Initial official historical extraction and SQLServer stock connection are separate."
-  ]
+    "Initial official historical extraction and SQLServer stock connection are separate.",
+    "Comex full-database recovery is a source CLI, not a new graphical recovery dialog."
+  ],
+  "linux_ci": {
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/43160676139",
+    "source_commit": "0596fad3f0cd95e552823e9c4c9fc1bb9cf5991d",
+    "status": "success",
+    "tests": 1399,
+    "seconds": 199.176,
+    "volume_seconds": 1.327,
+    "volume_qt_events": 78,
+    "log_sha256": "e625c45a38d1dbbb939776f0f13cffcd3383267beeaf49f5eb2e141b7f8a089e"
+  },
+  "repository_ci": {
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/43160676182",
+    "status": "success"
+  },
+  "windows_ci": {
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/43160672926",
+    "source_commit": "0596fad3f0cd95e552823e9c4c9fc1bb9cf5991d",
+    "status": "success",
+    "evidence": "GitHub API job and step conclusions; detailed logs unavailable in this environment",
+    "jobs": [
+      {
+        "name": "build (3.13)",
+        "conclusion": "success",
+        "confirmed_steps": [
+          "Conferir interface e perfil no Windows",
+          "Compilar e testar a pasta portátil",
+          "Disponibilizar pacote"
+        ]
+      },
+      {
+        "name": "build (3.11)",
+        "conclusion": "success",
+        "confirmed_steps": [
+          "Conferir interface e perfil no Windows",
+          "Compilar e testar a pasta portátil",
+          "Disponibilizar pacote"
+        ]
+      },
+      {
+        "name": "build (3.14)",
+        "conclusion": "success",
+        "confirmed_steps": [
+          "Conferir interface e perfil no Windows",
+          "Compilar e testar a pasta portátil",
+          "Disponibilizar pacote"
+        ]
+      },
+      {
+        "name": "build (3.12)",
+        "conclusion": "success",
+        "confirmed_steps": [
+          "Conferir interface e perfil no Windows",
+          "Compilar e testar a pasta portátil",
+          "Disponibilizar pacote"
+        ]
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 13918930112,
+        "name": "LIARTE_Desktop_Python_3.11_Windows",
+        "size_in_bytes": 95057615,
+        "digest": "sha256:d19f81741ee7ee897b9ab27f5694ecbb7b038355d725d13b8ec3e9a65eb46f91",
+        "expired": false
+      },
+      {
+        "id": 13918461175,
+        "name": "LIARTE_Desktop_Python_3.14_Windows",
+        "size_in_bytes": 96249326,
+        "digest": "sha256:bbf31a7ed275e5b638b8a95dcd467680e7e58d3248c7cf8c86d9fe817920852a",
+        "expired": false
+      },
+      {
+        "id": 13918262201,
+        "name": "LIARTE_Desktop_Python_3.13_Windows",
+        "size_in_bytes": 94984035,
+        "digest": "sha256:036cd91a327f2035765debe9082f847b190d491e06c331d9f3751ac911d44e52",
+        "expired": false
+      },
+      {
+        "id": 13918257411,
+        "name": "LIARTE_Desktop_Python_3.12_Windows",
+        "size_in_bytes": 94452854,
+        "digest": "sha256:01dbded984f59c0588282592a0835cc99518c32de011fe440e13caedb04547a0",
+        "expired": false
+      }
+    ],
+    "zip_download_verified_here": false,
+    "download_obstacle": "Environment proxy refuses CONNECT to productionresultssa10.blob.core.windows.net with HTTP 403, including after command approval.",
+    "manual_windows_review": "pending"
+  },
+  "stock_viewport_regression": {
+    "hidden_layout_reflow": "covered by new regression test",
+    "modal_focus": "fixed",
+    "targeted_tests": 27,
+    "failures": 0
+  }
 }

@@ -60,7 +60,7 @@ python tools/comex_backup.py /caminho/da/copia --recover-to /caminho/novo/histor
 
 A ferramenta verifica o checksum, o catálogo, a revisão e as estruturas SQLite. O destino precisa ser novo: ela recusa substituir um banco existente ou seus arquivos WAL/SHM. Para recuperar o perfil em uso, feche o aplicativo, preserve o banco anterior e seus arquivos auxiliares em outra pasta e só então recupere para o caminho esperado. Os dados originais não são apagados pela ferramenta.
 
-O utilitário é uma ferramenta dos fontes. Uma interface gráfica de recuperação do histórico e a homologação de um novo pacote Windows são etapas separadas. Estoque conserva seu fluxo gráfico de backups e restauração existente.
+O utilitário é uma ferramenta dos fontes. Uma interface gráfica de recuperação do histórico e a homologação manual do pacote Windows são etapas separadas. Estoque conserva seu fluxo gráfico de backups e restauração existente.
 
 ## Verificação
 
@@ -75,7 +75,11 @@ Os ensaios usam dados sintéticos e impedem acesso à rede. Incluem reinício da
 
 ## Resultados registrados
 
-Python 3.12.14 e Qt 6.10.3 no Linux: **1.398 testes em 88 módulos**, sem falhas, erros ou skips. Os 18 testes de organização também passaram. Os [resultados, hashes e limites](EVIDENCIAS_CONSULTAS_LOCAIS.json) identificam os fontes e as capturas.
+Verificação final dos fontes `0596fad`: Python 3.12.14 e Qt 6.10.3 no Linux, **1.399 testes em 88 módulos**, sem falhas, erros ou skips, em 199,519 s. O ensaio de volume usou 100 mil registros em 1,015 s, com 67 eventos Qt. Os 18 testes de organização também passaram. Os [resultados, hashes e limites](EVIDENCIAS_CONSULTAS_LOCAIS.json) identificam os fontes e as capturas.
+
+O [CI Linux](https://github.com/Souzlx/Liarte_Interf/actions/runs/43160676139) confirmou os mesmos 1.399 testes. A [execução Windows](https://github.com/Souzlx/Liarte_Interf/actions/runs/43160672926) concluiu os quatro jobs Python 3.11, 3.12, 3.13 e 3.14. Cada job exige pré-validação Qt, suíte completa, compilação e autoteste do executável antes de disponibilizar o pacote. O CI de organização também foi aprovado.
+
+A validação Windows encontrou e corrigiu a perda de 50 pixels da rolagem do Estoque após mudança de layout enquanto a página estava oculta. Um teste adicional reproduz esse caso. A recuperação do foco também respeita a confirmação modal de restauração; os 27 testes dirigidos de navegação e backups passaram após o ajuste.
 
 Ensaio sintético com 50 mil fatos gerais, 12 municipais e valores acima da precisão de ponto flutuante: três execuções sequenciais por versão, em processos novos. Medianas da camada de consulta:
 
@@ -96,4 +100,14 @@ Dados sintéticos e interface Qt real, incluindo recuperação automática, avis
 
 [Home recuperada](images/dashboard-retomada/home-recuperada-sintetico.png) · [Consulta recuperada e backup](images/dashboard-retomada/consulta-recuperada-backup-sintetico.png) · [Janela compacta escura](images/dashboard-retomada/consulta-recuperada-compacta-sintetico.png).
 
-As capturas e os testes confirmam o período recuperado sem rascunho pendente, deixando a exportação disponível. A compilação e a conferência de um novo pacote Windows não são declaradas por esses ensaios Linux.
+As capturas e os testes confirmam o período recuperado sem rascunho pendente, deixando a exportação disponível. As capturas foram produzidas no commit `181a1ae`; os ajustes posteriores tratam da rolagem e do foco do Estoque.
+
+## Pacote para teste e limites
+
+O [portátil Windows com Python 3.12](https://github.com/Souzlx/Liarte_Interf/actions/runs/43160672926/artifacts/13918257411) contém o runtime, sem exigir Python instalado. Se o link do artefato não abrir, entre na conta com acesso ao repositório e use a seção **Artifacts** da [execução](https://github.com/Souzlx/Liarte_Interf/actions/runs/43160672926). Artefatos do Actions têm retenção limitada; esse pacote é de desenvolvimento e não substitui uma release oficial.
+
+Extraia a pasta completa e abra `LIARTE_Desktop.exe`. Com o mesmo perfil de uso, conclua uma consulta, feche normalmente e reabra: período, recorte e resultados devem ser recuperados da base local. Esse teste não requer uma nova extração oficial. A instalação anterior à implementação precisa concluir uma primeira consulta para criar o checkpoint.
+
+O CI gerou `AUTOTESTE.json` e `CHECKSUMS_SHA256.txt`. O acesso ao armazenamento dos artefatos foi bloqueado neste ambiente, portanto o ZIP não foi baixado aqui nem teve seus hashes conferidos de forma independente. A aprovação dos jobs e a existência dos quatro artefatos foram confirmadas pela API do GitHub; a conferência visual manual no Windows permanece pendente.
+
+Entrega no [PR #15](https://github.com/Souzlx/Liarte_Interf/pull/15), com a [relação completa dos arquivos alterados](https://github.com/Souzlx/Liarte_Interf/pull/15/files). Mantém a arquitetura Python, PySide6 e QML, sem alterar a versão publicada ou a integração SQL Server. A primeira aquisição oficial continua sujeita à disponibilidade da fonte; a retomada usa os dados locais já aceitos.
