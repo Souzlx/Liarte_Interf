@@ -232,8 +232,43 @@ class InterfaceTests(unittest.TestCase):
             stage="Comex Stat temporariamente limitado (HTTP 429) · nova tentativa em 11 s"
         )
         APP.processEvents()
-        self.assertNotIn("HTTP", self.item("queryStage").property("text"))
-        self.assertIn("11 s", self.item("queryStage").property("text"))
+        self.assertEqual(self.item("queryError").property("text"), shown)
+        self.assertEqual(self.controller.state["stage"],
+                         "Comex Stat temporariamente limitado (HTTP 429) · nova tentativa em 11 s")
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_loading_shows_only_the_percentage_and_keeps_diagnostics_out_of_the_readout(self):
+        self.load()
+        diagnostic = "Lendo o período no histórico local · etapa sintética"
+        try:
+            self.controller._update(busy=True, localBusy=False, progress=37, stage=diagnostic)
+            APP.processEvents()
+            loading = self.item("queryLoading")
+            self.assertTrue(loading.isVisible())
+            self.assertEqual(self.item("queryProgress").property("value"), 37)
+            self.assertFalse(self.item("queryProgress").property("indeterminate"))
+
+            def visible_texts():
+                pending, texts = [loading], []
+                while pending:
+                    item = pending.pop()
+                    if not item.isVisible():
+                        continue
+                    text = item.property("text")
+                    if isinstance(text, str) and text.strip():
+                        texts.append(text)
+                    pending.extend(item.childItems())
+                return texts
+
+            self.assertEqual(visible_texts(), ["37%"])
+            self.assertEqual(self.controller.state["stage"], diagnostic)
+            # Metadata has no measured completion fraction; do not invent one.
+            self.controller._update(busy=False, metadataBusy=True)
+            APP.processEvents()
+            self.assertTrue(self.item("queryProgress").property("indeterminate"))
+            self.assertEqual(visible_texts(), [])
+        finally:
+            self.controller._update(busy=False, localBusy=False, metadataBusy=False)
         self.assertEqual(self.bundle.messages, [])
 
     def test_validation_errors_remain_explicit(self):

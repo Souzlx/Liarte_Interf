@@ -66,6 +66,7 @@ FocusScope {
         }
     }
     readonly property var viewState: controller.presentation
+    readonly property var historyState: controller.history.state
     readonly property var analysis: controller.analysis
     readonly property var buying: analysis.procurement
     property int originLimit: 8
@@ -316,27 +317,9 @@ FocusScope {
             y: window.hostWindow.width < 720 ? 20 : 28
             width: Math.min(1280, contentScroll.width - (window.hostWindow.width < 720 ? 36 : 64))
             spacing: 12
-            Text {
-                objectName: "importSessionNotice"
-                Layout.fillWidth: true
-                visible: text.length > 0
-                text: window.viewState.sessionNotice || ""
-                textFormat: Text.PlainText
-                color: Ui.Theme.muted
-                font.pixelSize: 11
-                wrapMode: Text.WordWrap
-            }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 9
-                Text {
-                    text: "OPERAÇÕES / IMPORTAÇÕES"
-                    textFormat: Text.PlainText
-                    color: Ui.Theme.muted
-                    font.pixelSize: 10
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: 1.2
-                }
                 GridLayout {
                     Layout.fillWidth: true
                     columns: width >= 640 ? 2 : 1
@@ -349,19 +332,11 @@ FocusScope {
                         Text {
                             objectName: "importPageTitle"
                             Layout.fillWidth: true
-                            text: "Inteligência de importações"
+                            text: "Análise de importações"
                             textFormat: Text.PlainText
                             color: Ui.Theme.text
                             font.pixelSize: 26
                             font.weight: Font.DemiBold
-                            wrapMode: Text.WordWrap
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Valores, volumes e origens no período e nos filtros selecionados."
-                            textFormat: Text.PlainText
-                            color: Ui.Theme.muted
-                            font.pixelSize: 12
                             wrapMode: Text.WordWrap
                         }
                     }
@@ -400,10 +375,6 @@ FocusScope {
                 workspace: window
                 backend: controller
             }
-            Ui.ComexHistoryStatus {
-                owner: controller.history
-                workspace: window
-            }
             Rectangle {
                 objectName: "emptyState"
                 visible: !window.viewState.loaded && !window.viewState.busy
@@ -427,8 +398,9 @@ FocusScope {
                         objectName: "importEmptyTitle"
                         textFormat: Text.PlainText
                         width: parent.width
-                        text: window.viewState.historicalMode && !controller.history.state.coverageStart
-                            ? "Histórico ainda não disponível" : "Comece pelo período"
+                        text: window.viewState.historicalMode && !window.historyState.coverageStart
+                            ? (window.historyState.busy ? "Carregando importações" : "Importações indisponíveis")
+                            : "Comece pelo período"
                         color: Ui.Theme.text
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
@@ -438,8 +410,9 @@ FocusScope {
                         objectName: "importEmptyDescription"
                         textFormat: Text.PlainText
                         width: parent.width
-                        text: window.viewState.historicalMode && !controller.history.state.coverageStart
-                            ? "A primeira carga ocorre em segundo plano. Acompanhe o estado da atualização acima."
+                        text: window.viewState.historicalMode && !window.historyState.coverageStart
+                            ? (window.historyState.stopped ? "A atualização está interrompida nas preferências."
+                                : "Os dados serão disponibilizados automaticamente.")
                             : "Selecione os meses para consultar as importações."
                         color: Ui.Theme.muted
                         font.pixelSize: 12
@@ -466,6 +439,9 @@ FocusScope {
                             Layout.fillWidth: true
                             implicitHeight: 34
                             text: "Dados gerais"
+                            Accessible.description: "Importações por NCM com valores CIF."
+                            ToolTip.visible: hovered
+                            ToolTip.text: Accessible.description
                             primary: false
                             enabled: !window.viewState.busy || window.viewState.localBusy
                             onClicked: controller.setDataset("general")
@@ -486,6 +462,9 @@ FocusScope {
                             Layout.fillWidth: true
                             implicitHeight: 34
                             text: "Municípios"
+                            Accessible.description: "Município do domicílio fiscal do importador. Posição SH4 e valor FOB."
+                            ToolTip.visible: hovered
+                            ToolTip.text: Accessible.description
                             enabled: !window.viewState.busy || window.viewState.localBusy
                             onClicked: controller.setDataset("municipal")
                             background: Rectangle {
@@ -505,34 +484,11 @@ FocusScope {
                 Item {
                     Layout.fillWidth: true
                 }
-                Text {
-                    textFormat: Text.PlainText
-                    visible: body.width > 620
-                    text: window.viewState.appliedKind === "municipal" ? "SH4 · FOB" : "NCM · CIF"
-                    color: Ui.Theme.muted
-                    font.pixelSize: 11
-                    HoverHandler {
-                        id: basisHover
-                    }
-                    ToolTip.visible: basisHover.hovered
-                    ToolTip.text: window.viewState.appliedKind === "municipal" ? "Município do domicílio fiscal do importador. Posição SH4 e valor FOB; universo mais amplo que os NCMs cadastrados." : "Importações agregadas por NCM, UF, país e URF."
-                }
             }
             Ui.ImportFilters {
                 id: filterPanel
                 workspace: window
                 backend: controller
-            }
-            Text {
-                objectName: "importLocalUpdateNotice"
-                visible: window.localActivityVisible
-                Layout.fillWidth: true
-                text: "Atualizando o recorte… Os indicadores mostram o último resultado concluído."
-                color: Ui.Theme.muted
-                font.pixelSize: 11
-                textFormat: Text.PlainText
-                wrapMode: Text.WordWrap
-                Accessible.role: Accessible.AlertMessage
             }
             GridLayout {
                 id: metricsGrid
@@ -549,7 +505,6 @@ FocusScope {
                         required property int index
                         objectName: "metricCard" + index
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 118
                         metric: modelData
                         emphasized: index === 0
                         iconName: ["chart", "weight", "price", "grid"][index]

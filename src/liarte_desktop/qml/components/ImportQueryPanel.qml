@@ -12,6 +12,12 @@ Rectangle {
     readonly property string startValue: startPeriod.currentValue || ""
     readonly property string endValue: endPeriod.currentValue || ""
     readonly property bool modalOpen: startPeriod.popup.visible || endPeriod.popup.visible
+    readonly property var historyState: queryPanel.workspace.historyState || ({})
+    readonly property bool queryTaskBusy: (queryPanel.workspace.viewState.busy && !queryPanel.workspace.viewState.localBusy)
+        || (queryPanel.workspace.viewState.waiting && !queryPanel.workspace.viewState.loaded)
+        || queryPanel.workspace.viewState.metadataBusy || queryPanel.workspace.viewState.closing
+    readonly property bool historyTaskBusy: !queryPanel.workspace.viewState.loaded && !queryTaskBusy && !!historyState.busy
+    readonly property int loadingProgress: Math.max(0, Math.min(100, Math.round(historyTaskBusy ? historyState.progress || 0 : queryPanel.workspace.viewState.progress || 0)))
     function focusQuery() {
         queryPanel.workspace.periodExpanded = true;
         Qt.callLater(() => {
@@ -53,31 +59,19 @@ Rectangle {
                         color: Theme.accent
                     }
                 }
-                ColumnLayout {
+                Text {
+                    objectName: "importAppliedPeriod"
                     Layout.fillWidth: true
                     Layout.minimumWidth: 0
-                    spacing: 4
-                    Text {
-                        text: "PERÍODO ANALISADO"
-                        textFormat: Text.PlainText
-                        color: Theme.muted
-                        font.pixelSize: 9
-                        font.weight: Font.DemiBold
-                        font.letterSpacing: 0.9
-                    }
-                    Text {
-                        objectName: "importAppliedPeriod"
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 0
-                        text: queryPanel.workspace.viewState.loaded
-                            ? queryPanel.workspace.viewState.periodLabel + " · " + (queryPanel.workspace.viewState.appliedKind === "municipal" ? "SH4 / FOB" : "NCM / CIF")
-                            : "Selecione os meses da consulta"
-                        textFormat: Text.PlainText
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                        color: Theme.text
-                        wrapMode: Text.WordWrap
-                    }
+                    text: queryPanel.workspace.viewState.loaded
+                        ? queryPanel.workspace.viewState.periodLabel
+                        : "Selecione os meses da consulta"
+                    textFormat: Text.PlainText
+                    font.pixelSize: 12
+                    font.weight: Font.DemiBold
+                    color: Theme.text
+                    wrapMode: Text.WordWrap
+                    verticalAlignment: Text.AlignVCenter
                 }
             }
             ActionButton {
@@ -86,6 +80,7 @@ Rectangle {
                 text: queryPanel.fieldsVisible ? "Recolher" : "Período"
                 Layout.fillWidth: parent.columns === 1
                 Layout.minimumWidth: 0
+                Layout.alignment: parent.columns === 1 ? Qt.AlignLeft : Qt.AlignRight | Qt.AlignVCenter
                 implicitHeight: 34
                 subtle: true
                 Accessible.name: queryPanel.fieldsVisible ? "Recolher período" : "Alterar período da consulta"
@@ -218,45 +213,28 @@ Rectangle {
             }
         }
         ColumnLayout {
+            objectName: "queryLoading"
             Layout.fillWidth: true
-            visible: (queryPanel.workspace.viewState.busy && !queryPanel.workspace.viewState.localBusy) || (queryPanel.workspace.viewState.waiting && !queryPanel.workspace.viewState.loaded) || queryPanel.workspace.viewState.metadataBusy || queryPanel.workspace.viewState.closing
+            visible: queryPanel.queryTaskBusy || queryPanel.historyTaskBusy
             spacing: 6
             TaskProgress {
                 objectName: "queryProgress"
                 Layout.fillWidth: true
                 from: 0
                 to: 100
-                indeterminate: queryPanel.workspace.viewState.waiting || queryPanel.workspace.viewState.metadataBusy
-                value: queryPanel.workspace.viewState.progress
-                Accessible.name: "Progresso da consulta"
-            }
-            RowLayout {
-                Layout.fillWidth: true
-                Text {
-                    objectName: "queryStage"
-                    textFormat: Text.PlainText
-                    Layout.fillWidth: true
-                    text: queryPanel.workspace.viewState.metadataBusy ? "Verificando publicação do Comex Stat…" : queryPanel.workspace.viewState.waiting ? "Aplicando filtros…" : queryPanel.workspace.viewState.stage.replace(/\s*\(HTTP\s+\d{3}\)/g, "")
-                    color: Theme.muted
-                    font.pixelSize: 11
-                    wrapMode: Text.WordWrap
-                }
-                Text {
-                    textFormat: Text.PlainText
-                    text: queryPanel.workspace.viewState.progress + "%"
-                    visible: !queryPanel.workspace.viewState.metadataBusy && !queryPanel.workspace.viewState.waiting
-                    color: Theme.muted
-                    font.pixelSize: 11
-                }
+                indeterminate: !queryPanel.historyTaskBusy && (queryPanel.workspace.viewState.waiting || queryPanel.workspace.viewState.metadataBusy || queryPanel.workspace.viewState.closing || queryPanel.workspace.viewState.localBusy)
+                value: queryPanel.loadingProgress
+                Accessible.name: "Carregamento das importações"
             }
             Text {
-                textFormat: Text.PlainText
-                visible: queryPanel.workspace.viewState.loaded
+                objectName: "queryPercentage"
                 Layout.fillWidth: true
-                text: "Exibindo o último resultado concluído."
-                color: Theme.warningText
-                font.pixelSize: 10
-                wrapMode: Text.WordWrap
+                textFormat: Text.PlainText
+                text: queryPanel.loadingProgress + "%"
+                visible: queryPanel.historyTaskBusy || (!queryPanel.workspace.viewState.metadataBusy && !queryPanel.workspace.viewState.waiting && !queryPanel.workspace.viewState.closing && !queryPanel.workspace.viewState.localBusy)
+                color: Theme.muted
+                font.pixelSize: 11
+                horizontalAlignment: Text.AlignRight
             }
         }
         Text {

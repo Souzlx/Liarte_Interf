@@ -1188,7 +1188,7 @@ class NativeApiQtTests(unittest.TestCase):
         self.assertIn("consultar novamente", message)
         self.assertNotIn("Aguarde", message)
         self.assertNotIn("HTTP", message)
-        self.assertEqual(self.item("queryError").property("color"), self.item("queryStage").property("color"))
+        self.assertEqual(self.item("queryError").property("color"), self.item("queryPercentage").property("color"))
         self.assertEqual(self.controller.state["error"], diagnostic)
         self.assertEqual(len(calls), 4)
         self.assertEqual(self.bundle.messages, [])

@@ -95,3 +95,60 @@ class RedesignVisualTests(unittest.TestCase):
         self.assertFalse(self.item("quickPDF").property("enabled"))
         self.assertIn("Dados gerais", self.item("quickPDF").property("text"))
         self.assertEqual(self.bundle.messages, [])
+
+    def test_metric_labels_values_and_details_fit_inside_their_cards(self):
+        self.load()
+        self.bundle.preferences.setPreference("reducedMotion", True)
+        workspace = self.item("importsWorkspace")
+        for width, height in ((500, 400), (1366, 768), (1920, 1080)):
+            self.window.resize(width, height)
+            for section, prefix in (("summary", "metricCard"), ("buying", "buyingMetric")):
+                with self.subTest(viewport=(width, height), section=section):
+                    workspace.setProperty("activeSection", section)
+                    self.settle()
+                    for index in range(4):
+                        card = self.item(prefix + str(index))
+                        metric = card.property("displayMetric").toVariant()
+                        pending = list(card.childItems())
+                        texts = []
+                        while pending:
+                            child = pending.pop()
+                            pending.extend(child.childItems())
+                            if child.property("text") in (
+                                metric["label"], metric["value"], metric["detail"]
+                            ) and child.property("text"):
+                                texts.append(child)
+                        self.assertEqual(len(texts), 3)
+                        for text in texts:
+                            self.assert_inside(text, card)
+                            point = text.mapToItem(card, QPointF())
+                            self.assertGreaterEqual(point.x(), 12)
+                            self.assertGreaterEqual(point.y(), 12)
+                            self.assertLessEqual(point.y() + text.height(), card.height() - 12)
+                        value = self.item(prefix + str(index) + "Value")
+                        detail = next(text for text in texts if text.property("text") == metric["detail"])
+                        self.assertGreaterEqual(
+                            detail.mapToItem(card, QPointF()).y(),
+                            value.mapToItem(card, QPointF()).y() + value.height() + 4,
+                        )
+        self.assertEqual(self.bundle.messages, [])
+
+    def test_period_summary_keeps_the_accepted_dates_and_keyboard_editing(self):
+        self.load()
+        self.bundle.preferences.setPreference("reducedMotion", True)
+        for kind in ("general", "municipal"):
+            self.controller.setDataset(kind)
+            settled(self.controller)
+            self.settle()
+            self.assertEqual(
+                self.item("importAppliedPeriod").property("text"),
+                self.controller.presentation["periodLabel"],
+            )
+            edit = self.item("editImportPeriod")
+            edit.forceActiveFocus(Qt.FocusReason.TabFocusReason)
+            QTest.keyClick(self.window, Qt.Key.Key_Space)
+            self.assertTrue(pump(lambda: self.item("startPeriod").isVisible()))
+            self.assertTrue(self.item("endPeriod").isVisible())
+            QTest.keyClick(self.window, Qt.Key.Key_Space)
+            self.assertTrue(pump(lambda: not self.item("startPeriod").isVisible()))
+        self.assertEqual(self.bundle.messages, [])

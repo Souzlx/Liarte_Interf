@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError, replace
+from contextlib import closing
 import io
 import json
 from pathlib import Path
+import sqlite3
 from threading import Event
 import tempfile
 import unittest
@@ -116,6 +118,18 @@ class HistoricalComexProviderTests(unittest.TestCase):
         self.assertEqual(second.acquisition_started_at, first.acquisition_started_at)
         self.assertEqual(second.general_received_at, first.general_received_at)
         self.assertEqual(second.availability.checked_at, first.availability.checked_at)
+
+    def test_fresh_identical_audit_repairs_checked_at_so_local_queries_work_again(self):
+        self.accept()
+        with closing(sqlite3.connect(self.store.path)) as db, db:
+            db.execute("UPDATE generations SET checked_at='invalid' WHERE id IN (SELECT generation_id FROM active)")
+        with self.assertRaises(ComexError):
+            self.load()
+        self.accept()
+        result = self.provider.query(Selection(self.period), Event(), lambda *_: None)
+        self.assertEqual(result.totals.value_cents, 10600)
+        self.assertEqual(self.provider.snapshot.api_requests, 0)
+        self.assertEqual(dict(self.provider.snapshot.source_publication), PUBLICATION)
 
     def test_repeated_consultation_reads_the_same_local_revision_without_refetching(self):
         self.accept()

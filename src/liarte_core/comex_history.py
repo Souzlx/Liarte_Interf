@@ -515,28 +515,82 @@ class HistoryStore:
             if len(entries) != coverage["rows"] or self._month_digest(month, entries) != digest:
                 raise HistoryStagingError("Uma etapa em preparação está incompleta ou foi alterada.")
 
+    def _run_revision(self, run, members):
+        return _sha(_json({"catalog": self.catalog_key, "publication": json.loads(run["publication"]), "partitions": sorted((base, month, digest) for _, base, month, digest in members)}))
+
+    @staticmethod
+    def _verify_accepted_receipts(generation, members, check):
+        try:
+            _timestamp(generation["fetched_at"])
+            _timestamp(generation["checked_at"])
+        except HistoryError as exc:
+            raise HistoryStagingError("Os recibos do histórico aceito estão inválidos.") from exc
+        for member in members:
+            check()
+            try:
+                received = _timestamp(member["received_at"])
+                started = _timestamp(member["acquisition_started_at"])
+                if received < started:
+                    raise ValueError("O recebimento precede o início da aquisição.")
+            except (HistoryError, ValueError) as exc:
+                raise HistoryStagingError("Os recibos do histórico aceito estão inválidos.") from exc
+
     def publish_run(self, run_id, *, check=_NO_CHECK, guard=nullcontext):
         # Validation may inspect a large historical run. It happens outside the
         # provider's presentation lock. Stages are immutable through this API;
         # the guarded transaction rechecks their exact membership/digests.
         with self._connection() as validation:
             validation.execute("BEGIN")
-            planned = self._planned_members(validation, self._run(validation, run_id, building=True), check)
+            prepared = self._run(validation, run_id, building=True)
+            planned = self._planned_members(validation, prepared, check)
             self._verify_partitions(validation, planned, check)
+            previous = self._active(validation)
+            identical = None
+            if (
+                previous is not None
+                and all(previous[key] == prepared[key] for key in ("publication", "start", "end"))
+                and previous["revision"] == self._run_revision(prepared, planned)
+            ):
+                try:
+                    rows, _ = self._interval(validation, previous, Period(prepared["start"], prepared["end"]))
+                    self._verify_accepted_receipts(previous, rows, check)
+                    accepted = tuple((row["stage_id"], row["municipal"], row["month"], row["digest"]) for row in rows)
+                    # A digest in the manifest is not proof that the accepted
+                    # file remains intact. A fresh audit must still repair a
+                    # damaged accepted partition with an identical good copy.
+                    self._verify_partitions(validation, accepted, check)
+                    identical = previous["id"], accepted
+                except (HistoryUnavailable, HistoryStagingError):
+                    pass
         with self._transaction(check=check, guard=guard) as db:
             run = self._run(db, run_id, building=True)
             members = self._planned_members(db, run, check)
             if members != planned:
                 raise HistoryStagingError("As etapas mudaram durante a preparação da publicação.")
-            now, generation = self._now(), uuid4().hex
-            revision = _sha(_json({"catalog": self.catalog_key, "publication": json.loads(run["publication"]), "partitions": sorted((base, month, digest) for _, base, month, digest in members)}))
+            now = self._now()
+            revision = self._run_revision(run, members)
             state = db.execute("SELECT checked_publication,checked_at FROM catalogs WHERE key=?", (self.catalog_key,)).fetchone()
             checked_at = state["checked_at"] if state["checked_publication"] == run["publication"] else ""
             if not checked_at:
                 raise HistoryUnavailable("A publicação desta execução ainda não foi conferida.")
-            db.execute("INSERT INTO generations VALUES(?,?,?,?,?,?,?,?,?)", (generation, self.catalog_key, run_id, run["publication"], run["start"], run["end"], revision, _iso(now), checked_at))
-            db.executemany("INSERT INTO manifest VALUES(?,?,?,?)", ((generation, stage_id, base, month) for stage_id, base, month, _ in members))
-            db.execute("INSERT OR REPLACE INTO active VALUES(?,?)", (self.catalog_key, generation))
+            current = self._active(db)
+            unchanged = False
+            if (
+                identical is not None and current is not None
+                and current["id"] == identical[0] and current["revision"] == revision
+                and all(current[key] == run[key] for key in ("publication", "start", "end"))
+            ):
+                try:
+                    rows, _ = self._interval(db, current, Period(run["start"], run["end"]))
+                    self._verify_accepted_receipts(current, rows, check)
+                    unchanged = tuple((row["stage_id"], row["municipal"], row["month"], row["digest"]) for row in rows) == identical[1]
+                except (HistoryUnavailable, HistoryStagingError):
+                    pass
+            if not unchanged:
+                generation = uuid4().hex
+                db.execute("INSERT INTO generations VALUES(?,?,?,?,?,?,?,?,?)", (generation, self.catalog_key, run_id, run["publication"], run["start"], run["end"], revision, _iso(now), checked_at))
+                db.executemany("INSERT INTO manifest VALUES(?,?,?,?)", ((generation, stage_id, base, month) for stage_id, base, month, _ in members))
+                db.execute("INSERT OR REPLACE INTO active VALUES(?,?)", (self.catalog_key, generation))
             db.execute("UPDATE runs SET status='complete' WHERE id=?", (run_id,))
             db.execute("UPDATE catalogs SET last_full_sync_at=?,last_full_sync_epoch=?,sync_state='ready',sync_error='' WHERE key=?", (_iso(now), now, self.catalog_key))
         # Deleting obsolete facts can take substantially longer than switching
@@ -547,6 +601,7 @@ class HistoryStore:
                 self._cleanup(db)
         except Exception as exc:
             LOGGER.warning("O histórico foi publicado; a limpeza local foi adiada (%s).", type(exc).__name__)
+        return not unchanged
 
     def _cleanup(self, db):
         # Keep the active and previous complete generations. Pending stages

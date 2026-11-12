@@ -56,7 +56,6 @@ ColumnLayout {
                 required property int index
                 objectName: "buyingMetric" + index
                 Layout.fillWidth: true
-                Layout.preferredHeight: 108
                 metric: modelData
                 iconName: ["price", "chart", "weight", "grid"][index]
             }

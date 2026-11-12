@@ -20,16 +20,16 @@ FocusScope {
             cards.push({
                 key: "imports", title: "Importações", icon: "chart",
                 period: importState.periodLabel,
-                basis: importState.appliedKind === "municipal" ? "Comex Stat · Municipal · SH4 / FOB · US$" : "Comex Stat · Geral · NCM / CIF · US$",
+                basis: importState.appliedKind === "municipal" ? "Municipal · FOB · US$" : "CIF · US$",
                 scope: importState.filterSummary,
-                status: importState.busy ? "Atualizando · último resultado concluído" : (importState.sessionNotice || "Última consulta concluída"),
+                status: importState.busy ? "Atualizando · último resultado concluído" : "Consulta concluída",
                 metrics: [imports[0], imports[1]]
             });
         if (inventoryState.loaded && stock.length)
             cards.push({
                 key: "inventory", title: "Estoque", icon: "box",
-                period: "Base em " + inventoryState.asOf,
-                basis: "Base local · saldo a custo · R$",
+                period: "Posição em " + inventoryState.asOf,
+                basis: "Saldo a custo · R$",
                 scope: "Valores do recorte aplicado no módulo",
                 status: inventoryState.busy || !inventoryState.current ? "Atualizando · último resultado concluído" : "Último recorte aplicado",
                 metrics: stock.slice(0, 2)
@@ -264,7 +264,7 @@ FocusScope {
                         }
                         Text {
                             Layout.fillWidth: true
-                            text: page.inventoryState.loaded ? (page.historySummary.period || "Sem fechamentos no recorte") + " · " + (page.inventoryAnalysis.historicalScope || "") : "Fechamentos a custo · base local PBIX / .liarte"
+                            text: page.inventoryState.loaded ? (page.historySummary.period || "Sem fechamentos no recorte") + " · " + (page.inventoryAnalysis.historicalScope || "") : "Fechamentos a custo"
                             textFormat: Text.PlainText
                             color: Ui.Theme.muted
                             font.pixelSize: 11
@@ -405,7 +405,7 @@ FocusScope {
                             Layout.fillWidth: true
                             Layout.topMargin: 30
                             Layout.bottomMargin: 30
-                            text: "Métrica indisponível\nAbra Estoque para carregar a base local."
+                            text: "Métrica indisponível\nCarregue os dados em Estoque."
                             textFormat: Text.PlainText
                             color: Ui.Theme.muted
                             font.pixelSize: 13

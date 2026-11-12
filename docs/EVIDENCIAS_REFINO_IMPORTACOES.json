@@ -1,0 +1,443 @@
+{
+  "schema": 1,
+  "status": "implementation_validated",
+  "date": "2026-11-12",
+  "baseline_commit": "793310654693dcfcca4f549d9cccc7546287a3eb",
+  "code_commit": "6b4c4d70e00e2b0ca7845ac2944bb5160410f68b",
+  "verification": {
+    "command": "python verificar.py --headless --volume --isolate",
+    "platform": "Linux/offscreen/software",
+    "tests": 1411,
+    "modules": 88,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 270.059,
+    "log_sha256": "42489b84c6057bd534f93012067b5ce8a1ca5ce684a414f8577fded5d7b90d2e"
+  },
+  "volume": {
+    "records": 100000,
+    "seconds": 1.424,
+    "qt_events": 87
+  },
+  "repository_tests": {
+    "count": 18,
+    "failures": 0,
+    "errors": 0
+  },
+  "regressions": [
+    "Accepted period dates remain editable by keyboard without redundant basis labels.",
+    "Metric labels, values, icons and details fit within the card at supported widths.",
+    "Measured query loading shows only a percentage; unknown progress is indeterminate.",
+    "Local sort/cancel retains the delayed table indicator without moving the period panel.",
+    "Manual update lives in Preferences and blocks background shortcuts while modal.",
+    "Repeated consultations and unchanged metadata do not redownload or publish another generation.",
+    "New publications refresh the analysis while preserving the applied filters.",
+    "Failed updates preserve subsequent offline consultations.",
+    "Identical audit preserves generation and backup only when facts and receipts remain valid.",
+    "Corrupt facts, manifests and receipt timestamps are repaired by the fresh accepted copy."
+  ],
+  "linux_ci": {
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/43219471810",
+    "conclusion": "success",
+    "detailed_log_downloaded_here": true,
+    "summary": {
+      "tests": 1411,
+      "seconds": 223.335,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0
+    },
+    "log_sha256": "195dc9159756ae1335961855904a51bd17118ebc945f15ee056f2a5d10ba3ced"
+  },
+  "repository_ci": {
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/43219471908",
+    "conclusion": "success"
+  },
+  "windows_ci": {
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/43219478235",
+    "source_commit": "6b4c4d70e00e2b0ca7845ac2944bb5160410f68b",
+    "conclusion": "success",
+    "evidence": "All four complete job logs inspected, plus independent CRC/manifest/SHA-256 verification of the Python 3.12 artifact on Linux.",
+    "detailed_logs_downloaded_here": true,
+    "jobs": [
+      {
+        "name": "build (3.11)",
+        "id": 131187028795,
+        "conclusion": "success",
+        "confirmed_steps": [
+          "Conferir interface e perfil no Windows",
+          "Compilar e testar a pasta portátil",
+          "Disponibilizar pacote"
+        ],
+        "preflight": {
+          "tests": 177,
+          "seconds": 85.975,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "suite": {
+          "tests": 1411,
+          "seconds": 508.579,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0,
+          "passed": 1410
+        },
+        "frozen_smoke": {
+          "api_network_test": false,
+          "document_resources": {
+            "comex_history": "ok",
+            "comex_history_offline_query": true,
+            "excel": "ok",
+            "inventory_backups": "ok",
+            "pdf": "ok",
+            "pdf_logo": true,
+            "powerbi": "ok",
+            "powerbi_pages": 6,
+            "powerbi_visuals": 85,
+            "synthetic": true,
+            "temporary": true
+          },
+          "error": "",
+          "frozen": true,
+          "https_transport": {
+            "policy": "windows-cryptoapi-v1"
+          },
+          "platform": "win32",
+          "qml_warnings": [],
+          "qt": "6.10.3",
+          "rows_in_page": 50,
+          "save_dialog_checked": true,
+          "status": "ok",
+          "synthetic": true,
+          "themes_checked": [
+            "light",
+            "dark"
+          ],
+          "version": "5.3.1",
+          "window_icon_checked": true,
+          "window_title": "Liarte Importações"
+        },
+        "skip": "POSIX subprocess crash; Windows locking requires native QA",
+        "log_sha256": "72c2500ca1fc6c48bfe248c7cfde67e35673edb93bc8d0b089ccfce3f4f078de"
+      },
+      {
+        "name": "build (3.12)",
+        "id": 131187029146,
+        "conclusion": "success",
+        "confirmed_steps": [
+          "Conferir interface e perfil no Windows",
+          "Compilar e testar a pasta portátil",
+          "Disponibilizar pacote"
+        ],
+        "preflight": {
+          "tests": 177,
+          "seconds": 82.662,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "suite": {
+          "tests": 1411,
+          "seconds": 537.875,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0,
+          "passed": 1410
+        },
+        "frozen_smoke": {
+          "api_network_test": false,
+          "document_resources": {
+            "comex_history": "ok",
+            "comex_history_offline_query": true,
+            "excel": "ok",
+            "inventory_backups": "ok",
+            "pdf": "ok",
+            "pdf_logo": true,
+            "powerbi": "ok",
+            "powerbi_pages": 6,
+            "powerbi_visuals": 85,
+            "synthetic": true,
+            "temporary": true
+          },
+          "error": "",
+          "frozen": true,
+          "https_transport": {
+            "policy": "windows-cryptoapi-v1"
+          },
+          "platform": "win32",
+          "qml_warnings": [],
+          "qt": "6.10.3",
+          "rows_in_page": 50,
+          "save_dialog_checked": true,
+          "status": "ok",
+          "synthetic": true,
+          "themes_checked": [
+            "light",
+            "dark"
+          ],
+          "version": "5.3.1",
+          "window_icon_checked": true,
+          "window_title": "Liarte Importações"
+        },
+        "skip": "POSIX subprocess crash; Windows locking requires native QA",
+        "log_sha256": "5482812a844fc0910b2359dc606859d3cc8c640f8df2c79241469b340c49a30b"
+      },
+      {
+        "name": "build (3.13)",
+        "id": 131187029201,
+        "conclusion": "success",
+        "confirmed_steps": [
+          "Conferir interface e perfil no Windows",
+          "Compilar e testar a pasta portátil",
+          "Disponibilizar pacote"
+        ],
+        "preflight": {
+          "tests": 177,
+          "seconds": 86.897,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "suite": {
+          "tests": 1411,
+          "seconds": 525.633,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0,
+          "passed": 1410
+        },
+        "frozen_smoke": {
+          "api_network_test": false,
+          "document_resources": {
+            "comex_history": "ok",
+            "comex_history_offline_query": true,
+            "excel": "ok",
+            "inventory_backups": "ok",
+            "pdf": "ok",
+            "pdf_logo": true,
+            "powerbi": "ok",
+            "powerbi_pages": 6,
+            "powerbi_visuals": 85,
+            "synthetic": true,
+            "temporary": true
+          },
+          "error": "",
+          "frozen": true,
+          "https_transport": {
+            "policy": "windows-cryptoapi-v1"
+          },
+          "platform": "win32",
+          "qml_warnings": [],
+          "qt": "6.10.3",
+          "rows_in_page": 50,
+          "save_dialog_checked": true,
+          "status": "ok",
+          "synthetic": true,
+          "themes_checked": [
+            "light",
+            "dark"
+          ],
+          "version": "5.3.1",
+          "window_icon_checked": true,
+          "window_title": "Liarte Importações"
+        },
+        "skip": "POSIX subprocess crash; Windows locking requires native QA",
+        "log_sha256": "33827e68aa3c86e3c5c2d1a7c2a86b4311f3d047a0ea80541c89e0af037b2908"
+      },
+      {
+        "name": "build (3.14)",
+        "id": 131187029403,
+        "conclusion": "success",
+        "confirmed_steps": [
+          "Conferir interface e perfil no Windows",
+          "Compilar e testar a pasta portátil",
+          "Disponibilizar pacote"
+        ],
+        "preflight": {
+          "tests": 177,
+          "seconds": 88.888,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0
+        },
+        "suite": {
+          "tests": 1411,
+          "seconds": 548.582,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0,
+          "passed": 1410
+        },
+        "frozen_smoke": {
+          "api_network_test": false,
+          "document_resources": {
+            "comex_history": "ok",
+            "comex_history_offline_query": true,
+            "excel": "ok",
+            "inventory_backups": "ok",
+            "pdf": "ok",
+            "pdf_logo": true,
+            "powerbi": "ok",
+            "powerbi_pages": 6,
+            "powerbi_visuals": 85,
+            "synthetic": true,
+            "temporary": true
+          },
+          "error": "",
+          "frozen": true,
+          "https_transport": {
+            "policy": "windows-cryptoapi-v1"
+          },
+          "platform": "win32",
+          "qml_warnings": [],
+          "qt": "6.10.3",
+          "rows_in_page": 50,
+          "save_dialog_checked": true,
+          "status": "ok",
+          "synthetic": true,
+          "themes_checked": [
+            "light",
+            "dark"
+          ],
+          "version": "5.3.1",
+          "window_icon_checked": true,
+          "window_title": "Liarte Importações"
+        },
+        "skip": "POSIX subprocess crash; Windows locking requires native QA",
+        "log_sha256": "099488f3eb832bdb1a4eb3ec9f7efd55441b337e5def98a8dbf826d6dda0e62f"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 13946496344,
+        "name": "LIARTE_Desktop_Python_3.11_Windows",
+        "size_in_bytes": 95058239,
+        "digest": "sha256:49831eacc7911701dc0a3bb7018197cbc696cad095f11f14be7e8b6f2bfb9b50",
+        "expired": false
+      },
+      {
+        "id": 13946261632,
+        "name": "LIARTE_Desktop_Python_3.13_Windows",
+        "size_in_bytes": 94984198,
+        "digest": "sha256:d09fcbd4fb1fc2c5bd4551e5d6045632d25964f56afd965f30bd8a1f2d0e3552",
+        "expired": false
+      },
+      {
+        "id": 13945149046,
+        "name": "LIARTE_Desktop_Python_3.14_Windows",
+        "size_in_bytes": 96249035,
+        "digest": "sha256:9aacf25955e3e9b0a43c282c0f630a31f7f3d6db672e9b78c9abdbd31c73dc07",
+        "expired": false
+      },
+      {
+        "id": 13945053893,
+        "name": "LIARTE_Desktop_Python_3.12_Windows",
+        "size_in_bytes": 94457214,
+        "digest": "sha256:04181abcbf2efb6a7691702a67886dd9e35f421e237f17ff0c1ecbed18ff5123",
+        "expired": false
+      }
+    ]
+  },
+  "portable": {
+    "id": 13945053893,
+    "name": "LIARTE_Desktop_Python_3.12_Windows",
+    "size_in_bytes": 94457214,
+    "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/43219478235/artifacts/13945053893",
+    "digest_reported_by_github": "sha256:04181abcbf2efb6a7691702a67886dd9e35f421e237f17ff0c1ecbed18ff5123",
+    "downloaded_and_independently_verified_here": true,
+    "verification": {
+      "zip": "LIARTE_Desktop_Python_3.12_Windows.zip",
+      "sha256": "04181abcbf2efb6a7691702a67886dd9e35f421e237f17ff0c1ecbed18ff5123",
+      "bytes": 94457214,
+      "verified_files": 1410,
+      "zip_crc": "ok (every member read)",
+      "manifest": "ok",
+      "smoke": {
+        "status": "ok",
+        "version": "5.3.1",
+        "qt": "6.10.3",
+        "window_title": "Liarte Importações",
+        "window_icon_checked": true,
+        "frozen": true,
+        "platform": "win32",
+        "synthetic": true,
+        "document_resources": {
+          "excel": "ok",
+          "pdf": "ok",
+          "pdf_logo": true,
+          "powerbi": "ok",
+          "powerbi_pages": 6,
+          "powerbi_visuals": 85,
+          "comex_history": "ok",
+          "comex_history_offline_query": true,
+          "synthetic": true,
+          "temporary": true,
+          "inventory_backups": "ok"
+        },
+        "https_transport": {
+          "policy": "windows-cryptoapi-v1"
+        },
+        "save_dialog_checked": true,
+        "api_network_test": false,
+        "rows_in_page": 50,
+        "qml_warnings": [],
+        "error": "",
+        "themes_checked": [
+          "light",
+          "dark"
+        ]
+      },
+      "viewport_fix_in_packaged_qml": true,
+      "imports_refinement_in_packaged_qml": true
+    }
+  },
+  "visual": {
+    "source_commit": "6b4c4d70e00e2b0ca7845ac2944bb5160410f68b",
+    "data": "synthetic test fixtures only; no real extraction",
+    "platform": "Linux/offscreen/software; actual Qt application",
+    "qml_warnings": [],
+    "captures": {
+      "importacoes-summary-sintetico.png": {
+        "width": 1600,
+        "height": 900,
+        "sha256": "033c1c047550eedb2208bb68b08321c67cced70f386e9b849648178903c7ed28"
+      },
+      "importacoes-buying-sintetico.png": {
+        "width": 1600,
+        "height": 900,
+        "sha256": "876d4fc0d9232938fcb65f954c61fda1742579aba2a783bd8f5768b7a910588e"
+      },
+      "importacoes-carregamento-sintetico.png": {
+        "width": 1600,
+        "height": 900,
+        "sha256": "de00caf1d9e9e6ac4b1e7a40889927db775a2d755fbd056ad46e6e07f45e12fe"
+      },
+      "importacoes-compacta-escura-sintetico.png": {
+        "width": 500,
+        "height": 400,
+        "sha256": "a7b93e3e20b350d867a582d7c919bd0d167fb11e0bbd59c7bd29b42f3fb2197a"
+      },
+      "importacoes-preferencias-sintetico.png": {
+        "width": 500,
+        "height": 400,
+        "sha256": "57d0818aa1f4f6c2b77140acfd87d636f66cc862f7e9bcfac496968343b1f5d3"
+      }
+    }
+  },
+  "network": {
+    "published_rule": "*.blob.core.windows.net",
+    "download_access_verified": true,
+    "verified_host": "productionresultssa17.blob.core.windows.net",
+    "requires_publish": false
+  },
+  "limits": [
+    "Captures and source tests use test fixtures; no real official extraction or company SQL Server access.",
+    "Windows self-tests ran in CI; local ZIP integrity inspection on Linux did not execute the Windows binary.",
+    "Only the Python 3.12 ZIP was downloaded and independently verified here; all four Windows jobs and frozen self-tests passed.",
+    "Manual Windows visual acceptance and native locking crash QA remain separate; the Windows matrix skips one POSIX-only subprocess test per job.",
+    "This validates the portable; a new Setup install/update/uninstall cycle was not run."
+  ]
+}
