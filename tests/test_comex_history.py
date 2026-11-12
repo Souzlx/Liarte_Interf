@@ -2,6 +2,7 @@
 
 from contextlib import closing, contextmanager
 from copy import deepcopy
+from datetime import datetime, timezone
 from decimal import localcontext
 import json
 import multiprocessing
@@ -173,6 +174,40 @@ class HistoryStoreTests(_Fixture, unittest.TestCase):
                 self.assertEqual(actual.local_revision, expected.local_revision)
                 self.assertEqual(actual.publication, expected.publication)
                 self.assertTrue(self.store.status()["complete"])
+                with closing(sqlite3.connect(self.path)) as db:
+                    self.assertNotEqual(db.execute("SELECT generation_id FROM active").fetchone()[0], generation)
+
+    def test_identical_fresh_audit_repairs_invalid_generation_and_stage_receipts(self):
+        self.accept()
+        expected = self.store.read(Period("2024-01", "2024-02"), Event())
+        damage = [
+            (table, field, value)
+            for table, fields in (("generations", ("fetched_at", "checked_at")),
+                                  ("stages", ("received_at", "acquisition_started_at")))
+            for field in fields for value in ("invalid", "2024-03-01T10:01:00")
+        ]
+        damage.append(("stages", "acquisition_started_at", "2024-03-01T11:00:00+00:00"))
+        for table, field, value in damage:
+            with self.subTest(table=table, field=field, value=value):
+                with closing(sqlite3.connect(self.path)) as db, db:
+                    generation = db.execute("SELECT generation_id FROM active").fetchone()[0]
+                    if table == "generations":
+                        db.execute(f"UPDATE generations SET {field}=? WHERE id=?", (value, generation))
+                    else:
+                        db.execute(f"UPDATE stages SET {field}=? WHERE id IN (SELECT stage_id FROM manifest WHERE generation_id=?)", (value, generation))
+                self.now += 10
+                run = self.store.begin_run(publication(), "2024-01", "2024-02")
+                self.fill(run, "2024-01", "2024-02")
+                self.store.record_check(publication())
+                self.assertTrue(self.store.publish_run(run))
+                actual = self.store.read(Period("2024-01", "2024-02"), Event())
+                self.assertEqual((actual.general, actual.municipal, actual.local_revision),
+                                 (expected.general, expected.municipal, expected.local_revision))
+                self.assertEqual(datetime.fromisoformat(actual.fetched_at), datetime.fromtimestamp(self.now, timezone.utc))
+                self.assertEqual(datetime.fromisoformat(actual.checked_at), datetime.fromtimestamp(self.now, timezone.utc))
+                self.assertEqual(datetime.fromisoformat(actual.acquisition_started_at), datetime.fromisoformat(STARTED))
+                self.assertEqual(datetime.fromisoformat(actual.general_received_at), datetime.fromisoformat(RECEIVED))
+                self.assertEqual(datetime.fromisoformat(actual.municipal_received_at), datetime.fromisoformat(RECEIVED))
                 with closing(sqlite3.connect(self.path)) as db:
                     self.assertNotEqual(db.execute("SELECT generation_id FROM active").fetchone()[0], generation)
 

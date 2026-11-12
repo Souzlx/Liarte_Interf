@@ -518,6 +518,23 @@ class HistoryStore:
     def _run_revision(self, run, members):
         return _sha(_json({"catalog": self.catalog_key, "publication": json.loads(run["publication"]), "partitions": sorted((base, month, digest) for _, base, month, digest in members)}))
 
+    @staticmethod
+    def _verify_accepted_receipts(generation, members, check):
+        try:
+            _timestamp(generation["fetched_at"])
+            _timestamp(generation["checked_at"])
+        except HistoryError as exc:
+            raise HistoryStagingError("Os recibos do histórico aceito estão inválidos.") from exc
+        for member in members:
+            check()
+            try:
+                received = _timestamp(member["received_at"])
+                started = _timestamp(member["acquisition_started_at"])
+                if received < started:
+                    raise ValueError("O recebimento precede o início da aquisição.")
+            except (HistoryError, ValueError) as exc:
+                raise HistoryStagingError("Os recibos do histórico aceito estão inválidos.") from exc
+
     def publish_run(self, run_id, *, check=_NO_CHECK, guard=nullcontext):
         # Validation may inspect a large historical run. It happens outside the
         # provider's presentation lock. Stages are immutable through this API;
@@ -536,6 +553,7 @@ class HistoryStore:
             ):
                 try:
                     rows, _ = self._interval(validation, previous, Period(prepared["start"], prepared["end"]))
+                    self._verify_accepted_receipts(previous, rows, check)
                     accepted = tuple((row["stage_id"], row["municipal"], row["month"], row["digest"]) for row in rows)
                     # A digest in the manifest is not proof that the accepted
                     # file remains intact. A fresh audit must still repair a
@@ -564,8 +582,9 @@ class HistoryStore:
             ):
                 try:
                     rows, _ = self._interval(db, current, Period(run["start"], run["end"]))
+                    self._verify_accepted_receipts(current, rows, check)
                     unchanged = tuple((row["stage_id"], row["municipal"], row["month"], row["digest"]) for row in rows) == identical[1]
-                except HistoryUnavailable:
+                except (HistoryUnavailable, HistoryStagingError):
                     pass
             if not unchanged:
                 generation = uuid4().hex
