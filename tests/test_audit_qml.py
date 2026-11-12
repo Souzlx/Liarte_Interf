@@ -54,11 +54,15 @@ class AuditQmlTests(unittest.TestCase):
         scroll.setProperty("contentY", scroll.property("contentHeight") - scroll.height())
         self.settle_layout()
         previous_scroll = scroll.property("contentY")
+        previous_bounds = (scroll.property("contentHeight"), scroll.width(), scroll.height())
         self.platform.openModule("home")
         self.settle_layout()
         self.open_inventory()
         self.assert_in_view(self.window.activeFocusItem(), scroll)
-        self.assertAlmostEqual(scroll.property("contentY"), previous_scroll, delta=1)
+        self.assertAlmostEqual(
+            scroll.property("contentY"), previous_scroll, delta=1,
+            msg=f"before={previous_bounds}; after={(scroll.property('contentHeight'), scroll.width(), scroll.height())}; focus={self.window.activeFocusItem().objectName()}",
+        )
         before = self.inventory.state["selection"]["search"]
         QTest.keyClick(self.window, Qt.Key.Key_X)
         APP.processEvents()
@@ -75,6 +79,28 @@ class AuditQmlTests(unittest.TestCase):
         self.assertEqual(self.window.activeFocusItem().objectName(), "stockSearch")
         self.assert_in_view(self.window.activeFocusItem(), scroll)
         self.assertEqual(scroll.property("contentY"), 0)
+
+    def test_hidden_layout_reflow_cannot_replace_the_saved_stock_viewport(self):
+        self.load_inventory()
+        self.open_inventory()
+        scroll = self.item("stockScroll")
+        content_height = scroll.property("contentHeight")
+        scroll.setProperty("contentY", content_height - scroll.height())
+        self.settle_layout()
+        expected = scroll.property("contentY")
+        self.platform.openModule("home")
+        self.settle_layout()
+        # Reproduce the transient hidden-layout clamp observed with Windows fonts.
+        scroll.setProperty("contentHeight", content_height - 50)
+        scroll.returnToBounds()
+        self.settle_layout()
+        self.assertLess(scroll.property("contentY"), expected)
+        scroll.setProperty("contentHeight", content_height)
+        self.settle_layout()
+        self.open_inventory()
+        self.assertAlmostEqual(scroll.property("contentY"), expected, delta=1)
+        self.assert_in_view(self.window.activeFocusItem(), scroll)
+        self.assertEqual(self.bundle.messages, [])
 
     def assert_home_focus(self):
         self.platform.openModule("home")

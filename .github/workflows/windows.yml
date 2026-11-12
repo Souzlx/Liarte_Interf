@@ -53,6 +53,11 @@ jobs:
           configure_windows_qt()
           suite = unittest.defaultTestLoader.loadTestsFromNames([
               "tests.test_runtime_profile",
+              "tests.test_audit_qml.AuditQmlTests",
+              "tests.test_inventory_backup_qml.InventoryBackupQmlTests",
+              "tests.test_home_indicators.HomeIndicatorsTests",
+              "tests.test_redesign_visual.RedesignVisualTests",
+              "tests.test_dashboard_persistence",
               "tests.test_inventory_alerts_qml",
               "tests.test_inventory_compare_qml",
               "tests.test_inventory_performance_qml",

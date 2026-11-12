@@ -22,7 +22,7 @@ FocusScope {
                 period: importState.periodLabel,
                 basis: importState.appliedKind === "municipal" ? "Comex Stat · Municipal · SH4 / FOB · US$" : "Comex Stat · Geral · NCM / CIF · US$",
                 scope: importState.filterSummary,
-                status: importState.busy ? "Atualizando · último resultado concluído" : "Última consulta concluída",
+                status: importState.busy ? "Atualizando · último resultado concluído" : (importState.sessionNotice || "Última consulta concluída"),
                 metrics: [imports[0], imports[1]]
             });
         if (inventoryState.loaded && stock.length)

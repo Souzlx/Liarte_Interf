@@ -51,8 +51,24 @@ from .analytics import empty_analysis, present as present_procurement
 from .table_model import HEADERS, MUNICIPAL_HEADERS, ImportTableModel, cells, port_label
 from .preferences import ApplicationPreferences
 from .comex_history import HistorySyncOwner
+from liarte_core.query import checkpoint
+from liarte_core.query_session import SessionWriter, import_selection, import_session, load_session
+from collections import OrderedDict
 
 LOGGER = logging.getLogger("liarte.desktop")
+
+
+def prepare_result(result):
+    """Source-sized formatting stays on the worker, never the GUI thread."""
+    total = result.totals.value_cents
+    return {
+        "analysis": present_procurement(result.procurement),
+        "monthly": [{"period": month, "label": period_label(month), "value": cents / 100_000_000}
+                    for month, cents in result.monthly],
+        "countries": [{"label": name, "value": cents / 100_000_000, "full": money(cents),
+                       "share": f"{number(Decimal(100) * cents / total, 1)}%" if total else "0%"}
+                      for name, cents in result.countries],
+    }
 
 
 class QueryWorker(QObject):
@@ -61,10 +77,12 @@ class QueryWorker(QObject):
     failed = Signal(str)
     cancelled = Signal()
     finished = Signal()
+    prepared = Signal(object, object)
 
-    def __init__(self, provider: ImportProvider, selection: Selection, cancel: Event):
+    def __init__(self, provider: ImportProvider, selection: Selection, cancel: Event, formatted=None):
         super().__init__()
         self.provider, self.selection, self.cancel = provider, selection, cancel
+        self.formatted = formatted or {}
 
     @Slot()
     def run(self):
@@ -86,6 +104,11 @@ class QueryWorker(QObject):
 
         try:
             result = self.provider.query(self.selection, self.cancel, report)
+            checkpoint(self.cancel)
+            cached = self.formatted.get(id(result.procurement))
+            prepared = cached[1] if cached is not None and cached[0] is result.procurement and cached[2] is result.monthly and cached[3] is result.countries else prepare_result(result)
+            checkpoint(self.cancel)
+            self.prepared.emit(result, prepared)
             if self.cancel.is_set():
                 self.cancelled.emit()
             else:
@@ -138,6 +161,13 @@ class DesktopController(QObject):
         self._provider = provider
         self._profile = profile
         self._settings = settings
+        history = getattr(provider, "history", None)
+        self._session_writer = (
+            SessionWriter(Path(provider.directory) / "ultima-consulta.json")
+            if settings is not None and getattr(provider, "is_historical", False)
+            and hasattr(history, "catalog_key") else None
+        )
+        self._restoring_session = None
         self.preferences = (
             preferences
             if preferences is not None
@@ -167,6 +197,7 @@ class DesktopController(QObject):
         self._accepted_snapshot = None
         self._accepted_options = None
         self._procurement_source = None
+        self._formatted_cache = OrderedDict()
         self._procurement_view = empty_analysis()
         self._thread: QThread | None = None
         self._worker: QueryWorker | None = None
@@ -182,6 +213,7 @@ class DesktopController(QObject):
             return self.preferences.value(key)
 
         self._state = {
+            "sessionNotice": "", "restoredQuery": False,
             "busy": False,
             "localBusy": False,
             "demo": self._is_demo,
@@ -323,6 +355,10 @@ class DesktopController(QObject):
 
     @Slot()
     def _sync_access_status(self):
+        if self._session_writer is not None and self._session_writer.error:
+            self._update(sessionNotice=self._session_writer.error)
+        elif self._state.get("sessionNotice") == "Não foi possível salvar a última consulta neste perfil.":
+            self._update(sessionNotice="")
         status = getattr(self._provider, "access_status", None)
         if status is not None:
             state = status()
@@ -1021,6 +1057,27 @@ class DesktopController(QObject):
     def _run_selection(self):
         self._queue(self._selection)
 
+    @Slot()
+    def restoreLastQuery(self):
+        """Only the accepted local database feeds startup; never start acquisition."""
+        if self._session_writer is None or self._result is not None or self._thread or self._closing:
+            return
+        payload = load_session(self._session_writer.path)
+        if payload is None:
+            return
+        try:
+            selection = import_selection(payload, self._provider.history.catalog_key)
+        except (ValueError, TypeError, KeyError):
+            self._update(sessionNotice="A consulta salva não é compatível com esta base.")
+            return
+        self._restoring_session = payload
+        self._selection = selection
+        self._draft_period_touched = True
+        self._update(defaultStart=selection.period.start, defaultEnd=selection.period.end)
+        self._sync_filters()
+        self._update(sessionNotice="Recuperando a última consulta da base local…")
+        self._queue(selection)
+
     def _queue(self, selection: Selection, *, source_query=False):
         if self._closing:
             return
@@ -1051,7 +1108,7 @@ class DesktopController(QObject):
                 # Cache is optional; fall back to the cancellable query path.
                 LOGGER.exception("Não foi possível reutilizar a página local")
                 cached = None
-            if cached is not None:
+            if cached is not None and id(cached.procurement) in self._formatted_cache:
                 self._update(error="", copyMessage="")
                 self._succeeded(cached)
                 self._update(busy=False, localBusy=False)
@@ -1071,12 +1128,13 @@ class DesktopController(QObject):
             copyMessage="",
         )
         thread = QThread(self)
-        worker = QueryWorker(self._provider, selection, self._cancel)
+        worker = QueryWorker(self._provider, selection, self._cancel, dict(self._formatted_cache))
         worker.moveToThread(thread)
         self._thread, self._worker = thread, worker
         thread.started.connect(worker.run)
         worker.progress.connect(self._progress)
         worker.succeeded.connect(self._succeeded)
+        worker.prepared.connect(self._prepared)
         worker.failed.connect(self._failed)
         worker.cancelled.connect(self._cancelled)
         worker.finished.connect(thread.quit)
@@ -1102,6 +1160,13 @@ class DesktopController(QObject):
                 "Não foi possível apresentar o resultado. Os dados anteriores foram preservados."
             )
 
+    @Slot(object, object)
+    def _prepared(self, result, prepared):
+        self._formatted_cache[id(result.procurement)] = (result.procurement, prepared, result.monthly, result.countries)
+        self._formatted_cache.move_to_end(id(result.procurement))
+        while len(self._formatted_cache) > 4:
+            self._formatted_cache.popitem(last=False)
+
     def _present_result(self, result: QueryResult):
         if (
             self._cancel.is_set()
@@ -1111,9 +1176,12 @@ class DesktopController(QObject):
         ):
             return
         t = result.totals
-        if self._procurement_source is not result.procurement:
-            self._procurement_view = present_procurement(result.procurement)
-            self._procurement_source = result.procurement
+        cached = self._formatted_cache[id(result.procurement)]
+        if cached[2] is not result.monthly or cached[3] is not result.countries:
+            raise ValueError("A preparação do resultado não corresponde aos dados aceitos.")
+        prepared = cached[1]
+        self._procurement_view = prepared["analysis"]
+        self._procurement_source = result.procurement
         procurement = self._procurement_view
         price = result.procurement.total.unit_price
         metrics = [
@@ -1188,21 +1256,8 @@ class DesktopController(QObject):
             selection=-1,
             selectedText="Selecione uma linha para ver os detalhes.",
             selectedTitle="",
-            monthly=[
-                {"period": m, "label": period_label(m), "value": cents / 100_000_000}
-                for m, cents in result.monthly
-            ],
-            countries=[
-                {
-                    "label": name,
-                    "value": cents / 100_000_000,
-                    "full": money(cents),
-                    "share": f"{number(Decimal(100) * cents / t.value_cents, 1)}%"
-                    if t.value_cents
-                    else "0%",
-                }
-                for name, cents in result.countries
-            ],
+            monthly=prepared["monthly"],
+            countries=prepared["countries"],
             periodLabel=f"{period_label(result.selection.period.start)} a {period_label(result.selection.period.end)}",
             datasetSize=number(result.dataset_size),
             appliedStart=result.selection.period.start,
@@ -1260,6 +1315,23 @@ class DesktopController(QObject):
         self._accepted_snapshot = snapshot
         self._accepted_options = options
         self._selection = replace(self._selection, page=result.page)
+        if self._session_writer is not None and snapshot is not None:
+            restored = self._restoring_session
+            changes["restoredQuery"] = False
+            changes["sessionNotice"] = ""
+            if restored is not None and import_selection(restored, self._provider.history.catalog_key) == result.selection:
+                changes["restoredQuery"] = True
+                changes["sessionNotice"] = (
+                    "Última consulta recuperada da base local."
+                    + (" Recalculada na revisão local atual." if restored.get("revision") != snapshot.local_revision else "")
+                )
+            self._restoring_session = None
+            if self._session_writer.error:
+                changes["sessionNotice"] = self._session_writer.error
+            self._session_writer.submit(import_session(
+                replace(result.selection, page=result.page), self._provider.history.catalog_key,
+                snapshot.local_revision,
+            ))
         self._update(**changes)
         revision = (
             (id(self._accepted_snapshot), result.selection.kind)
@@ -1360,6 +1432,8 @@ class DesktopController(QObject):
                 thread.quit()
                 thread.wait()
                 setattr(self, worker_name, None)
+        if self._session_writer is not None:
+            self._session_writer.close()
 
     @Slot(int)
     def selectRow(self, row: int):

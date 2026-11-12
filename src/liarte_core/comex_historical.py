@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Event
@@ -16,6 +17,7 @@ from .comex_history import HistoryError, HistoryStore, HistoryUnavailable
 from .comex_sync import HistorySynchronizer
 from .domain import Period
 from .query import Cancelled, checkpoint
+from .query import DatasetQuery
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,6 +78,17 @@ class HistoricalComexProvider(ComexProvider):
             raise ValueError("A guarda de publicação pertence ao provedor.")
         self._history_sync_generation = 0
         self._history_closed = False
+        self._period_cache = OrderedDict()
+
+    def _remember_period(self, snapshot, options):
+        self._period_cache[(snapshot.period, snapshot.local_revision)] = (
+            snapshot, options, self._general, self._municipal
+        )
+        while len(self._period_cache) > 2 or sum(
+            len(item[0].general_records) + len(item[0].municipal_records)
+            for item in self._period_cache.values()
+        ) > 100_000:
+            self._period_cache.popitem(last=False)
 
     def _history_identity(self):
         return self.history, tuple(self.codes), self.client_factory
@@ -141,6 +154,15 @@ class HistoricalComexProvider(ComexProvider):
         try:
             revision = history.period_revision(period)
             checkpoint(cancel)
+            with self._lock:
+                cached = self._period_cache.get((period, revision)) if not refresh else None
+                if cached is not None and current is not cached[0]:
+                    self._check_query_boundary(cancel, generation, identity)
+                    self._check_period_revision(history, period, revision)
+                    self._snapshot, self._options, self._general, self._municipal = cached
+                    self._period_cache.move_to_end((period, revision))
+                    self._refresh_next = self._revalidate_next = False
+                    return self._snapshot
             if (
                 current is not None and current.period == period and not refresh
                 and current.local_revision == revision and revision
@@ -208,8 +230,11 @@ class HistoricalComexProvider(ComexProvider):
                 self._check_period_revision(history, period, data.local_revision)
                 self._snapshot = snapshot
                 self._options = options
+                self._general = DatasetQuery()
+                self._municipal = DatasetQuery()
                 self._general._rows = snapshot.general_records
                 self._municipal._rows = snapshot.municipal_records
+                self._remember_period(snapshot, options)
                 self._refresh_next = self._revalidate_next = False
             return snapshot
         except HistoryUnavailable as exc:
@@ -350,6 +375,7 @@ class HistoricalComexProvider(ComexProvider):
 
     def connection_changed(self):
         with self._lock:
+            self._period_cache.clear()
             self._history_sync_generation += 1
             self._availability = None
             self._availability_time = 0
@@ -361,6 +387,7 @@ class HistoricalComexProvider(ComexProvider):
 
     def close(self):
         with self._lock:
+            self._period_cache.clear()
             self._history_closed = True
             self._history_sync_generation += 1
             self._discard_incomplete_locked()

@@ -39,6 +39,9 @@ FocusScope {
         return Object.keys(labels).filter(key => Boolean(appliedSelection[key])).map(key => labels[key] + ": " + (key === "balance" ? balances[appliedSelection[key]] || appliedSelection[key] : appliedSelection[key])).join(" · ");
     }
     property var lastFocusedControl: null
+    property bool restoringViewport: false
+    property real viewportTarget: 0
+    property real previousLayoutHeight: -1
     property var pendingAlertTarget: null
     property var pendingComparisonFocus: null
 
@@ -75,6 +78,7 @@ FocusScope {
     function navigate(section) {
         if (!["overview", "monthly", "products"].includes(section))
             return;
+        restoringViewport = false;
         if (section === activeSection) {
             restoreFocus();
             return;
@@ -204,6 +208,8 @@ FocusScope {
             showProductPositions();
     }
     function restoreFocus() {
+        if (restoringViewport || !visible || modalOpen || hostWindow.globalModalOpen)
+            return;
         const item = visibleControl(lastFocusedControl) ? lastFocusedControl : firstVisibleControl(content);
         if (item)
             item.forceActiveFocus(Qt.TabFocusReason);
@@ -211,7 +217,7 @@ FocusScope {
             page.forceActiveFocus();
     }
     function revealComparisonFocus(item) {
-        if (!item || !item.activeFocus || !page.visible || page.modalOpen)
+        if (!item || !item.activeFocus || !page.visible || page.modalOpen || page.restoringViewport)
             return;
         let belongs = false;
         for (let ancestor = item; ancestor; ancestor = ancestor.parent) {
@@ -235,6 +241,19 @@ FocusScope {
             if (page.hostWindow)
                 page.revealComparisonFocus(page.hostWindow.activeFocusItem);
         });
+    }
+    function restoreViewportAfterFrame() {
+        if (!visible || !restoringViewport)
+            return;
+        const height = scroll.contentHeight;
+        scroll.contentY = Math.max(0, Math.min(viewportTarget, height - scroll.height));
+        if (Math.abs(height - previousLayoutHeight) < 0.1) {
+            restoringViewport = false;
+            Qt.callLater(page.restoreFocus);
+        } else {
+            previousLayoutHeight = height;
+            page.hostWindow.update();
+        }
     }
     function finishAlertNavigation() {
         if (!pendingAlertTarget)
@@ -287,7 +306,7 @@ FocusScope {
     Connections {
         target: page.hostWindow
         function onActiveFocusItemChanged() {
-            if (!page.visible || page.modalOpen)
+            if (!page.visible || page.modalOpen || page.restoringViewport)
                 return;
             const item = page.hostWindow.activeFocusItem;
             for (let ancestor = item; ancestor; ancestor = ancestor.parent) {
@@ -298,11 +317,15 @@ FocusScope {
                 }
             }
         }
+        function onFrameSwapped() {
+            page.restoreViewportAfterFrame();
+        }
     }
     Shortcut {
         sequence: "Ctrl+F"
         enabled: page.visible && page.state.loaded && !page.modalOpen && !hostWindow.globalModalOpen
         onActivated: {
+            page.restoringViewport = false;
             page.navigationRevision++;
             page.navigating = false;
             stockScrollMotion.stop();
@@ -320,6 +343,7 @@ FocusScope {
         easing.type: Easing.OutCubic
     }
     onVisibleChanged: if (!visible) {
+        restoringViewport = false;
         navigationRevision++;
         navigating = false;
         stockScrollMotion.stop();
@@ -328,6 +352,15 @@ FocusScope {
         pendingOverviewTarget = null;
         pendingPriorityTarget = null;
         pendingPriorityPerformance = null;
+    } else {
+        // Hidden layouts can temporarily shrink and clamp the Flickable.
+        // Restore the saved offset after rendered layout sizes settle, then
+        // choose a control already inside that viewport.
+        viewportTarget = sectionScroll[activeSection] || 0;
+        previousLayoutHeight = -1;
+        restoringViewport = true;
+        if (hostWindow)
+            hostWindow.update();
     }
     Connections {
         target: Ui.Theme
@@ -345,7 +378,7 @@ FocusScope {
         onWidthChanged: page.scheduleComparisonFocusReveal()
         onHeightChanged: page.scheduleComparisonFocusReveal()
         onContentHeightChanged: page.scheduleComparisonFocusReveal()
-        onContentYChanged: if (!page.navigating)
+        onContentYChanged: if (page.visible && !page.navigating && !page.restoringViewport)
             page.sectionScroll[page.activeSection] = contentY
         clip: true
         boundsBehavior: Flickable.StopAtBounds

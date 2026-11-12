@@ -19,6 +19,7 @@ import os
 from pathlib import Path
 import sqlite3
 import time
+from itertools import groupby
 from uuid import uuid4
 
 from liarte_engine import comexstat_importacoes as contract
@@ -136,6 +137,7 @@ class HistoryStore:
         self.catalog_key = _sha(_json(identity))
         self._codes = set(self.codes)
         self._headings = {code[:4] for code in self.codes}
+        self._read_index_ready = False
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             with self._connection() as db:
@@ -150,6 +152,7 @@ class HistoryStore:
                         if existing["contract"] != _json(identity):
                             raise HistoryError("O contrato do catálogo local não é compatível.")
                         if db.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal":
+                            self._read_index_ready = db.execute("SELECT 1 FROM sqlite_master WHERE type='index' AND name='manifest_by_period'").fetchone() is not None
                             # Opening an already initialized reader must not
                             # acquire a writer reservation. Another instance can
                             # be ingesting a large stage while WAL readers use
@@ -204,6 +207,7 @@ class HistoryStore:
                         catalog_key TEXT PRIMARY KEY REFERENCES catalogs(key),
                         generation_id TEXT NOT NULL REFERENCES generations(id)
                     );
+                    CREATE INDEX IF NOT EXISTS manifest_by_period ON manifest(generation_id,month,municipal,stage_id);
                     CREATE TABLE IF NOT EXISTS checkpoints (
                         catalog_key TEXT NOT NULL REFERENCES catalogs(key), key TEXT NOT NULL,
                         payload TEXT NOT NULL, digest TEXT NOT NULL,
@@ -213,6 +217,7 @@ class HistoryStore:
                 """)
                 db.execute("INSERT OR IGNORE INTO catalogs(key,contract) VALUES(?,?)", (self.catalog_key, _json(identity)))
                 db.commit()
+                self._read_index_ready = True
         except (OSError, sqlite3.Error) as exc:
             raise HistoryError("Não foi possível preparar o histórico local.") from exc
 
@@ -249,9 +254,12 @@ class HistoryStore:
             check()
             db.execute("BEGIN IMMEDIATE")
             try:
+                if not self._read_index_ready:
+                    db.execute("CREATE INDEX IF NOT EXISTS manifest_by_period ON manifest(generation_id,month,municipal,stage_id)")
                 yield db
                 check()
                 db.commit()
+                self._read_index_ready = True
             except BaseException:
                 db.rollback()
                 raise
@@ -461,10 +469,12 @@ class HistoryStore:
             for month, entries in months.items():
                 check()
                 db.execute("INSERT INTO coverage VALUES(?,?,?,?)", (stage_id, month, len(entries), month_digests[month]))
-                for position, (identity, body) in enumerate(entries):
-                    if position % 256 == 0:
-                        check()
-                    db.execute("INSERT INTO facts VALUES(?,?,?,?,?,?)", (stage_id, position, month, identity, body, _sha(body)))
+                for offset in range(0, len(entries), 256):
+                    check()
+                    db.executemany("INSERT INTO facts VALUES(?,?,?,?,?,?)", (
+                        (stage_id, offset + index, month, identity, body, _sha(body))
+                        for index, (identity, body) in enumerate(entries[offset:offset + 256])
+                    ))
 
     def _planned_members(self, db, run, check=_NO_CHECK):
         members = []
@@ -579,12 +589,27 @@ class HistoryStore:
             generation = self._active(db)
             members, revision = self._interval(db, generation, period)
             bases, starts, receipts = [[], []], [], [[], []]
+            # One indexed cursor for the requested interval, including empty
+            # partitions through LEFT JOIN. Keep the exact per-month checks.
+            cursor = db.execute("""
+                SELECT m.month,m.municipal,f.identity,f.payload,f.digest
+                FROM manifest m LEFT JOIN facts f
+                    ON f.stage_id=m.stage_id AND f.month=m.month
+                WHERE m.generation_id=? AND m.month>=? AND m.month<=?
+                ORDER BY m.month,m.municipal,f.position
+            """, (generation["id"], period.start, period.end))
+            groups = iter(groupby(cursor, key=lambda row: (row["month"], row["municipal"])))
             for member in members:
                 checkpoint(cancel)
                 entries = []
-                for index, row in enumerate(db.execute("SELECT identity,payload,digest FROM facts WHERE stage_id=? AND month=? ORDER BY position", (member["stage_id"], member["month"]))):
+                key, rows = next(groups, (None, ()))
+                if key != (member["month"], member["municipal"]):
+                    raise HistoryError("Uma partição do histórico está ausente.")
+                for index, row in enumerate(rows):
                     if index % 256 == 0:
                         checkpoint(cancel)
+                    if row["identity"] is None:
+                        continue
                     if _sha(row["payload"]) != row["digest"]:
                         raise HistoryError("Um registro do histórico falhou na verificação de integridade.")
                     try:

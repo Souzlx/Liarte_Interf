@@ -122,8 +122,14 @@ def registered_cases(include_volume=False):
     from tests.test_inventory_reconciliation_cli import InventoryReconciliationCliTests
     from tests.test_verification_runner import VerificationRunnerTests
     from tests.test_redesign_visual import RedesignVisualTests
+    from tests.test_dashboard_persistence import (
+        QuerySessionTests, HistoryBackupTests, DashboardCacheTests,
+        DashboardResumeTests, StockResumeTests,
+    )
 
     return (
+        QuerySessionTests, HistoryBackupTests, DashboardCacheTests,
+        DashboardResumeTests, StockResumeTests,
         RedesignVisualTests,
         VerificationRunnerTests,
         InventoryReferenceTests,

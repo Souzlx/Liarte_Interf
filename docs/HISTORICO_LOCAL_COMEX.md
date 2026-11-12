@@ -1,5 +1,7 @@
 # Histórico local das importações
 
+A melhoria de [consultas locais e retomada](CONSULTAS_LOCAIS_E_RETOMADA.md) acrescenta recuperação da última consulta, cópias SQLite e reutilização de análises por revisão, mantendo os contratos deste histórico.
+
 Nos fontes em desenvolvimento após a **5.3.1**, o histórico de importações dos produtos acompanhados pela empresa fica em uma base local persistente. O Comex Stat fornece a extração e a atualização; as consultas, filtros, gráficos e exportações utilizam a versão aceita dessa base. Os pacotes anteriores conservam o comportamento com que foram distribuídos.
 
 ```mermaid

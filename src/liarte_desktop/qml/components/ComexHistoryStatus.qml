@@ -106,6 +106,16 @@ Rectangle {
             Accessible.name: "Progresso da atualização do histórico"
         }
         Text {
+            objectName: "comexHistoryBackupNotice"
+            Layout.fillWidth: true
+            visible: text.length > 0
+            text: panel.historyState.backupNotice || ""
+            textFormat: Text.PlainText
+            color: Theme.muted
+            font.pixelSize: 11
+            wrapMode: Text.WordWrap
+        }
+        Text {
             objectName: "comexHistoryMessage"
             visible: text.length > 0
             Layout.fillWidth: true
