@@ -77,7 +77,7 @@ Os ensaios usam dados sintéticos e impedem acesso à rede. Incluem reinício da
 
 Verificação final dos fontes `0596fad`: Python 3.12.14 e Qt 6.10.3 no Linux, **1.399 testes em 88 módulos**, sem falhas, erros ou skips, em 199,519 s. O ensaio de volume usou 100 mil registros em 1,015 s, com 67 eventos Qt. Os 18 testes de organização também passaram. Os [resultados, hashes e limites](EVIDENCIAS_CONSULTAS_LOCAIS.json) identificam os fontes e as capturas.
 
-O [CI Linux](https://github.com/Souzlx/Liarte_Interf/actions/runs/43160676139) confirmou os mesmos 1.399 testes. A [execução Windows](https://github.com/Souzlx/Liarte_Interf/actions/runs/43160672926) concluiu os quatro jobs Python 3.11, 3.12, 3.13 e 3.14. Cada job exige pré-validação Qt, suíte completa, compilação e autoteste do executável antes de disponibilizar o pacote. O CI de organização também foi aprovado.
+O [CI Linux](https://github.com/Souzlx/Liarte_Interf/actions/runs/43160676139) confirmou os mesmos 1.399 testes. A [execução Windows](https://github.com/Souzlx/Liarte_Interf/actions/runs/43160672926) concluiu os quatro jobs Python 3.11, 3.12, 3.13 e 3.14. Os logs completos confirmam, em cada job, 138 testes de pré-validação e uma suíte de 1.399 testes, com 1.398 aprovados e um skip específico de POSIX, sem falhas ou erros. Cada executável compilado passou no autoteste, com consulta histórica offline, exportações, ambos os temas e nenhum aviso QML. O skip de subprocesso POSIX não valida o comportamento de locks após crash no Windows; essa conferência nativa continua separada. O CI de organização também foi aprovado.
 
 A validação Windows encontrou e corrigiu a perda de 50 pixels da rolagem do Estoque após mudança de layout enquanto a página estava oculta. Um teste adicional reproduz esse caso. A recuperação do foco também respeita a confirmação modal de restauração; os 27 testes dirigidos de navegação e backups passaram após o ajuste.
 
@@ -108,6 +108,12 @@ O [portátil Windows com Python 3.12](https://github.com/Souzlx/Liarte_Interf/ac
 
 Extraia a pasta completa e abra `LIARTE_Desktop.exe`. Com o mesmo perfil de uso, conclua uma consulta, feche normalmente e reabra: período, recorte e resultados devem ser recuperados da base local. Esse teste não requer uma nova extração oficial. A instalação anterior à implementação precisa concluir uma primeira consulta para criar o checkpoint.
 
-O CI gerou `AUTOTESTE.json` e `CHECKSUMS_SHA256.txt`. O acesso ao armazenamento dos artefatos foi bloqueado neste ambiente, portanto o ZIP não foi baixado aqui nem teve seus hashes conferidos de forma independente. A aprovação dos jobs e a existência dos quatro artefatos foram confirmadas pela API do GitHub; a conferência visual manual no Windows permanece pendente.
+Após publicar a permissão para `productionresultssa10.blob.core.windows.net`, o download funcionou. O ZIP Python 3.12 foi conferido independentemente neste ambiente: 94.452.854 bytes, CRC válido em todos os membros, caminhos seguros sem duplicação e SHA-256 de cada um dos 1.410 arquivos listados em `CHECKSUMS_SHA256.txt` coincidente. O SHA-256 do ZIP também corresponde ao digest informado pelo GitHub:
+
+```text
+01dbded984f59c0588282592a0835cc99518c32de011fe440e13caedb04547a0
+```
+
+O `AUTOTESTE.json` incluído no pacote confirma execução compilada em `win32`, consulta histórica offline e ausência de avisos QML. O QML empacotado contém as correções de rolagem e de foco modal. O executável foi testado no CI Windows; a conferência local do ZIP no Linux não equivale a executar o binário Windows. Só o ZIP Python 3.12 foi baixado e verificado independentemente aqui. A conferência visual manual no Windows permanece pendente.
 
 Entrega no [PR #15](https://github.com/Souzlx/Liarte_Interf/pull/15), com a [relação completa dos arquivos alterados](https://github.com/Souzlx/Liarte_Interf/pull/15/files). Mantém a arquitetura Python, PySide6 e QML, sem alterar a versão publicada ou a integração SQL Server. A primeira aquisição oficial continua sujeita à disponibilidade da fonte; a retomada usa os dados locais já aceitos.

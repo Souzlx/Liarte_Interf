@@ -86,8 +86,9 @@
     }
   },
   "limits": [
-    "Windows CI build and executable self-test passed; manual Windows visual acceptance is pending.",
-    "Artifact digest is reported by GitHub; ZIP download and independent hash verification were blocked by the environment proxy.",
+    "Executable self-tests ran in Windows CI. This environment independently inspected the ZIP; it did not execute the Windows binary on Linux.",
+    "Manual Windows visual acceptance and native locking crash QA remain separate; one POSIX-only subprocess test is skipped per Windows matrix job.",
+    "Only the Python 3.12 portable ZIP was independently downloaded and checked here; all four matrix jobs and frozen self-tests passed.",
     "Provider timings are not complete GUI-render timings.",
     "Initial official historical extraction and SQLServer stock connection are separate.",
     "Comex full-database recovery is a source CLI, not a new graphical recovery dialog."
@@ -110,7 +111,7 @@
     "url": "https://github.com/Souzlx/Liarte_Interf/actions/runs/43160672926",
     "source_commit": "0596fad3f0cd95e552823e9c4c9fc1bb9cf5991d",
     "status": "success",
-    "evidence": "GitHub API job and step conclusions; detailed logs unavailable in this environment",
+    "evidence": "All four complete Windows job logs downloaded and inspected; Python 3.12 artifact independently downloaded and verified on Linux.",
     "jobs": [
       {
         "name": "build (3.13)",
@@ -119,7 +120,56 @@
           "Conferir interface e perfil no Windows",
           "Compilar e testar a pasta portátil",
           "Disponibilizar pacote"
-        ]
+        ],
+        "preflight": {
+          "tests": 138,
+          "seconds": 64.491
+        },
+        "suite": {
+          "tests": 1399,
+          "passed": 1398,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0,
+          "seconds": 511.441
+        },
+        "skip": "POSIX subprocess crash; Windows locking requires native QA",
+        "frozen_smoke": {
+          "api_network_test": false,
+          "document_resources": {
+            "comex_history": "ok",
+            "comex_history_offline_query": true,
+            "excel": "ok",
+            "inventory_backups": "ok",
+            "pdf": "ok",
+            "pdf_logo": true,
+            "powerbi": "ok",
+            "powerbi_pages": 6,
+            "powerbi_visuals": 85,
+            "synthetic": true,
+            "temporary": true
+          },
+          "error": "",
+          "frozen": true,
+          "https_transport": {
+            "policy": "windows-cryptoapi-v1"
+          },
+          "platform": "win32",
+          "qml_warnings": [],
+          "qt": "6.10.3",
+          "rows_in_page": 50,
+          "save_dialog_checked": true,
+          "status": "ok",
+          "synthetic": true,
+          "themes_checked": [
+            "light",
+            "dark"
+          ],
+          "version": "5.3.1",
+          "window_icon_checked": true,
+          "window_title": "Liarte Importações"
+        },
+        "log_sha256": "c46f115ddada00ff0d66f6e8c5eca54c653dac7c367289ea4bd4dabb796cbad8"
       },
       {
         "name": "build (3.11)",
@@ -128,7 +178,56 @@
           "Conferir interface e perfil no Windows",
           "Compilar e testar a pasta portátil",
           "Disponibilizar pacote"
-        ]
+        ],
+        "preflight": {
+          "tests": 138,
+          "seconds": 58.199
+        },
+        "suite": {
+          "tests": 1399,
+          "passed": 1398,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0,
+          "seconds": 474.078
+        },
+        "skip": "POSIX subprocess crash; Windows locking requires native QA",
+        "frozen_smoke": {
+          "api_network_test": false,
+          "document_resources": {
+            "comex_history": "ok",
+            "comex_history_offline_query": true,
+            "excel": "ok",
+            "inventory_backups": "ok",
+            "pdf": "ok",
+            "pdf_logo": true,
+            "powerbi": "ok",
+            "powerbi_pages": 6,
+            "powerbi_visuals": 85,
+            "synthetic": true,
+            "temporary": true
+          },
+          "error": "",
+          "frozen": true,
+          "https_transport": {
+            "policy": "windows-cryptoapi-v1"
+          },
+          "platform": "win32",
+          "qml_warnings": [],
+          "qt": "6.10.3",
+          "rows_in_page": 50,
+          "save_dialog_checked": true,
+          "status": "ok",
+          "synthetic": true,
+          "themes_checked": [
+            "light",
+            "dark"
+          ],
+          "version": "5.3.1",
+          "window_icon_checked": true,
+          "window_title": "Liarte Importações"
+        },
+        "log_sha256": "ae85e47399c66ce782e537d3c25bdf4d16d897a2ab0a4a8116604e254c97399f"
       },
       {
         "name": "build (3.14)",
@@ -137,7 +236,56 @@
           "Conferir interface e perfil no Windows",
           "Compilar e testar a pasta portátil",
           "Disponibilizar pacote"
-        ]
+        ],
+        "preflight": {
+          "tests": 138,
+          "seconds": 47.572
+        },
+        "suite": {
+          "tests": 1399,
+          "passed": 1398,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0,
+          "seconds": 382.277
+        },
+        "skip": "POSIX subprocess crash; Windows locking requires native QA",
+        "frozen_smoke": {
+          "api_network_test": false,
+          "document_resources": {
+            "comex_history": "ok",
+            "comex_history_offline_query": true,
+            "excel": "ok",
+            "inventory_backups": "ok",
+            "pdf": "ok",
+            "pdf_logo": true,
+            "powerbi": "ok",
+            "powerbi_pages": 6,
+            "powerbi_visuals": 85,
+            "synthetic": true,
+            "temporary": true
+          },
+          "error": "",
+          "frozen": true,
+          "https_transport": {
+            "policy": "windows-cryptoapi-v1"
+          },
+          "platform": "win32",
+          "qml_warnings": [],
+          "qt": "6.10.3",
+          "rows_in_page": 50,
+          "save_dialog_checked": true,
+          "status": "ok",
+          "synthetic": true,
+          "themes_checked": [
+            "light",
+            "dark"
+          ],
+          "version": "5.3.1",
+          "window_icon_checked": true,
+          "window_title": "Liarte Importações"
+        },
+        "log_sha256": "50759680734254f3a59d142f7b60096666c496964e66f2dfb5ab6338f4dd8169"
       },
       {
         "name": "build (3.12)",
@@ -146,7 +294,56 @@
           "Conferir interface e perfil no Windows",
           "Compilar e testar a pasta portátil",
           "Disponibilizar pacote"
-        ]
+        ],
+        "preflight": {
+          "tests": 138,
+          "seconds": 63.559
+        },
+        "suite": {
+          "tests": 1399,
+          "passed": 1398,
+          "skipped": 1,
+          "failures": 0,
+          "errors": 0,
+          "seconds": 539.094
+        },
+        "skip": "POSIX subprocess crash; Windows locking requires native QA",
+        "frozen_smoke": {
+          "api_network_test": false,
+          "document_resources": {
+            "comex_history": "ok",
+            "comex_history_offline_query": true,
+            "excel": "ok",
+            "inventory_backups": "ok",
+            "pdf": "ok",
+            "pdf_logo": true,
+            "powerbi": "ok",
+            "powerbi_pages": 6,
+            "powerbi_visuals": 85,
+            "synthetic": true,
+            "temporary": true
+          },
+          "error": "",
+          "frozen": true,
+          "https_transport": {
+            "policy": "windows-cryptoapi-v1"
+          },
+          "platform": "win32",
+          "qml_warnings": [],
+          "qt": "6.10.3",
+          "rows_in_page": 50,
+          "save_dialog_checked": true,
+          "status": "ok",
+          "synthetic": true,
+          "themes_checked": [
+            "light",
+            "dark"
+          ],
+          "version": "5.3.1",
+          "window_icon_checked": true,
+          "window_title": "Liarte Importações"
+        },
+        "log_sha256": "6b44f00acddf456ba7dda200c43569b0451824471693396044777ea52dc02290"
       }
     ],
     "artifacts": [
@@ -179,9 +376,53 @@
         "expired": false
       }
     ],
-    "zip_download_verified_here": false,
-    "download_obstacle": "Environment proxy refuses CONNECT to productionresultssa10.blob.core.windows.net with HTTP 403, including after command approval.",
-    "manual_windows_review": "pending"
+    "zip_download_verified_here": true,
+    "manual_windows_review": "pending",
+    "zip_verification": {
+      "zip": "LIARTE_Desktop_Python_3.12_Windows.zip",
+      "sha256": "01dbded984f59c0588282592a0835cc99518c32de011fe440e13caedb04547a0",
+      "bytes": 94452854,
+      "verified_files": 1410,
+      "zip_crc": "ok (every member read)",
+      "manifest": "ok",
+      "smoke": {
+        "status": "ok",
+        "version": "5.3.1",
+        "qt": "6.10.3",
+        "window_title": "Liarte Importações",
+        "window_icon_checked": true,
+        "frozen": true,
+        "platform": "win32",
+        "synthetic": true,
+        "document_resources": {
+          "excel": "ok",
+          "pdf": "ok",
+          "pdf_logo": true,
+          "powerbi": "ok",
+          "powerbi_pages": 6,
+          "powerbi_visuals": 85,
+          "comex_history": "ok",
+          "comex_history_offline_query": true,
+          "synthetic": true,
+          "temporary": true,
+          "inventory_backups": "ok"
+        },
+        "https_transport": {
+          "policy": "windows-cryptoapi-v1"
+        },
+        "save_dialog_checked": true,
+        "api_network_test": false,
+        "rows_in_page": 50,
+        "qml_warnings": [],
+        "error": "",
+        "themes_checked": [
+          "light",
+          "dark"
+        ]
+      },
+      "viewport_fix_in_packaged_qml": true
+    },
+    "network_resolution": "Download succeeded after publication of the additional domain productionresultssa10.blob.core.windows.net."
   },
   "stock_viewport_regression": {
     "hidden_layout_reflow": "covered by new regression test",
